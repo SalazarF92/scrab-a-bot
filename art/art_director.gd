@@ -12,24 +12,7 @@ const EXPANSION_CELLS := {&"qwertypede": 0, &"popup_vivo": 1, &"cadeado_chorao":
 	&"bipador": 4, &"ze_ventoinha": 5, &"cabo_cobra": 6, &"fabricadora": 7}
 const PROP_CELLS := {"Barril Toxico": 8, "TV Quebrada": 9, "Bobina de Cobre": 10, "Tubulacao": 11}
 const BACKGROUND_PATH := "res://assets/art/junkyard.png"
-const ANIMATED_PRENSA_PATH := "res://assets/art/mini_prensa_animated.png"
-const PRENSA_FRAMES: Dictionary = {
-	"walk": [
-		Rect2(21, 27, 306, 314),
-		Rect2(370, 26, 312, 291),
-		Rect2(682, 36, 307, 286),
-	],
-	"attack": [
-		Rect2(41, 341, 292, 331),
-		Rect2(356, 353, 307, 314),
-		Rect2(683, 393, 334, 282),
-	],
-	"power": [
-		Rect2(39, 705, 302, 315),
-		Rect2(341, 682, 341, 338),
-		Rect2(682, 696, 318, 324),
-	],
-}
+const MiniPrensaPuppet = preload("res://art/mini_prensa_puppet.gd")
 const PART_CELLS := {
 	&"arm_l_mousetrap": 0, &"arm_l_drill": 1, &"arm_l_stapler": 2, &"arm_l_drill_super": 1,
 	&"arm_r_psu": 3, &"arm_r_pipe_bazooka": 4, &"arm_r_hdd": 5, &"arm_r_pipe_napalm": 4,
@@ -150,94 +133,33 @@ static func draw_enemy(canvas: Node2D, enemy: Node2D) -> void:
 	shadow(canvas, Vector2(3, radius * 0.7), Vector2(radius * 1.2, radius * 0.35))
 	var tint := Color(1.3, 1.3, 1.3) if enemy._flash > 0.0 else Color.WHITE
 
-	# Mini-Prensa 500 com interpolação contínua de movimento, squash & stretch e sub-frame blending:
-	if enemy.get("boss_kind") == &"mini_prensa" and texture(ANIMATED_PRENSA_PATH) != null:
-		var tex := texture(ANIMATED_PRENSA_PATH)
-		var state_val = enemy.get("boss_state")
-		var offset := Vector2.ZERO
-		var rot := 0.0
-		var sc := Vector2.ONE
-		var src_a: Rect2 = PRENSA_FRAMES["walk"][0]
-		var src_b: Rect2 = PRENSA_FRAMES["walk"][1]
-		var blend := 0.0
-
-		# 0 = APPROACH, 1 = RECOVERY, 2 = TELEGRAPH, 3 = STRIKE
+	# Mini-Prensa 500 com rig articulado modular 2D rígido (10 passos):
+	if enemy.get("boss_kind") == &"mini_prensa" and texture(MiniPrensaPuppet.ATLAS_PATH) != null:
+		var tex := texture(MiniPrensaPuppet.ATLAS_PATH)
+		var state_val = enemy.get("boss_state") # 0 = APPROACH, 1 = RECOVERY, 2 = TELEGRAPH, 3 = STRIKE
+		var timer: float = float(enemy.get("_boss_timer"))
+		var act := MiniPrensaPuppet.Action.WALK
+		var puppet_t := t
 		if state_val == 0:
-			var phase := fmod(t * 1.6, 1.0)
-			var step_pulse := sin(phase * TAU * 2.0)
-			offset = Vector2(sin(phase * TAU) * 6.0, -step_pulse * 6.0)
-			rot = -sin(phase * TAU) * 0.04
-			var sq_y := 1.0 + step_pulse * 0.05
-			sc = Vector2(2.0 - sq_y, sq_y)
-
-			var p3 := phase * 3.0
-			var seg := int(p3)
-			var local_t := smoothstep(0.15, 0.85, p3 - float(seg))
-			match seg:
-				0:
-					src_a = PRENSA_FRAMES["walk"][0]
-					src_b = PRENSA_FRAMES["walk"][1]
-					blend = local_t
-				1:
-					src_a = PRENSA_FRAMES["walk"][1]
-					src_b = PRENSA_FRAMES["walk"][2]
-					blend = local_t
-				_:
-					src_a = PRENSA_FRAMES["walk"][2]
-					src_b = PRENSA_FRAMES["walk"][0]
-					blend = local_t
-
+			act = MiniPrensaPuppet.Action.WALK
+			puppet_t = t * 1.3
 		elif state_val == 2:
-			var timer: float = float(enemy.get("_boss_timer"))
+			act = MiniPrensaPuppet.Action.ATTACK
 			var dur: float = maxf(0.001, float(enemy.get("_boss_telegraph_duration")))
 			var prog := clampf(1.0 - (timer / dur), 0.0, 1.0)
-			var ease_p := smoothstep(0.0, 1.0, prog)
-			offset = Vector2(sin(t * 40.0) * 1.5 * ease_p, -25.0 * ease_p)
-			rot = -0.08 * ease_p
-			sc = Vector2(1.0 - 0.08 * ease_p, 1.0 + 0.14 * ease_p)
-			src_a = PRENSA_FRAMES["attack"][0]
-			src_b = PRENSA_FRAMES["attack"][1]
-			blend = ease_p
-
+			puppet_t = prog * 0.70 # Antecipação e abertura ampla da mandíbula
 		elif state_val == 3:
-			var timer: float = float(enemy.get("_boss_timer"))
-			var dur := 0.30
+			act = MiniPrensaPuppet.Action.ATTACK
+			var dur := 0.35
 			var p := clampf(1.0 - (timer / dur), 0.0, 1.0)
-			var spring := exp(-7.0 * p) * cos(16.0 * p)
-			offset = Vector2(0.0, 20.0 * spring)
-			sc = Vector2(1.0 + 0.28 * spring, 1.0 - 0.28 * spring)
-			src_a = PRENSA_FRAMES["attack"][2]
-			src_b = PRENSA_FRAMES["attack"][2]
-			blend = 0.0
-
+			puppet_t = 0.70 + p * 0.55 # Golpe veloz e impacto amortecido
 		elif state_val == 1:
-			var pulse := sin(t * 8.0) * 0.06
-			offset = Vector2(sin(t * 20.0) * 1.0, -8.0 + cos(t * 6.0) * 4.0)
-			sc = Vector2(1.08 + pulse, 1.08 - pulse)
-			var b_cycle := fmod(t * 2.0, 1.0)
-			src_a = PRENSA_FRAMES["power"][1]
-			src_b = PRENSA_FRAMES["power"][2]
-			blend = smoothstep(0.2, 0.8, b_cycle)
+			act = MiniPrensaPuppet.Action.POWER
+			puppet_t = 0.50 + fmod(t * 1.5, 1.60) # Fornalha e vapor durante recuperação
 
-		else:
-			src_a = PRENSA_FRAMES["walk"][0]
-			src_b = PRENSA_FRAMES["walk"][0]
-			blend = 0.0
-
-		var aspect := src_a.size.x / src_a.size.y
-		var fitted := Vector2(minf(extent, extent * aspect), minf(extent, extent / aspect))
-
-		canvas.draw_set_transform(offset, rot, sc)
-		if blend <= 0.01:
-			canvas.draw_texture_rect_region(tex, Rect2(-fitted.x * 0.5, -extent * 0.6 + bob, fitted.x, fitted.y), src_a, tint)
-		elif blend >= 0.99:
-			canvas.draw_texture_rect_region(tex, Rect2(-fitted.x * 0.5, -extent * 0.6 + bob, fitted.x, fitted.y), src_b, tint)
-		else:
-			var col_a := Color(tint.r, tint.g, tint.b, tint.a * (1.0 - blend))
-			var col_b := Color(tint.r, tint.g, tint.b, tint.a * blend)
-			canvas.draw_texture_rect_region(tex, Rect2(-fitted.x * 0.5, -extent * 0.6 + bob, fitted.x, fitted.y), src_a, col_a)
-			canvas.draw_texture_rect_region(tex, Rect2(-fitted.x * 0.5, -extent * 0.6 + bob, fitted.x, fitted.y), src_b, col_b)
-		canvas.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		var pose := MiniPrensaPuppet.compute_pose(act, puppet_t)
+		var puppet_scale := (extent * 0.95) / 320.0
+		MiniPrensaPuppet.draw_puppet(canvas, tex, Vector2(0.0, bob - 12.0), puppet_scale, pose, tint)
 		return
 
 	var expanded := EXPANSION_CELLS.has(enemy.visual_id) and texture(EXPANSION_PATH) != null
