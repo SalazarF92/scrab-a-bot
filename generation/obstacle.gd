@@ -13,6 +13,9 @@ extends StaticBody2D
 @export var label: String = "Parede"
 @export var destructible: bool = false
 @export var max_hp: float = 400.0
+## Chao do poco. Projetil do jogador que chega aqui morre com um "plop": o que
+## o robo nao rebate, perde. Ver ProjectilePool._resolve_bounce.
+@export var is_floor: bool = false
 
 var hp: float = 400.0
 var _flash: float = 0.0
@@ -55,15 +58,9 @@ func take_damage(amount: float, _from: Vector2 = Vector2.ZERO, _bounce_index: in
 
 
 func _draw() -> void:
-	# Flash de acerto proporcional ao tamanho: um obstaculo de 400 por 300 px
-	# piscando branco puro, dezenas de vezes por segundo numa build tardia, e o
-	# risco de fotossensibilidade descrito em GDD_ADENDOS C.2. Objeto grande
-	# clareia pouco, objeto pequeno clareia muito, e a leitura se mantem.
-	var area_factor: float = clampf(20000.0 / maxf(size.x * size.y, 1.0), 0.12, 0.85)
-	var c: Color = color.lerp(Color.WHITE, area_factor) if _flash > 0.0 else color
-	var r := Rect2(-size * 0.5, size)
-	draw_rect(r, c)
-	draw_rect(r, Color("#1A0F14"), false, 5.0)
+	ArtDirector.draw_obstacle(self, self)
+	if label == "Parede":
+		return
 
 	# Leitura da restituicao sem tooltip: setas para fora quando acelera,
 	# hachura quando amortece. Contrato do pilar 2, "entender em 3 segundos".

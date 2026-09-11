@@ -6,12 +6,16 @@ extends Node
 ## nenhum: "A escala de quique e musical e ascendente. Quatro quiques seguidos
 ## formam um arpejo." Se o arpejo nao for prazeroso aqui, nenhum sample resolve.
 ##
-## Tambem implementa o limitador de vozes de 4 por som, sem o qual uma build
-## tardia vira ruido branco.
+## Roda com a arvore pausada (PROCESS_MODE_ALWAYS). Os menus so existem com o
+## jogo pausado, e sem isso o clique de compra da Garagem ficaria mudo.
 
 const MIX_RATE := 22050
 const VOICE_COUNT := 32
 const MAX_VOICES_PER_SOUND := 4
+## Intervalo minimo antes de roubar uma voz do mesmo som. Roubar reinicia um
+## playback, o que aloca no servidor de audio; numa build tardia sao dezenas de
+## quiques por quadro e, sem este intervalo, o proprio limitador vira o gargalo.
+const STEAL_MIN_AGE_USEC := 25000
 
 ## Semitons acima da fundamental por indice de quique. GDD 3.4.3:
 ## quique 1 base, 2 = +2, 3 = +4, 4 = +7. Um arpejo maior aberto.
@@ -22,16 +26,20 @@ var master_volume_db: float = -6.0
 
 var _streams: Dictionary = {}
 var _voices: Array[AudioStreamPlayer] = []
-var _voice_next: int = 0
-var _active_per_sound: Dictionary = {}
+var _voice_sound: Array[String] = []
+var _voice_started: PackedInt64Array
+var _shutting_down := false
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	_voice_started.resize(VOICE_COUNT)
 	for i in VOICE_COUNT:
 		var p := AudioStreamPlayer.new()
 		p.bus = "Master"
 		add_child(p)
 		_voices.append(p)
+		_voice_sound.append("")
 
 	for i in BOUNCE_SEMITONES.size():
 		var hz: float = BOUNCE_ROOT_HZ * pow(2.0, BOUNCE_SEMITONES[i] / 12.0)
@@ -45,29 +53,49 @@ func _ready() -> void:
 	_streams["dash"] = _make_noise_burst(0.09, 1200.0, 0.25)
 	_streams["overheat"] = _make_kettle(0.6)
 	_streams["projectile_plop"] = _make_pop(0.10)
+	_streams["paddle"] = _make_boing(0.16)
 
 
-## Toca um som com limitacao de vozes: no maximo 4 instancias simultaneas do
-## mesmo som, roubando a mais antiga. GDD 3.4.3.
+## Limitador de vozes, GDD 3.4.3: "maximo de 4 instancias simultaneas por som,
+## com roubo da mais antiga." A versao anterior recusava o som novo em vez de
+## roubar, e criava um temporizador e uma funcao anonima por som tocado, o que
+## numa build tardia sao centenas de alocacoes por segundo.
 func play(sound: String, volume_db: float = 0.0, pitch: float = 1.0) -> void:
-	if not _streams.has(sound):
-		return
-	var active: int = _active_per_sound.get(sound, 0)
-	if active >= MAX_VOICES_PER_SOUND:
+	if _shutting_down or not _streams.has(sound):
 		return
 
-	var player := _voices[_voice_next]
-	_voice_next = (_voice_next + 1) % VOICE_COUNT
+	var now := Time.get_ticks_usec()
+	var same := 0
+	var oldest_same := -1
+	var free_voice := -1
+	var oldest_any := -1
+	for v in VOICE_COUNT:
+		if not _voices[v].playing:
+			if free_voice < 0:
+				free_voice = v
+			continue
+		if oldest_any < 0 or _voice_started[v] < _voice_started[oldest_any]:
+			oldest_any = v
+		if _voice_sound[v] == sound:
+			same += 1
+			if oldest_same < 0 or _voice_started[v] < _voice_started[oldest_same]:
+				oldest_same = v
+
+	var target := free_voice
+	if same >= MAX_VOICES_PER_SOUND:
+		if now - _voice_started[oldest_same] < STEAL_MIN_AGE_USEC:
+			return
+		target = oldest_same
+	elif target < 0:
+		target = oldest_any
+
+	var player := _voices[target]
 	player.stream = _streams[sound]
 	player.volume_db = master_volume_db + volume_db
 	player.pitch_scale = pitch
 	player.play()
-
-	_active_per_sound[sound] = active + 1
-	var duration: float = (_streams[sound] as AudioStreamWAV).get_length() / maxf(pitch, 0.01)
-	get_tree().create_timer(duration, false, false, true).timeout.connect(
-		func() -> void: _active_per_sound[sound] = maxi(0, _active_per_sound.get(sound, 1) - 1)
-	)
+	_voice_sound[target] = sound
+	_voice_started[target] = now
 
 
 ## O som do quique e afinado de proposito e por isso NAO recebe a variacao
@@ -89,6 +117,8 @@ func _make_clank(freq_hz: float, duration: float, brightness: float) -> AudioStr
 	var samples := int(duration * MIX_RATE)
 	var data := PackedFloat32Array()
 	data.resize(samples)
+	var noise := RandomNumberGenerator.new()
+	noise.seed = int(freq_hz * 1000.0)
 	for n in samples:
 		var t := float(n) / MIX_RATE
 		var env := exp(-t / (duration * 0.28))
@@ -98,7 +128,7 @@ func _make_clank(freq_hz: float, duration: float, brightness: float) -> AudioStr
 			v += sin(TAU * freq_hz * partials[pi] * t) * amp / (pi + 1.0)
 		# Estalo inicial: 4 ms de ruido, e o que da o "tac" antes do tom.
 		if t < 0.004:
-			v += (randf() * 2.0 - 1.0) * 2.0
+			v += (noise.randf() * 2.0 - 1.0) * 2.0
 		data[n] = v * env * 0.22
 	return _to_wav(data)
 
@@ -107,12 +137,14 @@ func _make_noise_burst(duration: float, cutoff_hz: float, decay: float) -> Audio
 	var samples := int(duration * MIX_RATE)
 	var data := PackedFloat32Array()
 	data.resize(samples)
+	var noise := RandomNumberGenerator.new()
+	noise.seed = int(cutoff_hz)
 	var lp := 0.0
 	var alpha: float = clampf(cutoff_hz / float(MIX_RATE), 0.0, 1.0)
 	for n in samples:
 		var t := float(n) / MIX_RATE
 		var env := exp(-t / (duration * decay))
-		lp += alpha * ((randf() * 2.0 - 1.0) - lp)
+		lp += alpha * ((noise.randf() * 2.0 - 1.0) - lp)
 		data[n] = lp * env * 0.5
 	return _to_wav(data)
 
@@ -128,6 +160,20 @@ func _make_pop(duration: float) -> AudioStreamWAV:
 		var f := 620.0 * exp(-t * 14.0) + 70.0
 		phase += TAU * f / MIX_RATE
 		data[n] = sin(phase) * exp(-t / (duration * 0.3)) * 0.4
+	return _to_wav(data)
+
+
+func _make_boing(duration: float) -> AudioStreamWAV:
+	# Mola de sofa: o tom sobe e oscila. E o som do rebatedor.
+	var samples := int(duration * MIX_RATE)
+	var data := PackedFloat32Array()
+	data.resize(samples)
+	var phase := 0.0
+	for n in samples:
+		var t := float(n) / MIX_RATE
+		var f := 180.0 + 260.0 * (1.0 - exp(-t * 18.0)) + sin(t * 60.0) * 14.0
+		phase += TAU * f / MIX_RATE
+		data[n] = sin(phase) * exp(-t / (duration * 0.35)) * 0.35
 	return _to_wav(data)
 
 
@@ -156,3 +202,25 @@ func _to_wav(samples: PackedFloat32Array) -> AudioStreamWAV:
 	wav.stereo = false
 	wav.data = bytes
 	return wav
+
+
+## Para as vozes atuais, mas permite tocar novamente na mesma sessao.
+func stop_all() -> void:
+	for p in _voices:
+		p.stop()
+
+
+## Fecha a entrada de sons antes de liberar o audio. Durante a espera de saida
+## a fisica ainda pode produzir quiques: so stop_all() permitiria criar novos
+## playbacks apos a limpeza, causando o vazamento observado no smoke.
+## E definitivo para esta instancia; nao usar para pausar ou trocar de setor.
+func shutdown() -> void:
+	_shutting_down = true
+	stop_all()
+	for p in _voices:
+		p.stream = null
+	_streams.clear()
+
+
+func _exit_tree() -> void:
+	shutdown()

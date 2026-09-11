@@ -9,6 +9,17 @@ extends RefCounted
 ##
 ## Todos os valores sao os do GDD, secoes 4.3 a 4.6.
 
+## GDD 3.1, tabela de ritmo, coluna "Pecas ofertadas". Indice = setor - 1.
+## Pesos de Comum, Incomum, Rara e Lendaria.
+const SECTOR_RARITY_WEIGHTS := [
+	[80.0, 20.0, 0.0, 0.0],
+	[60.0, 35.0, 5.0, 0.0],
+	[40.0, 40.0, 20.0, 0.0],
+	[20.0, 45.0, 35.0, 0.0],
+	[0.0, 30.0, 50.0, 20.0],
+]
+
+
 static func _proj(p: Dictionary) -> ProjectileType:
 	return ProjectileType.make(p)
 
@@ -21,6 +32,7 @@ static func arm_left_parts() -> Array[PartData]:
 	var mouse := PartData.new()
 	mouse.id = &"arm_l_mousetrap"
 	mouse.display_name = "Ratoeira de Mouse \"Clica Clica\""
+	mouse.caption = "uma ratoeira de mouse"
 	mouse.slot = PartData.Slot.ARM_LEFT
 	mouse.watts = 25
 	mouse.heat_per_shot = 1.0
@@ -37,6 +49,7 @@ static func arm_left_parts() -> Array[PartData]:
 	var drill := PartData.new()
 	drill.id = &"arm_l_drill"
 	drill.display_name = "Furadeira de Impacto \"Broca Gaga\""
+	drill.caption = "uma furadeira gagá"
 	drill.slot = PartData.Slot.ARM_LEFT
 	drill.watts = 34
 	drill.heat_per_shot = 1.2
@@ -53,6 +66,7 @@ static func arm_left_parts() -> Array[PartData]:
 	var stapler := PartData.new()
 	stapler.id = &"arm_l_stapler"
 	stapler.display_name = "Metralhadora de Grampeador \"Tec-Tec-Tec\""
+	stapler.caption = "um grampeador metralhadora"
 	stapler.slot = PartData.Slot.ARM_LEFT
 	stapler.watts = 36
 	stapler.heat_per_shot = 0.9
@@ -76,6 +90,7 @@ static func arm_right_parts() -> Array[PartData]:
 	var psu := PartData.new()
 	psu.id = &"arm_r_psu"
 	psu.display_name = "Canhao de Fonte \"500W Generica\""
+	psu.caption = "uma fonte de 500W que mente"
 	psu.slot = PartData.Slot.ARM_RIGHT
 	psu.watts = 52
 	psu.heat_per_shot = 22.0
@@ -98,6 +113,7 @@ static func arm_right_parts() -> Array[PartData]:
 	var bazooka := PartData.new()
 	bazooka.id = &"arm_r_pipe_bazooka"
 	bazooka.display_name = "Bazuca de Cano de Pia \"Encanamento Livre\""
+	bazooka.caption = "um cano de pia armado"
 	bazooka.slot = PartData.Slot.ARM_RIGHT
 	bazooka.watts = 50
 	bazooka.heat_per_shot = 20.0
@@ -119,6 +135,7 @@ static func arm_right_parts() -> Array[PartData]:
 	var hdd := PartData.new()
 	hdd.id = &"arm_r_hdd"
 	hdd.display_name = "Lancador de HD \"Disco Rigido Voador\""
+	hdd.caption = "um HD dando o clique da morte"
 	hdd.slot = PartData.Slot.ARM_RIGHT
 	hdd.watts = 46
 	hdd.heat_per_shot = 16.0
@@ -146,6 +163,7 @@ static func head_parts() -> Array[PartData]:
 	var toaster := PartData.new()
 	toaster.id = &"head_toaster"
 	toaster.display_name = "Torradeira \"Cuspe-Torrada\""
+	toaster.caption = "uma torradeira"
 	toaster.slot = PartData.Slot.HEAD
 	toaster.watts = 18
 	toaster.heat_per_shot = 5.0
@@ -170,8 +188,10 @@ static func head_parts() -> Array[PartData]:
 	var tesla := PartData.new()
 	tesla.id = &"head_toaster_tesla"
 	tesla.display_name = "TORRADA TESLA"
+	tesla.caption = "uma torradeira eletrificada"
 	tesla.slot = PartData.Slot.HEAD
 	tesla.rarity = PartData.Rarity.RARE
+	tesla.recipe_only = true
 	tesla.watts = 26
 	tesla.heat_per_shot = 7.0
 	tesla.fire_rate = 1.0 / 3.5
@@ -194,6 +214,9 @@ static func head_parts() -> Array[PartData]:
 
 
 # --- CHASSI E PERNAS ----------------------------------------------------------
+#
+# Restituicao do rebatedor por chassi (GDD_ADENDOS F). O chassi ja define o
+# "modo de existir" do robo, GDD 4.6; agora define tambem como ele devolve bala.
 
 static func chassis_parts() -> Array[PartData]:
 	var out: Array[PartData] = []
@@ -201,47 +224,72 @@ static func chassis_parts() -> Array[PartData]:
 	var springs := PartData.new()
 	springs.id = &"chassis_springs"
 	springs.display_name = "Molas de Sofa \"Boing Boing\""
+	springs.caption = "molas de sofá"
 	springs.slot = PartData.Slot.CHASSIS
 	springs.watts = 22
 	springs.hp = 85.0
 	springs.move_speed = 312.0
 	springs.dash_charges = 1
+	springs.restitution = 1.35
 	springs.color = Color("#8A4B2A")
 	out.append(springs)
 
 	var treads := PartData.new()
 	treads.id = &"chassis_treads"
 	treads.display_name = "Esteiras de Trator de Brinquedo \"Lagarta Lenta\""
+	treads.caption = "esteiras de trator de brinquedo"
 	treads.slot = PartData.Slot.CHASSIS
 	treads.watts = 30
 	treads.hp = 240.0
 	treads.move_speed = 195.0
 	treads.dash_charges = 1
+	# GDD 4.6: "Projeteis inimigos que acertam a esteira quicam de volta."
+	treads.restitution = 1.15
 	treads.color = Color("#FF6B1A")
 	out.append(treads)
 
 	var casters := PartData.new()
 	casters.id = &"chassis_casters"
 	casters.display_name = "Rodinhas de Carrinho de Mercado \"Roda Bamba\""
+	casters.caption = "rodinhas de carrinho de mercado"
 	casters.slot = PartData.Slot.CHASSIS
 	casters.watts = 26
 	casters.hp = 70.0
 	casters.move_speed = 377.0
 	casters.dash_charges = 1
+	casters.restitution = 1.0
 	casters.color = Color("#4A4F52")
 	out.append(casters)
 
 	var mannequin := PartData.new()
 	mannequin.id = &"chassis_mannequin"
 	mannequin.display_name = "Pernas de Manequim \"Passo de Modelo\""
+	mannequin.caption = "pernas de manequim"
 	mannequin.slot = PartData.Slot.CHASSIS
 	mannequin.watts = 28
 	mannequin.hp = 95.0
 	mannequin.move_speed = 268.0
 	# GDD 4.6: tres cargas de dash, com recarga de 0,9 s cada.
 	mannequin.dash_charges = 3
+	mannequin.restitution = 1.10
 	mannequin.color = Color("#F5F0E1")
 	out.append(mannequin)
+
+	# GDD 4.6, Chassi de Cofre "Fofinho Blindado". Lento, sem dash, muito HP, e o
+	# melhor rebatedor do jogo: "Projeteis que acertam a frente quicam de volta com
+	# o dobro do dano." Robot e ProjectilePool aplicam defesa/reflexao frontal.
+	var safe := PartData.new()
+	safe.id = &"chassis_safe"
+	safe.display_name = "Chassi de Cofre \"Fofinho Blindado\""
+	safe.caption = "um cofre de perninhas curtas"
+	safe.slot = PartData.Slot.CHASSIS
+	safe.watts = 36
+	safe.hp = 320.0
+	safe.move_speed = 169.0
+	safe.dash_charges = 0
+	safe.restitution = 1.60
+	safe.color = Color("#2E5943")
+	out.append(safe)
 
 	return out
 
@@ -259,6 +307,7 @@ static func cpus() -> Array[CpuData]:
 	var pentiun := CpuData.new()
 	pentiun.id = &"cpu_pentiun"
 	pentiun.display_name = "Pentiun Ferrugem 100 MHz"
+	pentiun.caption = "um Pentiun enferrujado"
 	pentiun.tdp = 120
 	pentiun.heat_capacity = 100.0
 	pentiun.heat_dissipation = 12.0
@@ -269,6 +318,7 @@ static func cpus() -> Array[CpuData]:
 	var ryzin := CpuData.new()
 	ryzin.id = &"cpu_ryzin"
 	ryzin.display_name = "Ryzin 9 Frito (Overclock)"
+	ryzin.caption = "um Ryzin frito"
 	ryzin.tdp = 116
 	ryzin.heat_capacity = 80.0
 	ryzin.heat_dissipation = 7.0
@@ -280,6 +330,7 @@ static func cpus() -> Array[CpuData]:
 	var gpu := CpuData.new()
 	gpu.id = &"cpu_gpu_in_socket"
 	gpu.display_name = "Placa de Video Enfiada no Soquete"
+	gpu.caption = "uma placa de vídeo enfiada no soquete"
 	gpu.tdp = 116
 	gpu.heat_capacity = 70.0
 	gpu.heat_dissipation = 6.0
@@ -301,11 +352,75 @@ static func all_parts() -> Array[PartData]:
 	return out
 
 
-## Sorteia uma vitrine de pecas para a Bancada.
-## Considera bonus de raridade (ex: da arvore de Sorte).
-static func roll_shop_offer(count: int, rare_bonus: float = 0.0) -> Array[PartData]:
-	var pool := all_parts()
-	var rng := GameRng.stream(GameRng.Stream.DROPS)
+## Primeira receita do vertical slice. O modulo fica disponivel na Bancada;
+## receitas futuras podem reutilizar este dado sem alterar os slots do robo.
+static func fusion_recipes() -> Array[FusionRecipe]:
+	var tesla := FusionRecipe.new()
+	tesla.id = &"tesla_toast"
+	tesla.source_part_id = &"head_toaster"
+	tesla.module_id = &"car_battery"
+	tesla.result_part = head_parts()[1]
+	tesla.description = "5 torradas; cada quique encadeia raios em ate 3 alvos."
+	return [tesla]
+
+
+static func fusion_module_name(module_id: StringName) -> String:
+	match module_id:
+		&"car_battery": return "Bateria de Carro"
+	return "Modulo desconhecido"
+
+
+## Preco de prototipo, equivalente a uma peca Comum. A receita nao cobra taxa.
+static func fusion_module_price(module_id: StringName) -> int:
+	match module_id:
+		&"car_battery": return 90
+	return -1
+
+
+## Pesos de raridade da vitrine para um setor, com o bonus do Olho Clinico.
+## O bonus tira pontos da raridade mais baixa presente e poe na Rara, sem criar
+## Lendaria onde a tabela do setor nao preve.
+static func rarity_weights(sector: int, rare_bonus: float = 0.0) -> Array[float]:
+	var src: Array = SECTOR_RARITY_WEIGHTS[clampi(sector - 1, 0, SECTOR_RARITY_WEIGHTS.size() - 1)]
+	var w: Array[float] = []
+	for v in src:
+		w.append(float(v))
+	var shift := rare_bonus * 100.0
+	var low := 0
+	while low < 2 and w[low] <= 0.0:
+		low += 1
+	if low < 2 and shift > 0.0:
+		var moved := minf(w[low], shift)
+		w[low] -= moved
+		w[PartData.Rarity.RARE] += moved
+	return w
+
+
+static func roll_rarity(rng: RandomNumberGenerator, weights: Array[float]) -> int:
+	var total := 0.0
+	for v in weights:
+		total += v
+	var roll := rng.randf() * total
+	var last_valid := 0
+	for r in weights.size():
+		if weights[r] <= 0.0:
+			continue
+		last_valid = r
+		if roll < weights[r]:
+			return r
+		roll -= weights[r]
+	return last_valid
+
+
+## Sorteia uma vitrine de pecas para a Bancada, pela tabela de raridade do setor.
+## Usa o fluxo SHOP: a vitrine nao pode depender de quantos inimigos morreram.
+static func roll_shop_offer(count: int, sector: int = 1, rare_bonus: float = 0.0) -> Array[PartData]:
+	var pool: Array[PartData] = []
+	for p in all_parts():
+		if not p.recipe_only:
+			pool.append(p)
+	var rng := GameRng.stream(GameRng.Stream.SHOP)
+	var weights := rarity_weights(sector, rare_bonus)
 	var chosen: Array[PartData] = []
 	var available := pool.duplicate()
 
@@ -317,18 +432,6 @@ static func roll_shop_offer(count: int, rare_bonus: float = 0.0) -> Array[PartDa
 		available.remove_at(idx)
 
 		var item: PartData = base_part.clone()
-
-		# Chance de raridade aumentada conforme GDD e Sorte
-		var roll := rng.randf() + rare_bonus
-		if roll > 0.95:
-			item.rarity = PartData.Rarity.LEGENDARY
-		elif roll > 0.78:
-			item.rarity = PartData.Rarity.RARE
-		elif roll > 0.45:
-			item.rarity = PartData.Rarity.UNCOMMON
-		else:
-			item.rarity = PartData.Rarity.COMMON
-
+		item.rarity = roll_rarity(rng, weights) as PartData.Rarity
 		chosen.append(item)
 	return chosen
-

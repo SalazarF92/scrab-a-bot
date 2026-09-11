@@ -8,14 +8,23 @@ extends Node2D
 ## Tudo e montado em codigo, sem .tscn autorado, por dois motivos: a cena de
 ## producao vai ser outra, e um arquivo de cena grande e ilegivel em diff, o que
 ## atrapalha justamente na fase em que todo numero muda todo dia.
+##
+## Pausa. Esta cena roda sempre; o que pausa e o no World, que contem tudo que e
+## simulacao. Menus e atalhos ficam fora dele. Antes nao havia pausa nenhuma:
+## clicar num botao da Garagem disparava o braco esquerdo atras do menu, com
+## calor, som e tremor.
 
-const GarageUI := preload("res://ui/garage_ui.gd")
-const WorkbenchUI := preload("res://ui/workbench_ui.gd")
+const STEAM_WALL_COUNT := 2
 
+## Semente fixa para testes automatizados. Zero sorteia uma semente nova por run.
+@export var start_seed: int = 0
+
+var world: Node2D
 var arena: ArenaGenerator
 var pool: ProjectilePool
-var robot: Robot
+var enemy_pool: EnemyPool
 var director: WaveDirector
+var robot: Robot
 var camera: ArenaCamera
 var hud: Hud
 var overlay: DebugOverlay
@@ -26,9 +35,12 @@ var _cpu_index := 0
 var _part_index := {PartData.Slot.ARM_LEFT: 0, PartData.Slot.ARM_RIGHT: 0, PartData.Slot.HEAD: 0}
 var _cpus: Array[CpuData]
 var _catalog: Dictionary
+var _run_over := false
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
 	_catalog = {
 		PartData.Slot.ARM_LEFT: PartLibrary.arm_left_parts(),
 		PartData.Slot.ARM_RIGHT: PartLibrary.arm_right_parts(),
@@ -37,22 +49,36 @@ func _ready() -> void:
 	}
 	_cpus = PartLibrary.cpus()
 
+	world = Node2D.new()
+	world.name = "World"
+	world.process_mode = Node.PROCESS_MODE_PAUSABLE
+	add_child(world)
+
 	arena = ArenaGenerator.new()
-	add_child(arena)
+	world.add_child(arena)
 
 	pool = ProjectilePool.new()
-	add_child(pool)
+	world.add_child(pool)
+
+	enemy_pool = EnemyPool.new()
+	world.add_child(enemy_pool)
 
 	director = WaveDirector.new()
-	add_child(director)
+	director.enemy_pool = enemy_pool
+	world.add_child(director)
 
 	robot = Robot.new()
 	robot.pool = pool
-	add_child(robot)
+	world.add_child(robot)
+
+	for i in STEAM_WALL_COUNT:
+		var wall := SteamWall.new()
+		world.add_child(wall)
+		robot.steam_walls.append(wall)
 
 	camera = ArenaCamera.new()
 	camera.target = robot
-	add_child(camera)
+	world.add_child(camera)
 	camera.make_current()
 
 	var layer := CanvasLayer.new()
@@ -65,6 +91,7 @@ func _ready() -> void:
 	overlay.pool = pool
 	overlay.arena = arena
 	overlay.robot = robot
+	overlay.enemy_pool = enemy_pool
 	layer.add_child(overlay)
 
 	garage = GarageUI.new()
@@ -80,8 +107,7 @@ func _ready() -> void:
 	robot.died.connect(_on_player_died)
 	director.room_cleared.connect(_on_room_cleared)
 
-	MetaManager.start_new_run()
-	_new_room(1)
+	_begin_run(false, start_seed)
 
 	# Permite disparar o teste de estresse sem teclado, para gravacao de video e
 	# para a integracao continua:
@@ -90,10 +116,40 @@ func _ready() -> void:
 		_stress_test.call_deferred()
 
 
+## Comeca uma run. O desafio diario usa a semente do dia e o loadout inicial
+## fixo; a run comum sorteia uma semente, ou usa a da cena quando ha uma.
+func _begin_run(daily: bool, seed_override: int = 0) -> void:
+	var seed_value := seed_override
+	if daily:
+		seed_value = GameRng.daily_seed()
+		_cpu_index = 0
+		for slot in _part_index:
+			_part_index[slot] = 0
+	elif seed_value == 0:
+		seed_value = GameRng.fresh_seed()
+
+	# A ordem importa: todo sorteio da run, inclusive a primeira arena, precisa
+	# acontecer depois do reseed.
+	GameRng.reseed(seed_value)
+	pool.reseed_rng()
+	Telemetry.reset()
+	MetaManager.start_new_run(-1, daily, seed_value)
+	workbench.reset_for_run()
+	_run_over = false
+
+	garage.visible = false
+	workbench.visible = false
+	hud.visible = true
+	_new_room(1)
+	_refresh_pause()
+
+
 func _new_room(sector: int) -> void:
-	for e in get_tree().get_nodes_in_group(&"enemies"):
-		e.queue_free()
+	enemy_pool.release_all()
+	director.stop()
 	pool.clear()
+	for wall in robot.steam_walls:
+		wall.retract()
 	Vfx.clear_all()
 	CombatFeel.reset()
 
@@ -111,44 +167,60 @@ func _new_room(sector: int) -> void:
 		robot.equip(_catalog[PartData.Slot.CHASSIS][0].clone())
 		for slot in _part_index:
 			robot.equip(_catalog[slot][_part_index[slot]].clone())
-		robot.hp = robot.max_hp
+		robot.reset_for_run()
 
 	director.arena = arena
 	director.player = robot
 	director.start_room(sector)
 
 
-func _on_room_cleared() -> void:
-	if director.sector >= 5:
-		print("--- VITORIA DA RUN! --- ", Telemetry.summary())
-		var summary := MetaManager.end_run(5, true)
-		print("--- resumo da vitoria --- ", summary)
-		await get_tree().create_timer(1.2).timeout
-		_show_garage()
-		return
+func _refresh_pause() -> void:
+	get_tree().paused = garage.visible or workbench.visible
 
+
+func _on_room_cleared() -> void:
+	if _run_over:
+		return
+	if director.sector >= 5:
+		_finish_run(true)
+		return
 	await get_tree().create_timer(0.8).timeout
+	if _run_over:
+		return
 	_show_workbench()
+
+
+func _on_player_died() -> void:
+	_finish_run(false)
+
+
+func _finish_run(won: bool) -> void:
+	if _run_over:
+		return
+	_run_over = true
+	director.stop()
+	var sector := director.sector
+	var caption := RunCaption.build(robot, won, sector, GameRng.run_seed)
+	var summary := MetaManager.end_run(5 if won else sector, won, {"caption": caption})
+	print("--- %s --- %s" % ["VITORIA DA RUN" if won else "morreu", Telemetry.summary()])
+	print("--- legenda --- ", caption)
+	print("--- resumo --- ", summary)
+	await get_tree().create_timer(1.2).timeout
+	_show_garage()
 
 
 func _show_workbench() -> void:
 	workbench.robot = robot
 	workbench.open_workbench(director.sector)
 	hud.visible = false
+	_refresh_pause()
 
 
 func _on_workbench_proceed() -> void:
 	workbench.visible = false
 	hud.visible = true
 	_new_room(director.sector + 1)
-
-
-func _on_player_died() -> void:
-	print("--- morreu --- ", Telemetry.summary())
-	var summary := MetaManager.end_run(director.sector, false)
-	print("--- resumo da run --- ", summary)
-	await get_tree().create_timer(1.2).timeout
-	_show_garage()
+	_refresh_pause()
 
 
 func _show_garage() -> void:
@@ -156,15 +228,11 @@ func _show_garage() -> void:
 	workbench.visible = false
 	hud.visible = false
 	garage.queue_redraw()
+	_refresh_pause()
 
 
-func _on_garage_start_run() -> void:
-	garage.visible = false
-	workbench.visible = false
-	hud.visible = true
-	Telemetry.reset()
-	MetaManager.start_new_run()
-	_new_room(1)
+func _on_garage_start_run(daily: bool) -> void:
+	_begin_run(daily)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -178,7 +246,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				_show_workbench()
 		KEY_G:
 			if garage.visible:
-				_on_garage_start_run()
+				_begin_run(false)
 			else:
 				_show_garage()
 		KEY_F1:
@@ -205,10 +273,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			Telemetry.reset()
 
 
+## Troca de peca de desenvolvimento. Equipa uma copia: equipar o objeto do
+## catalogo fazia a Bancada alterar o tier da peca-modelo de todas as runs.
 func _cycle_part(slot: int) -> void:
 	var list: Array = _catalog[slot]
 	_part_index[slot] = (_part_index[slot] + 1) % list.size()
-	robot.equip(list[_part_index[slot]])
+	robot.equip((list[_part_index[slot]] as PartData).clone())
 
 
 ## O benchmark do GDD 7.2: 800 projeteis vivos, 60 fps travados no Steam Deck.
@@ -216,10 +286,10 @@ func _cycle_part(slot: int) -> void:
 func _stress_test() -> void:
 	var type := ProjectileType.make({
 		"id": &"stress", "speed": 780.0, "radius": 7.0, "max_bounces": 12,
-		"restitution": 1.0, "ttl": 20.0, "damage": 1.0,
+		"restitution": 1.0, "ttl": 20.0, "damage": 1.0, "ignore_floor": true,
 		"base_color": Color("#8CFF1A"),
 	})
-	var rng := GameRng.stream(GameRng.Stream.COMBAT)
+	var rng := GameRng.stream(GameRng.Stream.VFX)
 	for i in 800:
 		var p := Vector2(rng.randf_range(100.0, ArenaGenerator.ARENA_SIZE.x - 100.0),
 			rng.randf_range(100.0, ArenaGenerator.ARENA_SIZE.y - 100.0))

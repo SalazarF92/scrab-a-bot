@@ -23,3 +23,5 @@ extends Resource
 @export var bonus_bounces: int = 0
 @export var heat_gen_mult: float = 1.0
 @export var description: String = ""
+## Como a CPU aparece na legenda de fim de run, por exemplo "um Pentiun enferrujado".
+@export var caption: String = ""

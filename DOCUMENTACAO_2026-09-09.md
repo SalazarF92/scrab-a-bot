@@ -1,4 +1,7 @@
 # SCRAP-A-BOT — Relatório de Desenvolvimento e Arquitetura
+
+> Registro histórico. Leia também `DOCUMENTACAO_2026-09-10.md` e
+> `DOCUMENTACAO_IMPLEMENTACAO_ARTES_2026-09-10.md` para o estado atual.
 **Data:** 09 de Setembro de 2026  
 **Versão do Motor:** Godot 4.7.2 Forward+  
 **Status do Marco:** Protótipo Jogável Vertical (Estilo *Ball x Pit*) + Metaprogressão Completa

@@ -10,6 +10,7 @@ enum Rarity { COMMON, UNCOMMON, RARE, LEGENDARY }
 const RARITY_MULT := [1.0, 1.35, 1.80, 2.50]
 ## GDD 4.7.1, fusao de duplicata.
 const FUSION_MULT := [1.0, 1.40, 1.90, 2.60]
+const UPGRADE_COSTS := [80, 140, 220]
 
 @export var id: StringName = &""
 @export var display_name: String = ""
@@ -32,6 +33,13 @@ const FUSION_MULT := [1.0, 1.40, 1.90, 2.60]
 @export var hp: float = 100.0
 @export var move_speed: float = 260.0
 @export var dash_charges: int = 1
+## Restituicao do robo como rebatedor (GDD_ADENDOS F). So e lida no chassi.
+@export var restitution: float = 1.0
+
+@export_group("Loja")
+## Resultado de receita de fusao. GDD 4.7.2: "gera uma peca unica que nao existe
+## na tabela de drops". Fica fora da vitrine.
+@export var recipe_only: bool = false
 
 @export_group("Comportamento")
 @export var behaviors: Array[PartBehavior] = []
@@ -39,6 +47,9 @@ const FUSION_MULT := [1.0, 1.40, 1.90, 2.60]
 @export_group("Visual")
 @export var color: Color = Color("#8A4B2A")
 @export var silhouette: String = "box"
+## Como a peca aparece na legenda de fim de run: artigo e apelido em minusculas,
+## por exemplo "uma torradeira". GDD 1.4, item 3.
+@export var caption: String = ""
 
 
 func rarity_mult() -> float:
@@ -49,10 +60,15 @@ func fusion_mult() -> float:
 	return FUSION_MULT[clampi(fusion_level, 0, 3)]
 
 
+## Raridade vezes tier de fusao, os dois multiplicadores nomeados de GDD_ADENDOS B.6.
+func power_mult() -> float:
+	return rarity_mult() * fusion_mult()
+
+
 func effective_damage() -> float:
 	if projectile == null:
 		return 0.0
-	return projectile.damage * rarity_mult() * fusion_mult()
+	return projectile.damage * power_mult()
 
 
 ## GDD 4.2: barramento serial no braco esquerdo (cadencia), paralelo no direito
@@ -98,11 +114,24 @@ func base_price() -> int:
 	return 90
 
 
+## Valor de reposicao: preco da raridade mais os degraus de evolucao aplicados.
+## O tier adquirido por duplicata usa a mesma tabela de valor do tier comprado.
+func replacement_value() -> int:
+	var value := base_price()
+	for level in clampi(fusion_level, 0, 3):
+		value += UPGRADE_COSTS[level]
+	return value
+
+
+## GDD_ADENDOS B.3: substituir devolve 50%, incluindo o investimento em tier.
+func sell_value() -> int:
+	return int(floor(float(replacement_value()) * 0.5))
+
+
 ## Custo em Sucata para subir de nivel de fusao (+Tier).
 func upgrade_cost() -> int:
 	if fusion_level >= 3:
 		return -1
-	const UPGRADE_COSTS := [80, 140, 220]
 	return UPGRADE_COSTS[clampi(fusion_level, 0, 2)]
 
 
@@ -121,7 +150,10 @@ func clone() -> PartData:
 	c.hp = hp
 	c.move_speed = move_speed
 	c.dash_charges = dash_charges
+	c.restitution = restitution
+	c.recipe_only = recipe_only
 	c.behaviors = behaviors.duplicate()
 	c.color = color
 	c.silhouette = silhouette
+	c.caption = caption
 	return c

@@ -20,6 +20,13 @@ var projectiles_expired_slow: int = 0
 var enemies_killed: int = 0
 var run_time: float = 0.0
 
+## Formato de poco (GDD_ADENDOS F). A razao entre rebatidas e perdas no chao e a
+## leitura direta de se o rebatedor e habilidade ou sorte.
+var paddle_catches: int = 0
+var projectiles_lost_floor: int = 0
+## Inimigos que chegaram na base. Nao contam como abate.
+var enemies_breached: int = 0
+
 var _running: bool = false
 
 
@@ -43,6 +50,9 @@ func reset() -> void:
 	projectiles_expired_slow = 0
 	enemies_killed = 0
 	run_time = 0.0
+	paddle_catches = 0
+	projectiles_lost_floor = 0
+	enemies_breached = 0
 	_running = true
 
 
@@ -83,6 +93,7 @@ func dps() -> float:
 
 
 func summary() -> String:
-	return "dano %.0f | dps %.0f | acertos %d | mediana de quique x%.2f | dano por ricochete %.0f%%" % [
-		total_damage, dps(), total_hits, median_bounce_multiplier(), ricochet_damage_share() * 100.0
+	return "dano %.0f | dps %.0f | acertos %d | mediana de quique x%.2f | dano por ricochete %.0f%% | rebatidas %d | perdidos no chao %d | invasoes %d" % [
+		total_damage, dps(), total_hits, median_bounce_multiplier(), ricochet_damage_share() * 100.0,
+		paddle_catches, projectiles_lost_floor, enemies_breached,
 	]

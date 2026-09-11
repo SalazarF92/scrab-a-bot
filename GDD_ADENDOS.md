@@ -284,4 +284,110 @@ Prefere cabeça, depois chassi, depois o braço menos usado.
 
 ---
 
-*Adendos v1.0. Cada item aqui é uma decisão pendente, não uma decisão tomada.*
+## F. DECISÃO: O FORMATO DE POÇO VERTICAL
+*Registro de decisão, 10/09/2026. Diferente das seções A a E, este item é uma decisão tomada.*
+
+### F.1 O que mudou e por quê
+O protótipo trocou a arena aberta de 2400 por 1350 com mira livre em 360 graus por um
+**poço vertical de 1000 por 1080**. O robô fica preso à linha de defesa, anda só na
+horizontal e mira sempre para cima. Os inimigos descem.
+
+A troca já estava no código e no relatório técnico de 09/09, mas não em nenhum documento
+de design. Com dois documentos dizendo coisas diferentes, cada sistema novo servia a um e
+contradizia o outro. Esta seção existe para acabar com isso.
+
+**Status:** vigente no protótipo. O GDD v1.0 continua valendo para conteúdo: peças,
+inimigos, CPUs, humor e direção de arte. Onde o GDD e esta seção divergem, vale esta seção
+até a v1.1 do GDD. Reverter o formato significa desfazer as mecânicas de F.3.
+
+**Risco reconhecido:** o poço aproxima o jogo de BALL x PIT, que o GDD 7.6 já lista como
+comparação desfavorável. A diferenciação deixa de vir do formato e passa a vir das
+mecânicas de F.3, que só existem porque o jogador tem um corpo modular.
+
+### F.2 Seções do GDD suspensas pelo formato
+
+| Seção do GDD | O que dizia | O que vale no poço |
+|---|---|---|
+| 3.1 Fluxo da partida | 4 salas por setor, Bancada na sala 3 | 1 sala de 3 ondas por setor, Bancada entre setores |
+| 3.2 Movimentação | movimento livre, mira em 360 graus | movimento horizontal na linha de defesa, mira de -171 a -9 graus |
+| 3.3.1 Superfícies | toda superfície periférica devolve o projétil | o chão do poço mata o projétil do jogador |
+| 3.3.4 Geometria | 2400 por 1350, 4 a 9 obstáculos, 12 a 22% de cobertura, corredor de 220 px | 1000 por 1080, 3 a 6 obstáculos, 6 a 18% de cobertura, corredor de 150 px |
+| 5.4 a 5.6 Chefes | chefes com fases, ataques e pontos fracos | chefes são corpos grandes que descem; fases ainda não existem |
+| 1.4 Formato vertical | corte 9 por 16 como recurso para vídeo | o jogo inteiro já é vertical |
+
+### F.3 Mecânicas próprias do formato
+
+- **O robô é o rebatedor.** Projétil do jogador que está caindo e toca o corpo do robô volta
+  para cima. O ângulo de saída vem do ponto de contato, até 62 graus da vertical na borda, e
+  não da normal: é isso que transforma andar na linha de defesa em mirar. O projétil ganha um
+  quique, que sobe o multiplicador, e ganha também um de orçamento, então rebater nunca
+  encurta a vida dele. O teto de 12 continua valendo.
+- **Restituição por chassi.** Molas de Sofá 1,35. Esteiras 1,15. Rodinhas 1,00.
+  Pernas de Manequim 1,10. Chassi de Cofre 1,60, que entra no catálogo nesta decisão.
+- **O chão do poço.** Projétil do jogador que passa do robô e chega ao chão morre com um
+  "plop". A telemetria compara rebatidas com perdas no chão, que é a leitura direta de se o
+  rebatedor é habilidade ou sorte.
+- **Parede de vapor.** A Purga de Calor ergue uma superfície de 240 por 26 px, com
+  restituição 1,35, no ponto mirado, perpendicular à mira, por 3 segundos. Ela também
+  segura inimigos, então a Purga passa a ser defesa e ataque nos dois sentidos.
+- **Onda de bumpers.** Nos setores 2 e 4, a segunda onda troca o enxame por Vovós Geladeiras
+  Lotadas, com restituição 1,35, descendo a 35% da velocidade, escoltadas só por Fantasmas de
+  Disquete. Cada geladeira libera 6 Parafusetas quando morre. O alvo mais gordo da tela é a
+  coisa que o jogador quer manter viva por um tempo.
+- **Invasão da base.** Inimigo que chega na linha de defesa causa dano e some, sem Sucata,
+  cura, contagem de abate ou som de morte. Antes a invasão pagava como um abate.
+
+### F.4 Decisões menores tomadas junto
+
+- **Desafio de hoje** (GDD 6.3.5 e E.4): semente derivada da data em UTC, loadout inicial
+  fixo e nível de risco zero. Paga 150 de Cobre uma vez por dia ao limpar 3 setores. O
+  número 3 é de balanceamento, porque o GDD não define "completo". Vitória no desafio não
+  desbloqueia nível de risco.
+- **Legenda de fim de run** (GDD 1.4, item 3): montada com o artigo e o nome do inimigo, a
+  legenda de cada peça e a telemetria. A variante sai da semente da run. Copiável com C.
+- **Fusão de duplicata e troca** (GDD 4.7.1 e B.3): comprar a peça equipada sobe o tier;
+  comprar uma peça diferente devolve 50% do preço da que sai.
+- **Vitrine por setor** (GDD 3.1): a raridade segue a tabela de ritmo. Resultados de receita,
+  como a TORRADA TESLA, ficam fora da vitrine (GDD 4.7.2).
+- **Tier de fusão no chassi** multiplica o HP, como a raridade já multiplicava.
+- **Anti-travamento de inimigo:** inimigo parado em cima de obstáculo contorna pelo lado que
+  tem espaço; se não cabe em lado nenhum, se espreme por dentro.
+- **Fluxos de RNG** ganham SHOP e WAVES (GDD 7.3), para a vitrine não depender de abates e a
+  arena não depender de onde o jogador estava na sala anterior.
+
+### F.5 Pendências que esta decisão cria
+
+1. Confirmar ou reverter o formato antes do Vertical Slice. O trailer sai dele.
+2. Redesenhar os chefes de 5.4 a 5.6, que pressupõem arena aberta e jogador circulando.
+3. Implementar o bloqueio frontal de 70% do Chassi de Cofre.
+4. Balancear as restituições do rebatedor com a razão entre rebatidas e perdas no chão.
+5. Reescrever as seções 3.1, 3.2 e 3.3.4 na v1.1 do GDD.
+
+---
+
+*Adendos v1.1. As seções A a E são decisões pendentes. A seção F registra uma decisão tomada.*
+
+## G. Implementação de artes e fechamento de pendências — 10/09/2026
+
+O formato de poço de F permanece vigente nesta implementação. O GDD v1.0 continua
+como documento de visão; as adaptações abaixo descrevem o código atual.
+
+- **F.5, item 3 concluído:** Cofre reduz 70% do dano na direção da mira. Projétil
+  hostil frontal muda para a facção do jogador e retorna com dano base dobrado.
+  Invasão da base não é bloqueada. O chassis mantém a penalidade de não ter dash.
+- **F.5, item 2 parcialmente concluído:** os chefes dos setores 1/3/5 têm três fases
+  por HP, ataques avisados, mira travada e recuperação vulnerável. Mini-Prensa tem
+  frente protegida e costas com dano 2x. Sugão/Formulário ainda não são encontros jogáveis.
+- **Receita:** Torradeira + Bateria de Carro (90 Sucata) -> Torrada Tesla. Mochila
+  de quatro módulos; preserva tier; consome ingrediente; não cobra taxa adicional.
+  Preço do módulo é decisão de balanceamento do protótipo, não número prescrito no GDD.
+- **Economia:** reroll 60 + 40 por uso; revenda é 50% do valor da raridade somado
+  aos custos acumulados dos tiers. Duplicata e evolução comprada usam a mesma tabela.
+- **Arte:** 13 peças equipáveis ilustradas, 6 tipos de inimigo comum/bumper, 3 chefes,
+  obstáculos e fundo raster. Camadas, sombras e paralaxe simulam profundidade 2.5D.
+  Uma pose desenhada por item, animada proceduralmente; os ciclos tradicionais do GDD
+  e cinco cenários exclusivos ainda não estão produzidos.
+- **Fusão pausada:** celebração local com contorno/faíscas; não usa hitstop global
+  de 350 ms nem retoma combate. Respeita a opção de flashes reduzidos existente.
+
+Ver `DOCUMENTACAO_IMPLEMENTACAO_ARTES_2026-09-10.md` para evidências e escopo restante.

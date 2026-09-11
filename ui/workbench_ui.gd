@@ -1,14 +1,31 @@
 class_name WorkbenchUI
 extends Control
-## A Bancada de Trabalho entre salas/setores. GDD 4.7 e GDD_ADENDOS B.1 / B.3.
-## Permite comprar pecas novas, evoluir pecas equipadas (+Tier de fusao), reroll e solda de reparo.
+## A Bancada de Trabalho entre setores. GDD 4.7 e GDD_ADENDOS B.1 / B.3.
+## Vitrine de pecas, evolucao de tier, fusao de duplicata, reroll e solda de reparo.
+##
+## Fusao de duplicata, GDD 4.7.1: "Pegar a mesma peca duas vezes a promove um
+## nivel." Comprar a peca que ja esta equipada sobe o tier. Antes a compra trocava
+## a peca e o tier acumulado era perdido.
+## Troca, GDD_ADENDOS B.3: substituir por uma peca diferente devolve 50% do preco
+## da peca que sai.
+##
+## So recebe teclado com foco, e so existe com o jogo pausado. Ver
+## scenes/prototype.gd.
 
 signal proceed_requested
 
 const REPAIR_COST := 120
 const REPAIR_PERCENT := 0.35
 const BASE_REROLL_COST := 60
-const REROLL_INCREMENT := 30
+const REROLL_INCREMENT := 40
+const BATTERY_MODULE := &"car_battery"
+
+const SLOT_LABELS := {
+	PartData.Slot.ARM_LEFT: "Braço E",
+	PartData.Slot.ARM_RIGHT: "Braço D",
+	PartData.Slot.HEAD: "Cabeça",
+	PartData.Slot.CHASSIS: "Chassi",
+}
 
 var robot: Robot
 var sector: int = 1
@@ -18,18 +35,51 @@ var _rerolls_used: int = 0
 var _repair_used: bool = false
 var _font: Font
 var _buttons: Array[Dictionary] = [] # {"rect": Rect2, "action": String, "payload": Variant}
+var inventory := FusionInventory.new()
+var _recipes: Array[FusionRecipe] = PartLibrary.fusion_recipes()
+var _status: String = ""
+var _fusion_time: float = 0.0
+var _fusion_name: String = ""
+var _pulse_time: float = 0.0
 
 
 func _ready() -> void:
+	# A celebracao de fusao e a UI avancam mesmo com o combate pausado.
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	focus_mode = Control.FOCUS_ALL
 	_font = ThemeDB.fallback_font
+	visibility_changed.connect(_on_visibility_changed)
+
+
+func _process(delta: float) -> void:
+	if not visible:
+		return
+	_pulse_time += delta
+	_fusion_time = maxf(0.0, _fusion_time - delta)
+	queue_redraw()
+
+
+func reset_for_run() -> void:
+	inventory.clear()
+	_offers.clear()
+	_rerolls_used = 0
+	_repair_used = false
+	_status = ""
+	_fusion_time = 0.0
+
+
+func _on_visibility_changed() -> void:
+	if visible:
+		grab_focus.call_deferred()
 
 
 func open_workbench(p_sector: int) -> void:
 	sector = p_sector
 	_rerolls_used = 0
 	_repair_used = false
+	_status = "Pecas repetidas sobem o tier. Trocas devolvem metade do valor, incluindo o tier."
 	_roll_offers()
 	visible = true
 	queue_redraw()
@@ -38,7 +88,7 @@ func open_workbench(p_sector: int) -> void:
 func _roll_offers() -> void:
 	var count := MetaManager.get_workbench_options_count()
 	var rare_bonus: float = 0.15 if MetaManager.get_upgrade_level("sorte") >= 2 else 0.0
-	_offers = PartLibrary.roll_shop_offer(count, rare_bonus)
+	_offers = PartLibrary.roll_shop_offer(count, sector, rare_bonus)
 
 
 func _reroll_cost() -> int:
@@ -50,6 +100,7 @@ func _reroll_cost() -> int:
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		grab_focus()
 		var mpos: Vector2 = event.position
 		for btn in _buttons:
 			if (btn["rect"] as Rect2).has_point(mpos):
@@ -58,29 +109,32 @@ func _gui_input(event: InputEvent) -> void:
 				return
 
 	if event is InputEventKey and event.pressed and not event.echo:
+		var handled := true
 		match event.keycode:
-			KEY_SPACE, KEY_ENTER:
+			KEY_SPACE, KEY_ENTER, KEY_KP_ENTER:
 				_proceed()
-				accept_event()
 			KEY_R:
 				_try_reroll()
-				accept_event()
 			KEY_H:
 				_try_repair()
-				accept_event()
+			KEY_M:
+				_try_buy_module(BATTERY_MODULE)
+			KEY_F:
+				_try_fuse_recipe(0)
+			KEY_DELETE:
+				_try_sell_module(BATTERY_MODULE)
 			KEY_1:
 				_try_buy_offer(0)
-				accept_event()
 			KEY_2:
 				_try_buy_offer(1)
-				accept_event()
 			KEY_3:
 				_try_buy_offer(2)
-				accept_event()
 			KEY_4:
-				if _offers.size() >= 4:
-					_try_buy_offer(3)
-					accept_event()
+				_try_buy_offer(3)
+			_:
+				handled = false
+		if handled:
+			accept_event()
 
 
 func _handle_button_action(action: String, payload: Variant) -> void:
@@ -95,6 +149,12 @@ func _handle_button_action(action: String, payload: Variant) -> void:
 			_try_buy_offer(int(payload))
 		"upgrade_slot":
 			_try_upgrade_slot(int(payload))
+		"buy_module":
+			_try_buy_module(StringName(payload))
+		"sell_module":
+			_try_sell_module(StringName(payload))
+		"fuse_recipe":
+			_try_fuse_recipe(int(payload))
 
 
 func _proceed() -> void:
@@ -107,46 +167,67 @@ func _try_repair() -> void:
 		return
 	if robot.hp >= robot.max_hp:
 		return
-	if MetaManager.current_scrap < REPAIR_COST:
+	if not MetaManager.spend_scrap(REPAIR_COST):
 		Sfx.play("projectile_plop", -4.0)
 		return
 
-	MetaManager.current_scrap -= REPAIR_COST
 	_repair_used = true
-	var heal_amt := robot.max_hp * REPAIR_PERCENT
-	robot.heal(heal_amt)
+	robot.heal(robot.max_hp * REPAIR_PERCENT)
 	Sfx.play_varied("fire_heavy", -4.0)
-	CombatFeel.add_trauma(0.15)
 	queue_redraw()
 
 
 func _try_reroll() -> void:
-	var cost := _reroll_cost()
-	if MetaManager.current_scrap < cost:
+	if not MetaManager.spend_scrap(_reroll_cost()):
 		Sfx.play("projectile_plop", -4.0)
 		return
-
-	MetaManager.current_scrap -= cost
 	_rerolls_used += 1
 	_roll_offers()
 	Sfx.play_varied("dash", -6.0)
 	queue_redraw()
 
 
+## O que comprar esta oferta faria: equipar num slot vazio, fundir com a peca
+## igual equipada, trocar por uma diferente, ou nada se a igual ja esta no tier IV.
+func offer_mode(part: PartData) -> StringName:
+	if robot == null:
+		return &"equip"
+	var current: PartData = robot.equipped.get(part.slot)
+	if current == null:
+		return &"equip"
+	if current.id == part.id:
+		return &"maxed" if current.fusion_level >= 3 else &"fuse"
+	return &"swap"
+
+
 func _try_buy_offer(idx: int) -> void:
 	if idx < 0 or idx >= _offers.size() or robot == null:
 		return
 	var part: PartData = _offers[idx]
-	var cost: int = part.base_price()
-	if MetaManager.current_scrap < cost:
+	var mode := offer_mode(part)
+	if mode == &"maxed" or not MetaManager.spend_scrap(part.base_price()):
 		Sfx.play("projectile_plop", -4.0)
 		return
 
-	MetaManager.current_scrap -= cost
-	robot.equip(part.clone())
+	var current: PartData = robot.equipped.get(part.slot)
+	match mode:
+		&"fuse":
+			var upgraded := current.clone()
+			upgraded.fusion_level += 1
+			if part.rarity > upgraded.rarity:
+				upgraded.rarity = part.rarity
+			robot.equip(upgraded)
+			_celebrate_fusion("%s - TIER %s" % [upgraded.display_name, upgraded.fusion_roman()])
+			Sfx.play_varied("fire_heavy", 4.0)
+		&"swap":
+			MetaManager.refund_scrap(current.sell_value())
+			robot.equip(part.clone())
+			Sfx.play_varied("fire_heavy", 0.0)
+		_:
+			robot.equip(part.clone())
+			Sfx.play_varied("fire_heavy", 0.0)
+
 	_offers.remove_at(idx)
-	Sfx.play_varied("fire_heavy", 0.0)
-	CombatFeel.add_trauma(0.2)
 	queue_redraw()
 
 
@@ -157,16 +238,75 @@ func _try_upgrade_slot(slot: int) -> void:
 	if part == null or part.fusion_level >= 3:
 		return
 	var cost: int = part.upgrade_cost()
-	if cost < 0 or MetaManager.current_scrap < cost:
+	if cost < 0 or not MetaManager.spend_scrap(cost):
 		Sfx.play("projectile_plop", -4.0)
 		return
 
-	MetaManager.current_scrap -= cost
-	part.fusion_level += 1
-	robot.equip(part) # reaplica e recalcula stats
+	var upgraded := part.clone()
+	upgraded.fusion_level += 1
+	robot.equip(upgraded) # reaplica e recalcula stats sem alterar a peca-modelo
+	_celebrate_fusion("%s - TIER %s" % [upgraded.display_name, upgraded.fusion_roman()])
 	Sfx.play_varied("fire_heavy", 2.0)
-	CombatFeel.add_trauma(0.25)
 	queue_redraw()
+
+
+func _try_buy_module(module_id: StringName) -> void:
+	var cost := PartLibrary.fusion_module_price(module_id)
+	if cost < 0 or robot == null:
+		return
+	if inventory.is_full():
+		_status = "Mochila cheia: funda uma receita ou venda uma bateria para liberar espaco."
+		return
+	if not MetaManager.spend_scrap(cost):
+		_status = "Falta Sucata para comprar o modulo."
+		Sfx.play("projectile_plop", -4.0)
+		return
+	inventory.add(module_id)
+	_status = "%s guardada. Equipe a Torradeira e pressione F para fundir." % PartLibrary.fusion_module_name(module_id)
+	Sfx.play_varied("dash", -6.0)
+	queue_redraw()
+
+
+func _try_sell_module(module_id: StringName) -> void:
+	var price := PartLibrary.fusion_module_price(module_id)
+	if price < 0 or not inventory.consume(module_id):
+		return
+	var refund := int(floor(float(price) * 0.5))
+	MetaManager.refund_scrap(refund)
+	_status = "Modulo vendido: +%d Sucata. Um espaco livre na mochila." % refund
+	queue_redraw()
+
+
+func recipe_available(index: int) -> bool:
+	if robot == null or index < 0 or index >= _recipes.size():
+		return false
+	var recipe := _recipes[index]
+	if recipe.result_part == null:
+		return false
+	var source: PartData = robot.equipped.get(recipe.result_part.slot)
+	return recipe.accepts(source) and inventory.count(recipe.module_id) > 0
+
+
+func _try_fuse_recipe(index: int) -> void:
+	if not recipe_available(index):
+		_status = "Receita: Torradeira equipada + 1 Bateria de Carro na mochila."
+		Sfx.play("projectile_plop", -4.0)
+		return
+	var recipe := _recipes[index]
+	var source: PartData = robot.equipped.get(recipe.result_part.slot)
+	var result := recipe.craft(source)
+	if result == null or not inventory.consume(recipe.module_id):
+		return
+	robot.equip(result)
+	_status = "%s equipada! Bateria consumida; tier preservado; sem taxa de fusao." % result.display_name
+	_celebrate_fusion(result.display_name)
+	Sfx.play_varied("fire_heavy", 4.0)
+	queue_redraw()
+
+
+func _celebrate_fusion(part_name: String) -> void:
+	_fusion_name = part_name
+	_fusion_time = 2.5
 
 
 # --- Desenho da Interface ---
@@ -175,40 +315,40 @@ func _draw() -> void:
 	_buttons.clear()
 	var vp := get_viewport_rect().size
 
-	# Fundo da bancada com textura de chapa escura
 	draw_rect(Rect2(Vector2.ZERO, vp), Color("#120E0D"))
+	var backdrop := ArtDirector.texture(ArtDirector.BACKGROUND_PATH)
+	if backdrop:
+		draw_texture_rect(backdrop, Rect2(Vector2.ZERO, vp), false, Color(0.4, 0.4, 0.4))
 
 	_draw_header(vp)
 	_draw_equipped_section(vp)
 	_draw_shop_section(vp)
+	_draw_recipe_section(vp)
 	_draw_repair_and_footer(vp)
 
 
 func _draw_header(vp: Vector2) -> void:
 	draw_string(_font, Vector2(40, 48), "BANCADA DE TRABALHO DO FERRO-VELHO", HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Color("#F5F0E1"))
-	var sub := "Setor %d Limpo • \"Monte antes que a proxima onda desmonte voce\"" % sector
+	var sub := "Setor %d Limpo • \"Monte antes que a próxima onda desmonte você\"" % sector
 	draw_string(_font, Vector2(40, 74), sub, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color(1, 1, 1, 0.5))
 
-	# Sucata e HP
 	var info_box := Rect2(vp.x - 420, 20, 380, 64)
 	draw_rect(info_box, Color("#201712"))
 	draw_rect(info_box, Color("#FFD400"), false, 2.0)
 
-	var scrap_text := "SUCATA: %d 🔩" % MetaManager.current_scrap
-	draw_string(_font, Vector2(info_box.position.x + 16, info_box.position.y + 28), scrap_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color("#FFD400"))
+	draw_string(_font, Vector2(info_box.position.x + 16, info_box.position.y + 28), "SUCATA: %d" % MetaManager.current_scrap, HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color("#FFD400"))
 
 	if robot != null:
-		var hp_text := "HP: %d / %d ❤️   ENERGIA: %d / %d W" % [
-			int(round(robot.hp)), int(round(robot.max_hp)), robot.watts_used, robot.cpu.tdp if robot.cpu else 0
+		var hp_text := "HP: %d / %d   ENERGIA: %d / %d W" % [
+			int(round(robot.hp)), int(round(robot.max_hp)), robot.watts_used, robot.total_tdp()
 		]
 		draw_string(_font, Vector2(info_box.position.x + 16, info_box.position.y + 52), hp_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color("#8CFF1A") if not robot.is_undervolt() else Color("#FF2D95"))
 
 
 func _draw_equipped_section(vp: Vector2) -> void:
 	var section_w := (vp.x - 100.0) * 0.44
-	var panel := Rect2(40, 100, section_w, vp.y - 200)
-	draw_rect(panel, Color("#1A1412"))
-	draw_rect(panel, Color("#8A4B2A"), false, 2.0)
+	var panel := Rect2(40, 100, section_w, vp.y - 430)
+	_draw_panel(panel, Color("#1A1412"), Color("#8A4B2A"))
 
 	draw_string(_font, Vector2(56, 130), "ROBÔ EQUIPADO & EVOLUÇÃO (+TIER)", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("#FFD400"))
 
@@ -232,18 +372,21 @@ func _draw_equipped_section(vp: Vector2) -> void:
 		draw_rect(card_rect, Color(1, 1, 1, 0.15), false, 1.0)
 
 		if part != null:
-			# Indicador colorido da peca
 			draw_rect(Rect2(card_rect.position.x + 8, card_rect.position.y + 8, 12, card_rect.size.y - 16), part.color)
 
-			var title := "%s: %s" % [slot_name, part.display_name]
-			draw_string(_font, card_rect.position + Vector2(28, 22), title, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color.WHITE)
+			ArtDirector.part_icon(self, part, Rect2(card_rect.position + Vector2(20, 6), Vector2(84, card_rect.size.y - 12)))
 
-			var tier_str := "Tier %s (+%.0f%% Dano)  •  %s  •  %dW" % [
+			var title := "%s: %s" % [slot_name, part.display_name]
+			_draw_ellipsis(card_rect.position + Vector2(112, 25), title, card_rect.size.x - 266, 18, Color.WHITE)
+
+			var tier_str := "Tier %s (+%.0f%% poder)  •  %s  •  %dW" % [
 				part.fusion_roman(), (part.fusion_mult() - 1.0) * 100.0, part.rarity_name(), part.watts
 			]
-			draw_string(_font, card_rect.position + Vector2(28, 42), tier_str, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, part.rarity_color())
+			if slot_id == PartData.Slot.CHASSIS:
+				tier_str += "  •  rebatedor x%.2f" % part.restitution
+			_draw_ellipsis(card_rect.position + Vector2(112, 49), tier_str, card_rect.size.x - 266, 16, part.rarity_color())
+			draw_string(_font, card_rect.position + Vector2(112, 72), "Troca devolve %d Sucata" % part.sell_value(), HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#BCA68D"))
 
-			# Botao de evolucao de Tier
 			var up_cost: int = part.upgrade_cost()
 			var up_btn := Rect2(card_rect.position.x + card_rect.size.x - 140, card_rect.position.y + 10, 130, card_rect.size.y - 20)
 
@@ -251,8 +394,7 @@ func _draw_equipped_section(vp: Vector2) -> void:
 				var can_up := MetaManager.current_scrap >= up_cost
 				draw_rect(up_btn, Color("#8CFF1A") if can_up else Color("#442222"))
 				draw_rect(up_btn, Color.WHITE, false, 1.0)
-				var btn_label := "Evoluir (%d 🔩)" % up_cost
-				draw_string(_font, up_btn.position + Vector2(0, up_btn.size.y * 0.5 + 4), btn_label, HORIZONTAL_ALIGNMENT_CENTER, up_btn.size.x, 12, Color.BLACK if can_up else Color.WHITE)
+				draw_string(_font, up_btn.position + Vector2(0, up_btn.size.y * 0.5 + 4), "Evoluir (%d)" % up_cost, HORIZONTAL_ALIGNMENT_CENTER, up_btn.size.x, 12, Color.BLACK if can_up else Color.WHITE)
 				_buttons.append({"rect": up_btn, "action": "upgrade_slot", "payload": slot_id})
 			else:
 				draw_string(_font, up_btn.position + Vector2(0, up_btn.size.y * 0.5 + 4), "TIER MÁXIMO", HORIZONTAL_ALIGNMENT_CENTER, up_btn.size.x, 12, Color("#8CFF1A"))
@@ -266,14 +408,11 @@ func _draw_shop_section(vp: Vector2) -> void:
 	var left_w := (vp.x - 100.0) * 0.44
 	var section_x := 40.0 + left_w + 20.0
 	var section_w := vp.x - section_x - 40.0
-	var panel := Rect2(section_x, 100, section_w, vp.y - 200)
-
-	draw_rect(panel, Color("#1A1412"))
-	draw_rect(panel, Color("#22E0FF").darkened(0.5), false, 2.0)
+	var panel := Rect2(section_x, 100, section_w, vp.y - 430)
+	_draw_panel(panel, Color("#1A1412"), Color("#22E0FF").darkened(0.5))
 
 	draw_string(_font, Vector2(section_x + 16, 130), "VITRINE DE PEÇAS DISPONÍVEIS", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("#22E0FF"))
 
-	# Desenho das ofertas
 	var offer_y := 150.0
 	var n_offers := _offers.size()
 	var card_h := (panel.size.y - 120.0) / maxf(float(n_offers), 1.0) - 8.0
@@ -285,57 +424,143 @@ func _draw_shop_section(vp: Vector2) -> void:
 		draw_rect(card, Color("#221A16"))
 		draw_rect(card, part.rarity_color().darkened(0.5), false, 1.0)
 
-		# Slot e nome
-		var slot_label := ""
-		match part.slot:
-			PartData.Slot.ARM_LEFT: slot_label = "[Braço E]"
-			PartData.Slot.ARM_RIGHT: slot_label = "[Braço D]"
-			PartData.Slot.HEAD: slot_label = "[Cabeça]"
-			PartData.Slot.CHASSIS: slot_label = "[Chassi]"
-
-		var header_text := "[%d] %s %s • %s" % [i + 1, slot_label, part.display_name, part.rarity_name()]
-		draw_string(_font, card.position + Vector2(16, 22), header_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, part.rarity_color())
+		ArtDirector.part_icon(self, part, Rect2(card.position + Vector2(9, 9), Vector2(86, card.size.y - 18)))
+		var header_text := "[%d] [%s] %s • %s" % [i + 1, SLOT_LABELS.get(part.slot, "?"), part.display_name, part.rarity_name()]
+		_draw_ellipsis(card.position + Vector2(105, 25), header_text, card.size.x - 304, 18, part.rarity_color())
 
 		var stats_text := "Consumo: %dW  •  Calor: %.1f  •  Cadência: %.1f/s" % [part.watts, part.heat_per_shot, part.fire_rate]
 		if part.projectile != null:
 			stats_text += "  •  Dano: %.0f  •  Quiques: %d" % [part.projectile.damage, part.projectile.max_bounces]
 		elif part.slot == PartData.Slot.CHASSIS:
-			stats_text += "  •  HP: %.0f  •  Velocidade: %.0f" % [part.hp, part.move_speed]
-		draw_string(_font, card.position + Vector2(16, 42), stats_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(1, 1, 1, 0.7))
+			stats_text = "Consumo: %dW  •  HP: %.0f  •  Velocidade: %.0f  •  Rebatedor x%.2f" % [part.watts, part.hp, part.move_speed, part.restitution]
+		_draw_ellipsis(card.position + Vector2(105, 50), stats_text, card.size.x - 304, 16, Color(1, 1, 1, 0.7))
 
-		# Botao de compra
 		var price: int = part.base_price()
-		var can_buy := MetaManager.current_scrap >= price
-		var buy_btn := Rect2(card.position.x + card.size.x - 170, card.position.y + 10, 155, card.size.y - 20)
+		var mode := offer_mode(part)
+		var can_buy := MetaManager.current_scrap >= price and mode != &"maxed"
+		var buy_btn := Rect2(card.position.x + card.size.x - 190, card.position.y + 10, 175, card.size.y - 20)
+		var label := "Equipar (%d)" % price
+		var fill := Color("#22E0FF")
+		match mode:
+			&"fuse":
+				label = "FUNDIR +TIER (%d)" % price
+				fill = Color("#FF2D95")
+			&"maxed":
+				label = "JÁ NO TIER IV"
+			&"swap":
+				var current: PartData = robot.equipped.get(part.slot)
+				label = "Trocar (%d, volta %d)" % [price, current.sell_value()]
 
-		draw_rect(buy_btn, Color("#22E0FF") if can_buy else Color("#442222"))
+		draw_rect(buy_btn, fill if can_buy else Color("#442222"))
 		draw_rect(buy_btn, Color.WHITE, false, 1.0)
-		var btn_label := "Equipar (%d 🔩)" % price
-		draw_string(_font, buy_btn.position + Vector2(0, buy_btn.size.y * 0.5 + 4), btn_label, HORIZONTAL_ALIGNMENT_CENTER, buy_btn.size.x, 12, Color.BLACK if can_buy else Color.WHITE)
+		draw_string(_font, buy_btn.position + Vector2(0, buy_btn.size.y * 0.5 + 4), label, HORIZONTAL_ALIGNMENT_CENTER, buy_btn.size.x, 12, Color.BLACK if can_buy else Color.WHITE)
 		_buttons.append({"rect": buy_btn, "action": "buy_offer", "payload": i})
 
 		offer_y += card_h + 8.0
 
-	# Botao de Reroll na parte inferior da vitrine
 	var reroll_cost := _reroll_cost()
 	var can_reroll := MetaManager.current_scrap >= reroll_cost
 	var reroll_btn := Rect2(section_x + 16, panel.position.y + panel.size.y - 48, panel.size.x - 32, 38)
 	draw_rect(reroll_btn, Color("#33241A") if can_reroll else Color("#221512"))
 	draw_rect(reroll_btn, Color("#FFD400") if can_reroll else Color(1, 1, 1, 0.2), false, 1.0)
-	var reroll_str := "REROLL DA VITRINE [R] (%d Sucata)" % reroll_cost
-	draw_string(_font, reroll_btn.position + Vector2(0, 24), reroll_str, HORIZONTAL_ALIGNMENT_CENTER, reroll_btn.size.x, 14, Color("#FFD400") if can_reroll else Color(1, 1, 1, 0.3))
+	draw_string(_font, reroll_btn.position + Vector2(0, 24), "REROLL DA VITRINE [R] (%d Sucata)" % reroll_cost, HORIZONTAL_ALIGNMENT_CENTER, reroll_btn.size.x, 14, Color("#FFD400") if can_reroll else Color(1, 1, 1, 0.3))
 	_buttons.append({"rect": reroll_btn, "action": "reroll", "payload": null})
 
 
+func _draw_recipe_section(vp: Vector2) -> void:
+	var panel := Rect2(40, vp.y - 314, vp.x - 80, 194)
+	var ready := recipe_available(0)
+	var accent := Color("#FFD400") if ready else Color("#8A4B2A")
+	_draw_panel(panel, Color("#271D25"), accent)
+	var left := panel.position + Vector2(20, 0)
+	var recipe := _recipes[0]
+	var source: PartData = robot.equipped.get(PartData.Slot.HEAD) if robot != null else null
+	var toaster_ready := recipe.accepts(source)
+	var batteries := inventory.count(BATTERY_MODULE)
+	var title := "RECEITA PRONTA!  TORRADA TESLA" if ready else "LIVRO DE RECEITAS  /  TORRADA TESLA"
+	if source != null and source.id == &"head_toaster_tesla":
+		title = "TORRADA TESLA EQUIPADA"
+	draw_string(_font, left + Vector2(0, 30), title, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, accent if ready else Color("#F5F0E1"))
+	var ingredients := "%s Torradeira equipada    +    %s Bateria de Carro (%d)" % [
+		"[OK]" if toaster_ready else "[--]", "[OK]" if batteries > 0 else "[--]", batteries]
+	draw_string(_font, left + Vector2(0, 58), ingredients, HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#D6C9A8"))
+	draw_string(_font, left + Vector2(0, 83), recipe.description, HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#22E0FF"))
+	draw_string(_font, left + Vector2(0, 107), "Consome 1 bateria; preserva o tier; resultado Raro ou superior.", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#BCA68D"))
+	var craft_button := Rect2(left + Vector2(0, 122), Vector2(510, 47))
+	_draw_action_button(craft_button, "FUNDIR RECEITA [F]  /  SEM TAXA", "fuse_recipe", 0, ready, Color("#FFD400"))
+	if ready:
+		var pulse := 0.5 + 0.5 * sin(_pulse_time * 3.0)
+		draw_rect(craft_button.grow(3), Color(1.0, 0.83, 0.0, 0.3 + pulse * 0.3), false, 2.0)
+
+	var stock_x := panel.position.x + panel.size.x * 0.55
+	draw_line(Vector2(stock_x - 18, panel.position.y + 20), Vector2(stock_x - 18, panel.end.y - 20), Color("#665044"), 2.0)
+	draw_string(_font, Vector2(stock_x, panel.position.y + 30), "MOCHILA DE MODULOS  %d / %d" % [inventory.size(), inventory.capacity], HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color("#F5F0E1"))
+	_draw_battery(Vector2(stock_x + 22, panel.position.y + 67))
+	var cost := PartLibrary.fusion_module_price(BATTERY_MODULE)
+	draw_string(_font, Vector2(stock_x + 58, panel.position.y + 61), "Bateria de Carro  /  %d Sucata" % cost, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("#FFD400"))
+	draw_string(_font, Vector2(stock_x + 58, panel.position.y + 84), "Guardada entre setores. Usada na fusao da Torradeira.", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#BCA68D"))
+	var stock_w := panel.end.x - stock_x - 20
+	var module_button := Rect2(stock_x, panel.position.y + 122, stock_w * 0.62, 47)
+	var can_buy := robot != null and not inventory.is_full() and MetaManager.current_scrap >= cost
+	_draw_action_button(module_button, "COMPRAR BATERIA [M] (%d)" % cost, "buy_module", BATTERY_MODULE, can_buy, Color("#22E0FF"))
+	var sell_button := Rect2(module_button.end.x + 12, module_button.position.y, stock_w - module_button.size.x - 12, 47)
+	_draw_action_button(sell_button, "VENDER [DEL] (+%d)" % (cost / 2), "sell_module", BATTERY_MODULE, batteries > 0, Color("#D6C9A8"))
+
+	# Celebracao local: sem flash de tela inteira e sem retomar o combate.
+	if _fusion_time > 0.0:
+		var progress := 1.0 - _fusion_time / 2.5
+		draw_rect(panel.grow(4), Color(1.0, 0.83, 0.0, 1.0 - progress), false, 4.0)
+		var banner := Rect2(56, 82, vp.x - 112, 26)
+		draw_rect(banner, Color("#FFD400"))
+		_draw_ellipsis(banner.position + Vector2(10, 19), "SOLDA CONCLUIDA!  " + _fusion_name, banner.size.x - 20, 17, Color("#1A0F14"))
+		if not Vfx.reduced_flashes:
+			for i in 12:
+				var direction := Vector2.from_angle(float(i) * TAU / 12.0)
+				var center := craft_button.get_center()
+				var offset := direction * (24.0 + progress * 75.0)
+				draw_line(center + offset, center + offset + direction * 9.0, Color(1.0, 0.83, 0.0, 1.0 - progress), 2.0)
+
+
+func _draw_panel(rect: Rect2, fill: Color, border: Color) -> void:
+	draw_rect(Rect2(rect.position + Vector2(5, 7), rect.size), Color("#09080C"))
+	draw_rect(rect, fill)
+	draw_rect(rect, Color("#08070B"), false, 5.0)
+	draw_rect(rect.grow(-3), border, false, 2.0)
+	for corner in [rect.position + Vector2(8, 8), rect.position + Vector2(rect.size.x - 8, 8), rect.end - Vector2(8, 8), rect.position + Vector2(8, rect.size.y - 8)]:
+		draw_circle(corner, 3.0, Color("#D6C9A8"))
+		draw_line(corner - Vector2(2, 1), corner + Vector2(2, 1), Color("#1A0F14"), 1.0)
+
+
+func _draw_action_button(rect: Rect2, label: String, action: String, payload: Variant, enabled: bool, color: Color) -> void:
+	draw_rect(Rect2(rect.position + Vector2(3, 4), rect.size), Color("#09080C"))
+	draw_rect(rect, color if enabled else Color("#3B3031"))
+	draw_rect(rect, Color("#09080C"), false, 3.0)
+	draw_string(_font, rect.position + Vector2(0, rect.size.y * 0.5 + 6), label, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x, 17, Color("#1A0F14") if enabled else Color("#A2938C"))
+	_buttons.append({"rect": rect, "action": action, "payload": payload})
+
+
+func _draw_ellipsis(at: Vector2, text: String, width: float, font_size: int, color: Color) -> void:
+	var fitted := text
+	if _font.get_string_size(fitted, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x > width:
+		while not fitted.is_empty() and _font.get_string_size(fitted + "...", HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x > width:
+			fitted = fitted.left(fitted.length() - 1)
+		fitted += "..."
+	draw_string(_font, at, fitted, HORIZONTAL_ALIGNMENT_LEFT, width, font_size, color)
+
+
+func _draw_battery(at: Vector2) -> void:
+	ArtDirector.cell(self, ArtDirector.PARTS_PATH, 13, 4, Rect2(at - Vector2(27, 29), Vector2(54, 58)))
+
+
 func _draw_repair_and_footer(vp: Vector2) -> void:
-	# Botao de Solda de Reparo
+	_draw_ellipsis(Vector2(40, vp.y - 98), _status, vp.x - 80, 16, Color("#D6C9A8"))
 	var can_repair: bool = not _repair_used and robot != null and robot.hp < robot.max_hp and MetaManager.current_scrap >= REPAIR_COST
 	var repair_btn := Rect2(40, vp.y - 82, 280, 52)
 
 	draw_rect(repair_btn, Color("#225522") if can_repair else Color("#221512"))
 	draw_rect(repair_btn, Color("#8CFF1A") if can_repair else Color(1, 1, 1, 0.2), false, 1.0)
 
-	var repair_label := "SOLDA DE REPARO [H] (%d 🔩)" % REPAIR_COST
+	var repair_label := "SOLDA DE REPARO [H] (%d)" % REPAIR_COST
 	if _repair_used:
 		repair_label = "SOLDA: JÁ UTILIZADA"
 	elif robot != null and robot.hp >= robot.max_hp:
@@ -345,7 +570,6 @@ func _draw_repair_and_footer(vp: Vector2) -> void:
 	draw_string(_font, repair_btn.position + Vector2(0, 42), "Recupera 35% do HP máximo", HORIZONTAL_ALIGNMENT_CENTER, repair_btn.size.x, 11, Color(1, 1, 1, 0.6))
 	_buttons.append({"rect": repair_btn, "action": "repair", "payload": null})
 
-	# Botao grande de Prosseguir para a proxima sala
 	var next_btn := Rect2(vp.x - 440, vp.y - 82, 400, 52)
 	draw_rect(next_btn, Color("#8CFF1A"))
 	draw_rect(next_btn, Color("#F5F0E1"), false, 2.0)

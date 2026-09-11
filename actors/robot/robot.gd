@@ -7,6 +7,11 @@ extends CharacterBody2D
 ## e unica: o ricochete precisa ser divertido sem arte nenhuma."
 ## A deformacao de squash and stretch da 2.4 ja esta aqui porque ela e feita em
 ## tempo de execucao, nao quadro a quadro, e portanto nao depende de arte.
+##
+## Duas mecanicas do formato de poco (GDD_ADENDOS F):
+##  - O robo e o rebatedor. O ProjectilePool devolve para cima o projetil do
+##    jogador que cai no corpo, e a restituicao vem do chassi.
+##  - A Purga de Calor deixa uma parede de vapor no ponto mirado. Ver SteamWall.
 
 signal died
 signal stats_changed
@@ -20,6 +25,10 @@ const DASH_IFRAME_START := 0.045
 const DASH_IFRAME_END := 0.135
 const DASH_COOLDOWN := 1.2
 const COLLISION_RADIUS := 26.0
+## Centro do corpo em relacao a origem, que e a base do robo. A colisao fica no
+## corpo e nao nos pes: o projetil que cai tem que bater no que esta desenhado.
+const BODY_CENTER := Vector2(0.0, -36.0)
+const MUZZLE_DISTANCE := 38.0
 ## GDD 1.2, contrato do pilar 1: buffer de input de 133 ms (8 quadros).
 const INPUT_BUFFER := 0.133
 
@@ -30,6 +39,12 @@ const PURGE_HEAT_FRACTION := 0.60
 const PURGE_DAMAGE := 40.0
 const PURGE_RADIUS := 200.0
 const PURGE_COOLDOWN := 8.0
+## Faixa vertical onde a parede de vapor pode nascer: abaixo do spawn e acima do
+## rebatedor, a mesma zona dos obstaculos gerados.
+const PURGE_WALL_MIN_Y := 260.0
+const PURGE_WALL_MAX_Y := 820.0
+## No controle nao ha cursor: a parede nasce a esta distancia na direcao da mira.
+const PURGE_WALL_GAMEPAD_REACH := 420.0
 
 # --- GDD 4.1.1, subvoltagem ---------------------------------------------------
 const UNDERVOLT_FIRE_RATE_PENALTY := 0.30
@@ -46,6 +61,8 @@ const AIM_ASSIST_RATE_DEG := 6.0
 const AIM_ASSIST_RANGE := 500.0
 
 var pool: ProjectilePool
+## Paredes de vapor pre-alocadas pela cena. Ver SteamWall.
+var steam_walls: Array[SteamWall] = []
 
 var cpu: CpuData
 var equipped: Dictionary = {}   # PartData.Slot -> PartData
@@ -56,8 +73,14 @@ var heat: float = 0.0
 var heat_capacity: float = 100.0
 var watts_used: int = 0
 var overheated: bool = false
+## Restituicao do robo como rebatedor, lida pelo ProjectilePool. Vem do chassi.
+var paddle_restitution: float = 1.0
+## Quem causou o ultimo dano, ja com preposicao ("por uma Parafuseta").
+## Alimenta a legenda de fim de run, GDD 1.4 item 3.
+var last_damage_source: String = ""
+var last_damage_was_breach: bool = false
 
-var aim_direction: Vector2 = Vector2.RIGHT
+var aim_direction: Vector2 = Vector2.UP
 var deform: Vector2 = Vector2.ONE   # consumido pelo _draw, GDD 2.4
 
 var _max_speed: float = 260.0
@@ -76,7 +99,29 @@ var _cooldowns: Dictionary = {}
 var _fire_ctx := FireContext.new()
 var _recoil: Vector2 = Vector2.ZERO
 var _hit_flash: float = 0.0
+var _paddle_flash: float = 0.0
+var _paddle_tier: int = 0
 var _using_gamepad: bool = false
+var _jammed_slots: Dictionary = {}
+
+
+func jam_slot(slot: int, source_id: int, duration: float) -> void:
+	if not equipped.has(slot) or slot == PartData.Slot.CHASSIS: return
+	if not _jammed_slots.has(slot): _jammed_slots[slot] = {}
+	_jammed_slots[slot][source_id] = maxf(duration, 0.0)
+
+
+func release_jam(source_id: int) -> void:
+	for slot in _jammed_slots.keys():
+		_jammed_slots[slot].erase(source_id)
+		if _jammed_slots[slot].is_empty(): _jammed_slots.erase(slot)
+
+
+func slot_jam_remaining(slot: int) -> float:
+	var duration := 0.0
+	for remaining in (_jammed_slots.get(slot, {}) as Dictionary).values():
+		duration = maxf(duration, float(remaining))
+	return duration
 
 
 func _ready() -> void:
@@ -90,8 +135,13 @@ func _ready() -> void:
 	# Isso e intencional e melhora a sensacao de esquiva."
 	circle.radius = COLLISION_RADIUS
 	shape.shape = circle
+	shape.position = BODY_CENTER
 	add_child(shape)
 	z_index = 20
+
+
+func body_center() -> Vector2:
+	return global_position + BODY_CENTER
 
 
 func equip(part: PartData) -> void:
@@ -113,13 +163,48 @@ func set_cpu(c: CpuData) -> void:
 	_recompute_stats()
 
 
+## Estado limpo para o inicio de uma run. Sem isto, recargas, calor e i-frames
+## da run anterior vazavam para a primeira sala da seguinte.
+func reset_for_run() -> void:
+	_jammed_slots.clear()
+	heat = 0.0
+	overheated = false
+	_overheat_timer = 0.0
+	_heat_idle = 0.0
+	_purge_cd = 0.0
+	_iframes = 0.0
+	_hit_flash = 0.0
+	_paddle_flash = 0.0
+	_spasm_timer = 0.0
+	_spasm_lock = 0.0
+	_dash_time = 0.0
+	_dash_buffer = 0.0
+	_recoil = Vector2.ZERO
+	_cooldowns.clear()
+	velocity = Vector2.ZERO
+	deform = Vector2.ONE
+	last_damage_source = ""
+	last_damage_was_breach = false
+	_recompute_stats()
+	hp = max_hp
+	_dash_charges = float(_dash_charges_max)
+	for w in steam_walls:
+		w.retract()
+	stats_changed.emit()
+
+
 func _recompute_stats() -> void:
 	var chassis: PartData = equipped.get(PartData.Slot.CHASSIS)
 	var new_max_hp := 100.0
+	paddle_restitution = 1.0
 	if chassis != null:
-		new_max_hp = (chassis.hp * chassis.rarity_mult() + MetaManager.get_bonus_hp_flat()) * MetaManager.get_bonus_hp_mult()
+		# Raridade e tier de fusao multiplicam o HP do chassi como multiplicam o
+		# dano de uma arma. Antes o tier do chassi era vendido na Bancada e nao
+		# fazia nada.
+		new_max_hp = (chassis.hp * chassis.power_mult() + MetaManager.get_bonus_hp_flat()) * MetaManager.get_bonus_hp_mult()
 		_max_speed = chassis.move_speed * MetaManager.get_bonus_speed_mult()
 		_dash_charges_max = chassis.dash_charges + MetaManager.get_bonus_dash_charges()
+		paddle_restitution = chassis.restitution
 	var ratio: float = 1.0 if max_hp <= 0.0 else hp / max_hp
 	max_hp = new_max_hp
 	hp = max_hp * ratio
@@ -131,11 +216,14 @@ func _recompute_stats() -> void:
 	stats_changed.emit()
 
 
+func total_tdp() -> int:
+	return (cpu.tdp if cpu != null else 0) + MetaManager.get_bonus_tdp()
+
+
 ## GDD 4.1.1: passar do TDP nao e proibido, e uma decisao de build valida quando
 ## as pecas sao muito boas. Mas custa caro.
 func is_undervolt() -> bool:
-	var total_tdp: int = (cpu.tdp if cpu != null else 0) + MetaManager.get_bonus_tdp()
-	return cpu != null and watts_used > total_tdp
+	return cpu != null and watts_used > total_tdp()
 
 
 func heat_ratio() -> float:
@@ -175,7 +263,8 @@ func cooldown_ratio(slot: int) -> float:
 
 func _physics_process(delta: float) -> void:
 	# Hitstop congela o jogador junto com o resto da simulacao. GDD 3.4.1.
-	if CombatFeel.frozen:
+	# Robo morto nao atira nem anda enquanto a cena troca para a Garagem.
+	if CombatFeel.frozen or hp <= 0.0:
 		return
 
 	_tick_timers(delta)
@@ -190,10 +279,17 @@ func _physics_process(delta: float) -> void:
 
 
 func _tick_timers(delta: float) -> void:
+	for slot in _jammed_slots.keys():
+		var locks: Dictionary = _jammed_slots[slot]
+		for source_id in locks.keys():
+			locks[source_id] = maxf(0.0, float(locks[source_id]) - delta)
+			if locks[source_id] <= 0.0: locks.erase(source_id)
+		if locks.is_empty(): _jammed_slots.erase(slot)
 	_dash_buffer = maxf(0.0, _dash_buffer - delta)
 	_iframes = maxf(0.0, _iframes - delta)
 	_purge_cd = maxf(0.0, _purge_cd - delta)
 	_hit_flash = maxf(0.0, _hit_flash - delta)
+	_paddle_flash = maxf(0.0, _paddle_flash - delta)
 	_recoil = _recoil.lerp(Vector2.ZERO, minf(1.0, delta * 8.0))
 
 	var recharge_time := (0.9 if _dash_charges_max >= 3 else DASH_COOLDOWN) * MetaManager.get_dash_cooldown_mult()
@@ -224,14 +320,14 @@ func _update_aim(delta: float) -> void:
 		_using_gamepad = true
 		raw = stick.normalized()
 	else:
-		var mouse := get_global_mouse_position() - global_position
+		var mouse := get_global_mouse_position() - body_center()
 		if mouse.length() > 8.0:
 			if not _using_gamepad or mouse.length() > 20.0:
 				_using_gamepad = false
 			raw = mouse.normalized()
 
-	# Formato Ball x Pit: o tiro e apontado para cima dentro do poco.
-	# Clampa o angulo entre -172 graus e -8 graus (sempre apontando para cima).
+	# Formato de poco: o tiro e apontado para cima.
+	# Clampa o angulo entre -171 e -9 graus.
 	var ang := raw.angle()
 	if ang > 0.0:
 		ang = -PI * 0.95 if raw.x < 0.0 else -PI * 0.05
@@ -249,7 +345,7 @@ func _apply_aim_assist(dir: Vector2, strength: float, delta: float) -> Vector2:
 	var target := _nearest_enemy_in_cone(dir, deg_to_rad(AIM_ASSIST_CONE_DEG), AIM_ASSIST_RANGE)
 	if target == null:
 		return dir
-	var want := (target.global_position - global_position).normalized()
+	var want := (target.global_position - body_center()).normalized()
 	var max_turn := deg_to_rad(AIM_ASSIST_RATE_DEG) * strength * delta
 	var diff := wrapf(want.angle() - dir.angle(), -PI, PI)
 	return dir.rotated(clampf(diff, -max_turn, max_turn))
@@ -258,11 +354,12 @@ func _apply_aim_assist(dir: Vector2, strength: float, delta: float) -> Vector2:
 func _nearest_enemy_in_cone(dir: Vector2, half_angle: float, range_px: float) -> Node2D:
 	var best: Node2D = null
 	var best_d := range_px
+	var from := body_center()
 	for e in get_tree().get_nodes_in_group(&"enemies"):
 		var n := e as Node2D
 		if n == null:
 			continue
-		var to := n.global_position - global_position
+		var to := n.global_position - from
 		var d := to.length()
 		if d > best_d:
 			continue
@@ -308,7 +405,7 @@ func _handle_movement(delta: float) -> void:
 		velocity.y = 0.0
 		return
 
-	# Controle no estilo Ball x Pit: movimento horizontal na baseline do poco
+	# Movimento horizontal na baseline do poco.
 	var input_x := Input.get_axis("move_left", "move_right")
 	var target_x := input_x * _max_speed
 	if absf(input_x) > 0.01:
@@ -318,12 +415,12 @@ func _handle_movement(delta: float) -> void:
 	velocity.x += _recoil.x
 	velocity.y = 0.0
 
-	# Trava o robo na baseline do poco e limita o movimento dentro das paredes
+	# Trava o robo na baseline do poco e limita o movimento dentro das paredes.
 	global_position.y = ArenaGenerator.BASELINE_Y
 	global_position.x = clampf(global_position.x, 50.0, ArenaGenerator.ARENA_SIZE.x - 50.0)
 
 
-func _handle_firing(delta: float) -> void:
+func _handle_firing(_delta: float) -> void:
 	if overheated or _spasm_lock > 0.0:
 		return
 	_try_fire(PartData.Slot.ARM_LEFT, "fire_left")
@@ -335,6 +432,7 @@ func _handle_firing(delta: float) -> void:
 
 
 func _try_fire(slot: int, action: String) -> void:
+	if slot_jam_remaining(slot) > 0.0: return
 	var part: PartData = equipped.get(slot)
 	if part == null or part.projectile == null or pool == null:
 		return
@@ -349,7 +447,7 @@ func _try_fire(slot: int, action: String) -> void:
 	if is_undervolt():
 		rate *= (1.0 - UNDERVOLT_FIRE_RATE_PENALTY)
 
-	var muzzle := global_position + aim_direction * 34.0
+	var muzzle := body_center() + aim_direction * MUZZLE_DISTANCE
 	_fire_ctx.reset(self, muzzle, aim_direction)
 	_fire_ctx.rarity_mult = part.rarity_mult()
 	_fire_ctx.fusion_mult = part.fusion_mult()
@@ -364,7 +462,9 @@ func _try_fire(slot: int, action: String) -> void:
 	var shots: int = 1 + _fire_ctx.extra_shots
 	var spread: float = _fire_ctx.spread_radians
 	var damage: float = _fire_ctx.final_damage(part.projectile.damage) * (cpu.damage_mult if cpu else 1.0) * MetaManager.get_bonus_damage_mult()
-	var is_crit := randf() < MetaManager.get_crit_chance()
+	# Critico pelo fluxo semeado de combate, nunca pelo RNG global: o desafio
+	# diario e a reproducao de bug dependem disso. GDD 7.3.
+	var is_crit := GameRng.randf_in(GameRng.Stream.COMBAT) < MetaManager.get_crit_chance()
 	if is_crit:
 		damage *= 2.0
 	var speed_mult: float = (cpu.projectile_speed_mult if cpu else 1.0) * (1.0 + _fire_ctx.speed_add) * MetaManager.get_proj_speed_mult()
@@ -413,15 +513,54 @@ func _heat_purge() -> void:
 	heat = maxf(0.0, heat - heat_capacity * PURGE_HEAT_FRACTION)
 	CombatFeel.add_trauma(0.35)
 	CombatFeel.request_hitstop(60.0)
-	Vfx.spawn_death(global_position, Color("#F5F0E1"))
+	Vfx.spawn_death(body_center(), Color("#F5F0E1"))
 	Sfx.play("fire_heavy", -2.0)
 	var purge_power := MetaManager.get_purge_power_mult()
 	var purge_dmg := PURGE_DAMAGE * purge_power
 	var purge_r := PURGE_RADIUS * purge_power
+	var from := body_center()
 	for e in get_tree().get_nodes_in_group(&"enemies"):
 		var n := e as Node2D
-		if n != null and n.global_position.distance_to(global_position) <= purge_r:
+		if n != null and n.global_position.distance_to(from) <= purge_r:
 			n.call("take_damage", purge_dmg, n.global_position, 0)
+	_deploy_steam_wall()
+
+
+func _deploy_steam_wall() -> void:
+	var wall := _free_steam_wall()
+	if wall == null:
+		return
+	var target: Vector2
+	if _using_gamepad:
+		target = body_center() + aim_direction * PURGE_WALL_GAMEPAD_REACH
+	else:
+		target = get_global_mouse_position()
+	var half := SteamWall.SIZE.x * 0.5
+	target.x = clampf(target.x, half * 0.5, ArenaGenerator.ARENA_SIZE.x - half * 0.5)
+	target.y = clampf(target.y, PURGE_WALL_MIN_Y, PURGE_WALL_MAX_Y)
+	# Perpendicular a mira: um tiro reto na parede volta reto para o rebatedor.
+	wall.deploy(target, aim_direction.angle() + PI * 0.5)
+	Vfx.spawn_death(target, Color("#22E0FF"))
+
+
+## Parede livre, ou a mais velha se todas estiverem ativas.
+func _free_steam_wall() -> SteamWall:
+	var oldest: SteamWall = null
+	for w in steam_walls:
+		if not w.is_active():
+			return w
+		if oldest == null or w.life < oldest.life:
+			oldest = w
+	return oldest
+
+
+## Chamado pelo ProjectilePool quando um projetil do jogador e rebatido.
+func on_paddle_hit(_at: Vector2, bounces: int) -> void:
+	deform = Vector2(1.22, 0.80)
+	_paddle_flash = 0.12
+	_paddle_tier = clampi(bounces - 1, 0, 3)
+	CombatFeel.add_trauma(0.03 + 0.02 * float(mini(bounces, 4)))
+	Sfx.play("paddle", -10.0 + float(mini(bounces, 4)))
 
 
 func _decay_deform(delta: float) -> void:
@@ -430,10 +569,34 @@ func _decay_deform(delta: float) -> void:
 
 # --- dano ---------------------------------------------------------------------
 
-func take_damage(amount: float, _from: Vector2 = Vector2.ZERO, _bounce_index: int = 0) -> void:
+## `source` e o autor do dano ja com preposicao, para a legenda de fim de run.
+## `breach` marca dano de invasao da base, que a legenda conta diferente.
+func is_front_hit(from: Vector2) -> bool:
+	var offset := from - body_center()
+	return not offset.is_zero_approx() and offset.normalized().dot(aim_direction) >= 0.35
+
+
+## O Cofre protege a direção da mira. Invasão ataca a base, não sua blindagem.
+func reflection_multiplier(from: Vector2, incoming: Vector2) -> float:
+	var chassis: PartData = equipped.get(PartData.Slot.CHASSIS)
+	if hp <= 0.0 or chassis == null or incoming.dot(aim_direction) >= 0.0:
+		return 0.0
+	if chassis.id == &"chassis_safe" and is_front_hit(from):
+		return 2.0
+	return 0.0
+
+
+func take_damage(amount: float, from: Vector2 = Vector2.ZERO, _bounce_index: int = 0, source: String = "", breach: bool = false) -> float:
+	if amount <= 0.0: return 0.0
 	if _iframes > 0.0 or hp <= 0.0:
-		return
+		return 0.0
+	if source != "":
+		last_damage_source = source
+		last_damage_was_breach = breach
 	var final_amount := amount * MetaManager.get_damage_reduction_mult()
+	var chassis: PartData = equipped.get(PartData.Slot.CHASSIS)
+	if not breach and chassis != null and chassis.id == &"chassis_safe" and is_front_hit(from):
+		final_amount *= 0.30
 	hp -= final_amount
 	_iframes = HIT_IFRAMES
 	_hit_flash = 0.12
@@ -451,11 +614,12 @@ func take_damage(amount: float, _from: Vector2 = Vector2.ZERO, _bounce_index: in
 			CombatFeel.add_trauma(0.6)
 			CombatFeel.request_hitstop(130.0)
 			Sfx.play("fire_heavy", 2.0)
-			Vfx.spawn_damage_number(global_position, 0.0, 4, true)
+			Vfx.spawn_damage_number(body_center(), 0.0, 4, true)
 			stats_changed.emit()
-			return
+			return final_amount
 		hp = 0.0
 		died.emit()
+	return final_amount
 
 
 func heal(amount: float) -> void:
@@ -466,52 +630,20 @@ func heal(amount: float) -> void:
 # --- desenho greybox ----------------------------------------------------------
 
 func _draw() -> void:
-	# GDD 2.4, nota de implementacao: o pivo da deformacao e a BASE do sprite,
-	# ou seja, os pes, e nao o centro. Se for o centro, o robo afunda no chao ao
-	# espremer. Por isso o desenho e transladado para a base antes de escalar.
-	# A origem do no ja E a base do robo: o corpo e desenhado para cima, em y
-	# negativo, e a deformacao escala em torno de (0,0).
-	var base_y := 0.0
-	draw_set_transform(Vector2(0.0, base_y), 0.0, deform)
+	ArtDirector.draw_robot(self, self)
 
-	var chassis: PartData = equipped.get(PartData.Slot.CHASSIS)
-	var body_color: Color = chassis.color if chassis else Color("#4A4F52")
-	if _hit_flash > 0.0:
-		body_color = Color.WHITE
-	if _iframes > 0.0 and fmod(_iframes * 12.0, 1.0) < 0.5:
-		body_color = body_color.lightened(0.4)
+	# Rebatedor: o arco no alto do corpo e a superficie que devolve o que cai.
+	# Amarelo quando o chassi acelera o projetil; pisca na cor do quique ao rebater.
+	var paddle_col := Color("#FFD400", 0.6) if paddle_restitution > 1.05 else Color(1, 1, 1, 0.3)
+	if _paddle_flash > 0.0:
+		paddle_col = ProjectilePool.BOUNCE_COLORS[_paddle_tier]
+	draw_arc(BODY_CENTER, COLLISION_RADIUS + 5.0, -PI * 0.92, -PI * 0.08, 18, paddle_col, 4.0)
 
-	# Chassi e pernas.
-	draw_rect(Rect2(-24, -60, 48, 52), body_color)
-	draw_rect(Rect2(-24, -60, 48, 52), Color("#1A0F14"), false, 4.0)
-	draw_rect(Rect2(-18, -10, 12, 10), body_color.darkened(0.3))
-	draw_rect(Rect2(6, -10, 12, 10), body_color.darkened(0.3))
-
-	# Cabeca, gira 35 graus seguindo a mira. GDD 2.5.
-	var head: PartData = equipped.get(PartData.Slot.HEAD)
-	var head_tilt: float = clampf(aim_direction.angle(), -0.61, 0.61) * 0.3
-	draw_set_transform(Vector2(0.0, base_y), 0.0, deform)
-	var head_color: Color = head.color if head else Color("#D6C9A8")
-	var head_rect := Rect2(-17, -88, 34, 28)
-	draw_rect(head_rect, head_color)
-	draw_rect(head_rect, Color("#1A0F14"), false, 4.0)
-	# Olhos: grandes, brancos, pupila pequena e desalinhada. GDD 2.1, mandamento 3.
-	var look := aim_direction * 3.0
-	draw_circle(Vector2(-8, -76) + Vector2(0, head_tilt * 6.0), 6.0, Color("#F5F0E1"))
-	draw_circle(Vector2(7, -74) + Vector2(0, head_tilt * 6.0), 5.0, Color("#F5F0E1"))
-	draw_circle(Vector2(-8, -76) + look, 2.5, Color("#1A0F14"))
-	draw_circle(Vector2(7, -74) + look + Vector2(0.5, 0.5), 2.0, Color("#1A0F14"))
-
-	# Bracos, ancorados nos ombros, giram 360 graus.
-	_draw_arm(Vector2(-26, -46), equipped.get(PartData.Slot.ARM_LEFT), base_y)
-	_draw_arm(Vector2(26, -46), equipped.get(PartData.Slot.ARM_RIGHT), base_y)
-
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	_draw_heat_ring()
 
-	# Linha guia de mira para o poco vertical (Ball x Pit)
+	# Linha guia de mira para o poco.
 	for dot in 8:
-		var dot_pos := aim_direction * (45.0 + dot * 35.0)
+		var dot_pos := BODY_CENTER + aim_direction * (45.0 + dot * 35.0)
 		var dot_r := 3.0 - dot * 0.25
 		draw_circle(dot_pos, dot_r, Color("#FFD400", 0.45 - dot * 0.04))
 

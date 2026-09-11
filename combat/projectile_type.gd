@@ -17,9 +17,13 @@ extends Resource
 @export var restitution: float = 1.0
 @export var ttl: float = 6.0
 @export var pierce: int = 0
+## Se verdadeiro, o chao do poco devolve o projetil em vez de mata-lo. Existe
+## para os benchmarks, que medem o cast de varredura e nao a regra de jogo.
+@export var ignore_floor: bool = false
 
 @export_group("Combate")
 @export var damage: float = 10.0
+@export var damage_source: String = ""
 @export var heat_per_shot: float = 1.0
 
 @export_group("Visual")

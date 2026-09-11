@@ -29,14 +29,20 @@ const CATALOG := [
 	{"label": "Carcaca de Fusca", "restitution": 1.00, "color": Color("#8A4B2A"), "destructible": true, "max_hp": 300.0},
 	{"label": "Colchao Velho", "restitution": 0.50, "color": Color("#2E5943"), "destructible": false},
 	{"label": "Prensa Parada", "restitution": 1.00, "color": Color("#4A4F52"), "destructible": false},
+	{"label": "Barril Toxico", "restitution": 1.05, "color": Color("#7E874A"), "destructible": true, "max_hp": 180.0},
+	{"label": "TV Quebrada", "restitution": 0.90, "color": Color("#BBA788"), "destructible": true, "max_hp": 220.0},
+	{"label": "Bobina de Cobre", "restitution": 1.40, "color": Color("#B77948"), "destructible": false},
+	{"label": "Tubulacao", "restitution": 0.80, "color": Color("#84685A"), "destructible": false},
 ]
 
+var visual_sector: int = 1
 var last_report: Dictionary = {}
 
 var _obstacle_rects: Array[Rect2] = []
 
 
 func generate(sector: int = 1) -> void:
+	visual_sector = sector
 	for c in get_children():
 		c.queue_free()
 	_obstacle_rects.clear()
@@ -165,6 +171,7 @@ func _build_walls() -> void:
 		# do piso a olho, senao nao da para julgar se um quique foi justo.
 		o.color = Color("#4A4F52")
 		o.label = "Parede"
+		o.is_floor = r.position.y >= ARENA_SIZE.y
 		add_child(o)
 
 
@@ -174,7 +181,7 @@ func _build_obstacles(_sector: int) -> void:
 
 	for i in _obstacle_rects.size():
 		var r := _obstacle_rects[i]
-		var entry: Dictionary = CATALOG[rng.randi_range(0, CATALOG.size() - 1)]
+		var entry: Dictionary = CATALOG[rng.randi_range(0, 3 if _sector <= 1 else CATALOG.size() - 1)]
 		# GDD 3.3.4: "Pelo menos um obstaculo e movel ou destrutivel por sala."
 		if i == destructible_index:
 			entry = CATALOG[1]
@@ -305,33 +312,9 @@ func _distance_to_rect(p: Vector2, r: Rect2) -> float:
 	return sqrt(dx * dx + dy * dy)
 
 
+func _process(_delta: float) -> void:
+	queue_redraw()
+
+
 func _draw() -> void:
-	# Calhas laterais fora do poco (margens de 460px de cada lado para viewport 1920)
-	draw_rect(Rect2(-600, -200, 600, ARENA_SIZE.y + 400), Color("#0E0A09"))
-	draw_rect(Rect2(ARENA_SIZE.x, -200, 600, ARENA_SIZE.y + 400), Color("#0E0A09"))
-
-	# Fundo do Poco: escuro, metalico e vertical
-	draw_rect(Rect2(Vector2.ZERO, ARENA_SIZE), Color("#1B1614"))
-
-	# Paredes macicas de sustentacao nas laterais do poco
-	draw_rect(Rect2(0, 0, 18, ARENA_SIZE.y), Color("#3D2E24"))
-	draw_rect(Rect2(ARENA_SIZE.x - 18, 0, 18, ARENA_SIZE.y), Color("#3D2E24"))
-	draw_line(Vector2(18, 0), Vector2(18, ARENA_SIZE.y), Color("#6B5242"), 2.0)
-	draw_line(Vector2(ARENA_SIZE.x - 18, 0), Vector2(ARENA_SIZE.x - 18, ARENA_SIZE.y), Color("#6B5242"), 2.0)
-
-	# Linhas de profundidade horizontal ao longo do poco
-	var step := 120.0
-	var y := step
-	while y < ARENA_SIZE.y:
-		draw_line(Vector2(18, y), Vector2(ARENA_SIZE.x - 18, y), Color(1, 1, 1, 0.03), 1.5)
-		draw_circle(Vector2(9, y), 3.0, Color("#1A110D"))
-		draw_circle(Vector2(ARENA_SIZE.x - 9, y), 3.0, Color("#1A110D"))
-		y += step
-
-	# Linha de perigo / defesa na baseline do jogador
-	draw_line(Vector2(0, BASELINE_Y), Vector2(ARENA_SIZE.x, BASELINE_Y), Color("#FF2D95", 0.6), 2.0)
-	var h_step := 40.0
-	var hx := 0.0
-	while hx < ARENA_SIZE.x:
-		draw_line(Vector2(hx, BASELINE_Y - 4), Vector2(hx + 16, BASELINE_Y + 4), Color("#FFD400", 0.35), 2.0)
-		hx += h_step
+	ArtDirector.draw_arena(self, visual_sector)

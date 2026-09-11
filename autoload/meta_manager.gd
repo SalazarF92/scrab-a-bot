@@ -2,12 +2,24 @@ class_name MetaManagerScript
 extends Node
 ## Gerenciador de metaprogressao, economia e persistencia.
 ## Implementa GDD 6.1 a 6.3 e o sistema de salvamento em user://save.json do GDD 7.3.
+##
+## Tambem guarda o desafio diario (GDD 6.3.5 e GDD_ADENDOS E.4): semente derivada
+## da data em UTC, sem servidor, loadout fixo e nivel de risco zero, para que a
+## mesma run seja comparavel entre jogadores.
 
 signal save_updated
 signal scrap_changed(current_scrap: int)
 
-const SAVE_PATH := "user://save.json"
-const SAVE_VERSION := 1
+const DEFAULT_SAVE_PATH := "user://save.json"
+## Versao 2 acrescenta os campos do desafio diario. Um save da versao 1 carrega
+## com esses campos no valor padrao, entao a migracao e a propria leitura.
+const SAVE_VERSION := 2
+
+## GDD 6.2: "Desafio diario completo: 150."
+const DAILY_REWARD := 150
+## O GDD nao diz o que e "completo". Aqui: limpar 3 setores numa tentativa do dia.
+## Numero de balanceamento, ajustavel sem mexer em mais nada.
+const DAILY_GOAL_SECTORS := 3
 
 ## Arvore de upgrades da Garagem. GDD 6.3.1.
 ## 5 ramos, cada um com 5 nos com custo e descricao.
@@ -49,6 +61,10 @@ const UPGRADE_TREE := {
 	],
 }
 
+## Caminho do save. Os testes trocam isto antes de qualquer escrita; a versao
+## anterior do teste de fumaca chamava reset_save no save real do jogador.
+var save_path: String = DEFAULT_SAVE_PATH
+
 # --- Estado Persistente ---
 var copper: int = 0
 var upgrades: Dictionary = {}  # branch_name -> int (nivel desbloqueado, 0 a 5)
@@ -57,12 +73,17 @@ var total_kills: int = 0
 var best_sector: int = 1
 var lifetime_copper: int = 0
 var highest_heat_beaten: int = 0
+var daily_date: String = ""
+var daily_best_sectors: int = 0
+var daily_rewarded: bool = false
 
 # --- Estado da Run Atual ---
 var current_scrap: int = 0
 var run_sectors_cleared: int = 0
 var airbag_available: bool = false
 var selected_heat: int = 0
+var run_is_daily: bool = false
+var run_seed: int = 0
 var last_run_summary: Dictionary = {}
 
 
@@ -76,13 +97,23 @@ func _init_default_upgrades() -> void:
 		upgrades[branch] = 0
 
 
-func start_new_run(heat: int = -1) -> void:
+func start_new_run(heat: int = -1, daily: bool = false, seed_value: int = 0) -> void:
 	if heat >= 0:
 		selected_heat = clampi(heat, 0, 10)
+	run_is_daily = daily
+	run_seed = seed_value
 	current_scrap = 0
 	run_sectors_cleared = 0
 	airbag_available = get_upgrade_level("chapa") >= 5
+	if daily:
+		refresh_daily()
 	scrap_changed.emit(current_scrap)
+
+
+## Nivel de risco em vigor na run. O desafio diario ignora a Calibragem de Risco
+## para que todo mundo jogue a mesma coisa.
+func active_heat() -> int:
+	return 0 if run_is_daily else selected_heat
 
 
 func add_scrap(amount: int) -> void:
@@ -92,19 +123,44 @@ func add_scrap(amount: int) -> void:
 	scrap_changed.emit(current_scrap)
 
 
-func end_run(sector_reached: int, won: bool = false) -> Dictionary:
+## Gasto de Sucata na Bancada. Falha sem alterar nada se nao houver saldo.
+func spend_scrap(amount: int) -> bool:
+	if amount < 0 or current_scrap < amount:
+		return false
+	current_scrap -= amount
+	scrap_changed.emit(current_scrap)
+	return true
+
+
+## Devolucao de Sucata. Nao passa pelo Ima de Sucata: reembolso nao e coleta.
+func refund_scrap(amount: int) -> void:
+	current_scrap += maxi(0, amount)
+	scrap_changed.emit(current_scrap)
+
+
+## Zera o progresso do dia quando a data em UTC muda.
+func refresh_daily() -> void:
+	var today := GameRng.utc_date_key()
+	if daily_date != today:
+		daily_date = today
+		daily_best_sectors = 0
+		daily_rewarded = false
+
+
+func end_run(sector_reached: int, won: bool = false, extra: Dictionary = {}) -> Dictionary:
 	total_runs += 1
+	total_kills += Telemetry.enemies_killed
 	if sector_reached > best_sector:
 		best_sector = sector_reached
 
-	if won and selected_heat >= highest_heat_beaten:
+	if won and not run_is_daily and selected_heat >= highest_heat_beaten:
 		highest_heat_beaten = mini(10, selected_heat + 1)
 
 	# GDD 6.2: 1 Cobre para cada 8 Sucata + 40 por setor completado
 	var conversion_rate := 8.0
 	if get_upgrade_level("sorte") >= 4:
 		conversion_rate = 6.4 # +25% conversao
-	
+
 	var scrap_copper := int(floor(float(current_scrap) / conversion_rate))
 	var sector_bonus := maxi(0, sector_reached - 1) * 40
 	var victory_bonus := 200 if won else 0
@@ -112,21 +168,37 @@ func end_run(sector_reached: int, won: bool = false) -> Dictionary:
 	var heat_mult := get_heat_copper_bonus_mult()
 	var copper_earned := int(round(float(raw_copper) * heat_mult))
 
+	var sectors_cleared := 5 if won else maxi(0, sector_reached - 1)
+	var daily_reward := 0
+	if run_is_daily:
+		refresh_daily()
+		daily_best_sectors = maxi(daily_best_sectors, sectors_cleared)
+		if not daily_rewarded and sectors_cleared >= DAILY_GOAL_SECTORS:
+			daily_rewarded = true
+			daily_reward = DAILY_REWARD
+	copper_earned += daily_reward
+
 	copper += copper_earned
 	lifetime_copper += copper_earned
 
 	last_run_summary = {
 		"sector_reached": sector_reached,
+		"sectors_cleared": sectors_cleared,
 		"won": won,
-		"heat": selected_heat,
+		"heat": active_heat(),
 		"scrap_collected": current_scrap,
 		"scrap_copper": scrap_copper,
 		"sector_bonus": sector_bonus,
 		"victory_bonus": victory_bonus,
 		"heat_mult": heat_mult,
+		"daily": run_is_daily,
+		"daily_reward": daily_reward,
+		"seed": run_seed,
+		"kills": Telemetry.enemies_killed,
 		"copper_earned": copper_earned,
 		"total_copper": copper,
 	}
+	last_run_summary.merge(extra, true)
 
 	save_game()
 	save_updated.emit()
@@ -205,6 +277,7 @@ func get_crit_chance() -> float:
 	return 0.12 if get_upgrade_level("polvora") >= 3 else 0.0
 
 
+## Lido pelo ProjectilePool em todo acerto com dois quiques ou mais.
 func get_bounce_damage_bonus() -> float:
 	return 0.15 if get_upgrade_level("polvora") >= 4 else 0.0
 
@@ -261,26 +334,26 @@ func get_workbench_options_count() -> int:
 # --- Modificadores do Modo Ferro-Velho Infernal (Heat) ---
 
 func get_heat_enemy_hp_mult() -> float:
-	return 1.0 + float(selected_heat) * 0.12
+	return 1.0 + float(active_heat()) * 0.12
 
 
 func get_heat_enemy_speed_mult() -> float:
-	return minf(1.0 + float(selected_heat) * 0.05, 1.40)
+	return minf(1.0 + float(active_heat()) * 0.05, 1.40)
 
 
 func get_heat_descent_mult() -> float:
-	return 1.0 + float(selected_heat) * 0.08
+	return 1.0 + float(active_heat()) * 0.08
 
 
 func get_heat_budget_mult() -> float:
-	return 1.0 + float(selected_heat) * 0.15
+	return 1.0 + float(active_heat()) * 0.15
 
 
 func get_heat_copper_bonus_mult() -> float:
-	return 1.0 + float(selected_heat) * 0.25
+	return 1.0 + float(active_heat()) * 0.25
 
 
-# --- Persistencia JSON (user://save.json) ---
+# --- Persistencia JSON ---
 
 func save_game() -> void:
 	var data := {
@@ -292,19 +365,22 @@ func save_game() -> void:
 		"best_sector": best_sector,
 		"highest_heat_beaten": highest_heat_beaten,
 		"upgrades": upgrades,
+		"daily_date": daily_date,
+		"daily_best_sectors": daily_best_sectors,
+		"daily_rewarded": daily_rewarded,
 	}
-	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	var file := FileAccess.open(save_path, FileAccess.WRITE)
 	if file != null:
 		file.store_string(JSON.stringify(data, "\t"))
 		file.close()
 
 
 func load_save() -> void:
-	if not FileAccess.file_exists(SAVE_PATH):
+	if not FileAccess.file_exists(save_path):
 		save_game()
 		return
 
-	var file := FileAccess.open(SAVE_PATH, FileAccess.READ)
+	var file := FileAccess.open(save_path, FileAccess.READ)
 	if file == null:
 		return
 
@@ -313,7 +389,7 @@ func load_save() -> void:
 
 	var parser := JSON.new()
 	if parser.parse(json_text) != OK:
-		print("Falha ao ler save.json, gerando novo.")
+		push_warning("Falha ao ler %s, mantendo o estado atual." % save_path)
 		return
 
 	var data = parser.data
@@ -326,6 +402,9 @@ func load_save() -> void:
 	total_kills = int(data.get("total_kills", 0))
 	best_sector = int(data.get("best_sector", 1))
 	highest_heat_beaten = int(data.get("highest_heat_beaten", 0))
+	daily_date = str(data.get("daily_date", ""))
+	daily_best_sectors = int(data.get("daily_best_sectors", 0))
+	daily_rewarded = bool(data.get("daily_rewarded", false))
 
 	var upg = data.get("upgrades", {})
 	if typeof(upg) == TYPE_DICTIONARY:
@@ -343,6 +422,12 @@ func reset_save() -> void:
 	best_sector = 1
 	highest_heat_beaten = 0
 	selected_heat = 0
+	daily_date = ""
+	daily_best_sectors = 0
+	daily_rewarded = false
+	run_is_daily = false
+	run_seed = 0
+	last_run_summary = {}
 	_init_default_upgrades()
 	save_game()
 	save_updated.emit()
