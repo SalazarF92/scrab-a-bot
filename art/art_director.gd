@@ -12,6 +12,24 @@ const EXPANSION_CELLS := {&"qwertypede": 0, &"popup_vivo": 1, &"cadeado_chorao":
 	&"bipador": 4, &"ze_ventoinha": 5, &"cabo_cobra": 6, &"fabricadora": 7}
 const PROP_CELLS := {"Barril Toxico": 8, "TV Quebrada": 9, "Bobina de Cobre": 10, "Tubulacao": 11}
 const BACKGROUND_PATH := "res://assets/art/junkyard.png"
+const ANIMATED_PRENSA_PATH := "res://assets/art/mini_prensa_animated.png"
+const PRENSA_FRAMES: Dictionary = {
+	"walk": [
+		Rect2(21, 27, 306, 314),
+		Rect2(370, 26, 312, 291),
+		Rect2(682, 36, 307, 286),
+	],
+	"attack": [
+		Rect2(41, 341, 292, 331),
+		Rect2(356, 353, 307, 314),
+		Rect2(683, 393, 334, 282),
+	],
+	"power": [
+		Rect2(39, 705, 302, 315),
+		Rect2(341, 682, 341, 338),
+		Rect2(682, 696, 318, 324),
+	],
+}
 const PART_CELLS := {
 	&"arm_l_mousetrap": 0, &"arm_l_drill": 1, &"arm_l_stapler": 2, &"arm_l_drill_super": 1,
 	&"arm_r_psu": 3, &"arm_r_pipe_bazooka": 4, &"arm_r_hdd": 5, &"arm_r_pipe_napalm": 4,
@@ -131,6 +149,41 @@ static func draw_enemy(canvas: Node2D, enemy: Node2D) -> void:
 	var extent := radius * 3.0 + 18.0
 	shadow(canvas, Vector2(3, radius * 0.7), Vector2(radius * 1.2, radius * 0.35))
 	var tint := Color(1.3, 1.3, 1.3) if enemy._flash > 0.0 else Color.WHITE
+
+	# Mini-Prensa 500 com animação multi-frame contextual por estado:
+	if enemy.get("boss_kind") == &"mini_prensa" and texture(ANIMATED_PRENSA_PATH) != null:
+		var tex := texture(ANIMATED_PRENSA_PATH)
+		var state_val = enemy.get("boss_state")
+		var frames: Array = PRENSA_FRAMES["walk"]
+		var frame_idx: int = 0
+
+		# 0 = APPROACH, 1 = RECOVERY, 2 = TELEGRAPH, 3 = STRIKE
+		if state_val == 0: # APPROACH (Caminhando/descendo no poço)
+			frames = PRENSA_FRAMES["walk"]
+			frame_idx = int(floorf(t * 6.0)) % 3
+		elif state_val == 2: # TELEGRAPH (Preparando o golpe hidráulico)
+			frames = PRENSA_FRAMES["attack"]
+			var timer: float = float(enemy.get("_boss_timer"))
+			var dur: float = maxf(0.001, float(enemy.get("_boss_telegraph_duration")))
+			var prog: float = 1.0 - (timer / dur)
+			frame_idx = 0 if prog < 0.55 else 1
+		elif state_val == 3: # STRIKE (Impacto do Carimbo Hidráulico)
+			frames = PRENSA_FRAMES["attack"]
+			frame_idx = 2
+		elif state_val == 1: # RECOVERY (Núcleo exposto / Soltando vapor e chamas)
+			frames = PRENSA_FRAMES["power"]
+			frame_idx = 1 if (int(floorf(t * 7.0)) % 2 == 0) else 2
+		else:
+			frames = PRENSA_FRAMES["walk"]
+			frame_idx = int(floorf(t * 4.0)) % 2
+
+		var src: Rect2 = frames[frame_idx]
+		var aspect := src.size.x / src.size.y
+		var fitted := Vector2(minf(extent, extent * aspect), minf(extent, extent / aspect))
+		var dest := Rect2(Vector2(-fitted.x * 0.5, -extent * 0.6 + bob), fitted)
+		canvas.draw_texture_rect_region(tex, dest, src, tint)
+		return
+
 	var expanded := EXPANSION_CELLS.has(enemy.visual_id) and texture(EXPANSION_PATH) != null
 	cell(canvas, EXPANSION_PATH if expanded else ENEMIES_PATH,
 		EXPANSION_CELLS[enemy.visual_id] if expanded else enemy_cell(enemy.enemy_name), 3,
