@@ -150,38 +150,94 @@ static func draw_enemy(canvas: Node2D, enemy: Node2D) -> void:
 	shadow(canvas, Vector2(3, radius * 0.7), Vector2(radius * 1.2, radius * 0.35))
 	var tint := Color(1.3, 1.3, 1.3) if enemy._flash > 0.0 else Color.WHITE
 
-	# Mini-Prensa 500 com animação multi-frame contextual por estado:
+	# Mini-Prensa 500 com interpolação contínua de movimento, squash & stretch e sub-frame blending:
 	if enemy.get("boss_kind") == &"mini_prensa" and texture(ANIMATED_PRENSA_PATH) != null:
 		var tex := texture(ANIMATED_PRENSA_PATH)
 		var state_val = enemy.get("boss_state")
-		var frames: Array = PRENSA_FRAMES["walk"]
-		var frame_idx: int = 0
+		var offset := Vector2.ZERO
+		var rot := 0.0
+		var sc := Vector2.ONE
+		var src_a: Rect2 = PRENSA_FRAMES["walk"][0]
+		var src_b: Rect2 = PRENSA_FRAMES["walk"][1]
+		var blend := 0.0
 
 		# 0 = APPROACH, 1 = RECOVERY, 2 = TELEGRAPH, 3 = STRIKE
-		if state_val == 0: # APPROACH (Caminhando/descendo no poço)
-			frames = PRENSA_FRAMES["walk"]
-			frame_idx = int(floorf(t * 6.0)) % 3
-		elif state_val == 2: # TELEGRAPH (Preparando o golpe hidráulico)
-			frames = PRENSA_FRAMES["attack"]
+		if state_val == 0:
+			var phase := fmod(t * 1.6, 1.0)
+			var step_pulse := sin(phase * TAU * 2.0)
+			offset = Vector2(sin(phase * TAU) * 6.0, -step_pulse * 6.0)
+			rot = -sin(phase * TAU) * 0.04
+			var sq_y := 1.0 + step_pulse * 0.05
+			sc = Vector2(2.0 - sq_y, sq_y)
+
+			var p3 := phase * 3.0
+			var seg := int(p3)
+			var local_t := smoothstep(0.15, 0.85, p3 - float(seg))
+			match seg:
+				0:
+					src_a = PRENSA_FRAMES["walk"][0]
+					src_b = PRENSA_FRAMES["walk"][1]
+					blend = local_t
+				1:
+					src_a = PRENSA_FRAMES["walk"][1]
+					src_b = PRENSA_FRAMES["walk"][2]
+					blend = local_t
+				_:
+					src_a = PRENSA_FRAMES["walk"][2]
+					src_b = PRENSA_FRAMES["walk"][0]
+					blend = local_t
+
+		elif state_val == 2:
 			var timer: float = float(enemy.get("_boss_timer"))
 			var dur: float = maxf(0.001, float(enemy.get("_boss_telegraph_duration")))
-			var prog: float = 1.0 - (timer / dur)
-			frame_idx = 0 if prog < 0.55 else 1
-		elif state_val == 3: # STRIKE (Impacto do Carimbo Hidráulico)
-			frames = PRENSA_FRAMES["attack"]
-			frame_idx = 2
-		elif state_val == 1: # RECOVERY (Núcleo exposto / Soltando vapor e chamas)
-			frames = PRENSA_FRAMES["power"]
-			frame_idx = 1 if (int(floorf(t * 7.0)) % 2 == 0) else 2
-		else:
-			frames = PRENSA_FRAMES["walk"]
-			frame_idx = int(floorf(t * 4.0)) % 2
+			var prog := clampf(1.0 - (timer / dur), 0.0, 1.0)
+			var ease_p := smoothstep(0.0, 1.0, prog)
+			offset = Vector2(sin(t * 40.0) * 1.5 * ease_p, -25.0 * ease_p)
+			rot = -0.08 * ease_p
+			sc = Vector2(1.0 - 0.08 * ease_p, 1.0 + 0.14 * ease_p)
+			src_a = PRENSA_FRAMES["attack"][0]
+			src_b = PRENSA_FRAMES["attack"][1]
+			blend = ease_p
 
-		var src: Rect2 = frames[frame_idx]
-		var aspect := src.size.x / src.size.y
+		elif state_val == 3:
+			var timer: float = float(enemy.get("_boss_timer"))
+			var dur := 0.30
+			var p := clampf(1.0 - (timer / dur), 0.0, 1.0)
+			var spring := exp(-7.0 * p) * cos(16.0 * p)
+			offset = Vector2(0.0, 20.0 * spring)
+			sc = Vector2(1.0 + 0.28 * spring, 1.0 - 0.28 * spring)
+			src_a = PRENSA_FRAMES["attack"][2]
+			src_b = PRENSA_FRAMES["attack"][2]
+			blend = 0.0
+
+		elif state_val == 1:
+			var pulse := sin(t * 8.0) * 0.06
+			offset = Vector2(sin(t * 20.0) * 1.0, -8.0 + cos(t * 6.0) * 4.0)
+			sc = Vector2(1.08 + pulse, 1.08 - pulse)
+			var b_cycle := fmod(t * 2.0, 1.0)
+			src_a = PRENSA_FRAMES["power"][1]
+			src_b = PRENSA_FRAMES["power"][2]
+			blend = smoothstep(0.2, 0.8, b_cycle)
+
+		else:
+			src_a = PRENSA_FRAMES["walk"][0]
+			src_b = PRENSA_FRAMES["walk"][0]
+			blend = 0.0
+
+		var aspect := src_a.size.x / src_a.size.y
 		var fitted := Vector2(minf(extent, extent * aspect), minf(extent, extent / aspect))
-		var dest := Rect2(Vector2(-fitted.x * 0.5, -extent * 0.6 + bob), fitted)
-		canvas.draw_texture_rect_region(tex, dest, src, tint)
+
+		canvas.draw_set_transform(offset, rot, sc)
+		if blend <= 0.01:
+			canvas.draw_texture_rect_region(tex, Rect2(-fitted.x * 0.5, -extent * 0.6 + bob, fitted.x, fitted.y), src_a, tint)
+		elif blend >= 0.99:
+			canvas.draw_texture_rect_region(tex, Rect2(-fitted.x * 0.5, -extent * 0.6 + bob, fitted.x, fitted.y), src_b, tint)
+		else:
+			var col_a := Color(tint.r, tint.g, tint.b, tint.a * (1.0 - blend))
+			var col_b := Color(tint.r, tint.g, tint.b, tint.a * blend)
+			canvas.draw_texture_rect_region(tex, Rect2(-fitted.x * 0.5, -extent * 0.6 + bob, fitted.x, fitted.y), src_a, col_a)
+			canvas.draw_texture_rect_region(tex, Rect2(-fitted.x * 0.5, -extent * 0.6 + bob, fitted.x, fitted.y), src_b, col_b)
+		canvas.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		return
 
 	var expanded := EXPANSION_CELLS.has(enemy.visual_id) and texture(EXPANSION_PATH) != null
