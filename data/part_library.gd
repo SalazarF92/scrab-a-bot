@@ -79,6 +79,25 @@ static func arm_left_parts() -> Array[PartData]:
 	})
 	out.append(stapler)
 
+	# GDD 4.7.2: Receita de fusao do Braco Esquerdo - Perfuratriz Diamantada
+	var drill_super := PartData.new()
+	drill_super.id = &"arm_l_drill_super"
+	drill_super.display_name = "PERFURATRIZ DIAMANTADA"
+	drill_super.caption = "uma furadeira com ponta de diamante"
+	drill_super.slot = PartData.Slot.ARM_LEFT
+	drill_super.rarity = PartData.Rarity.RARE
+	drill_super.recipe_only = true
+	drill_super.watts = 38
+	drill_super.heat_per_shot = 1.6
+	drill_super.fire_rate = 14.0
+	drill_super.color = Color("#FFD400")
+	drill_super.projectile = _proj({
+		"id": &"super_drill_bit", "speed": 1450.0, "radius": 7.0, "max_bounces": 5,
+		"restitution": 1.10, "ttl": 4.5, "damage": 18.0, "pierce": 3,
+		"base_color": Color("#FFD400"), "stretch": 2.8,
+	})
+	out.append(drill_super)
+
 	return out
 
 
@@ -151,6 +170,29 @@ static func arm_right_parts() -> Array[PartData]:
 		"base_color": Color("#7B2FBF"), "stretch": 1.0,
 	})
 	out.append(hdd)
+
+	# GDD 4.7.2: Receita de fusao do Braco Direito - Bazuca Napalm do Seu Nildo
+	var napalm := PartData.new()
+	napalm.id = &"arm_r_pipe_napalm"
+	napalm.display_name = "BAZUCA NAPALM DO SEU NILDO"
+	napalm.caption = "um cano de pia incendiário"
+	napalm.slot = PartData.Slot.ARM_RIGHT
+	napalm.rarity = PartData.Rarity.RARE
+	napalm.recipe_only = true
+	napalm.watts = 55
+	napalm.heat_per_shot = 24.0
+	napalm.fire_rate = 0.9
+	napalm.automatic = false
+	napalm.color = Color("#FF2D95")
+	napalm.projectile = _proj({
+		"id": &"napalm_rocket", "speed": 360.0, "radius": 18.0, "max_bounces": 6,
+		"restitution": 1.15, "ttl": 9.0, "damage": 110.0,
+		"base_color": Color("#FF2D95"), "stretch": 2.1,
+	})
+	var ramp_napalm := BhvDamageRampOnBounce.new()
+	ramp_napalm.damage_add_per_bounce = 0.60
+	napalm.behaviors.append(ramp_napalm)
+	out.append(napalm)
 
 	return out
 
@@ -352,8 +394,7 @@ static func all_parts() -> Array[PartData]:
 	return out
 
 
-## Primeira receita do vertical slice. O modulo fica disponivel na Bancada;
-## receitas futuras podem reutilizar este dado sem alterar os slots do robo.
+## Receitas de fusao da Bancada (GDD 4.7.2).
 static func fusion_recipes() -> Array[FusionRecipe]:
 	var tesla := FusionRecipe.new()
 	tesla.id = &"tesla_toast"
@@ -361,19 +402,38 @@ static func fusion_recipes() -> Array[FusionRecipe]:
 	tesla.module_id = &"car_battery"
 	tesla.result_part = head_parts()[1]
 	tesla.description = "5 torradas; cada quique encadeia raios em ate 3 alvos."
-	return [tesla]
+
+	var drill_super := FusionRecipe.new()
+	drill_super.id = &"diamond_drill"
+	drill_super.source_part_id = &"arm_l_drill"
+	drill_super.module_id = &"diamond_drillbit"
+	drill_super.result_part = arm_left_parts()[3]
+	drill_super.description = "Perfuratriz: perfura 3 inimigos, 5 quiques e velocidade extrema."
+
+	var napalm := FusionRecipe.new()
+	napalm.id = &"napalm_bazooka"
+	napalm.source_part_id = &"arm_r_pipe_bazooka"
+	napalm.module_id = &"propane_tank"
+	napalm.result_part = arm_right_parts()[3]
+	napalm.description = "Napalm: foguetes pesados; +60% dano a cada quique."
+
+	return [tesla, drill_super, napalm]
 
 
 static func fusion_module_name(module_id: StringName) -> String:
 	match module_id:
 		&"car_battery": return "Bateria de Carro"
+		&"diamond_drillbit": return "Broca Diamantada"
+		&"propane_tank": return "Botijão de Propano"
 	return "Modulo desconhecido"
 
 
-## Preco de prototipo, equivalente a uma peca Comum. A receita nao cobra taxa.
+## Preco de prototipo, equivalente a uma peca Comum/Incomum. A receita nao cobra taxa.
 static func fusion_module_price(module_id: StringName) -> int:
 	match module_id:
 		&"car_battery": return 90
+		&"diamond_drillbit": return 120
+		&"propane_tank": return 140
 	return -1
 
 

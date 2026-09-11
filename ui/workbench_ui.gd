@@ -37,6 +37,7 @@ var _font: Font
 var _buttons: Array[Dictionary] = [] # {"rect": Rect2, "action": String, "payload": Variant}
 var inventory := FusionInventory.new()
 var _recipes: Array[FusionRecipe] = PartLibrary.fusion_recipes()
+var _selected_recipe_idx: int = 0
 var _status: String = ""
 var _fusion_time: float = 0.0
 var _fusion_name: String = ""
@@ -68,6 +69,7 @@ func reset_for_run() -> void:
 	_repair_used = false
 	_status = ""
 	_fusion_time = 0.0
+	_selected_recipe_idx = 0
 
 
 func _on_visibility_changed() -> void:
@@ -79,6 +81,11 @@ func open_workbench(p_sector: int) -> void:
 	sector = p_sector
 	_rerolls_used = 0
 	_repair_used = false
+	_selected_recipe_idx = 0
+	for r_idx in _recipes.size():
+		if recipe_available(r_idx):
+			_selected_recipe_idx = r_idx
+			break
 	_status = "Pecas repetidas sobem o tier. Trocas devolvem metade do valor, incluindo o tier."
 	_roll_offers()
 	visible = true
@@ -117,12 +124,20 @@ func _gui_input(event: InputEvent) -> void:
 				_try_reroll()
 			KEY_H:
 				_try_repair()
+			KEY_LEFT, KEY_Z:
+				_selected_recipe_idx = (_selected_recipe_idx - 1 + _recipes.size()) % _recipes.size()
+				queue_redraw()
+			KEY_RIGHT, KEY_X:
+				_selected_recipe_idx = (_selected_recipe_idx + 1) % _recipes.size()
+				queue_redraw()
 			KEY_M:
-				_try_buy_module(BATTERY_MODULE)
+				var rec: FusionRecipe = _recipes[_selected_recipe_idx]
+				_try_buy_module(rec.module_id)
 			KEY_F:
-				_try_fuse_recipe(0)
+				_try_fuse_recipe(_selected_recipe_idx)
 			KEY_DELETE:
-				_try_sell_module(BATTERY_MODULE)
+				var rec: FusionRecipe = _recipes[_selected_recipe_idx]
+				_try_sell_module(rec.module_id)
 			KEY_1:
 				_try_buy_offer(0)
 			KEY_2:
@@ -145,6 +160,12 @@ func _handle_button_action(action: String, payload: Variant) -> void:
 			_try_repair()
 		"reroll":
 			_try_reroll()
+		"prev_recipe":
+			_selected_recipe_idx = (_selected_recipe_idx - 1 + _recipes.size()) % _recipes.size()
+			queue_redraw()
+		"next_recipe":
+			_selected_recipe_idx = (_selected_recipe_idx + 1) % _recipes.size()
+			queue_redraw()
 		"buy_offer":
 			_try_buy_offer(int(payload))
 		"upgrade_slot":
@@ -469,25 +490,39 @@ func _draw_shop_section(vp: Vector2) -> void:
 
 func _draw_recipe_section(vp: Vector2) -> void:
 	var panel := Rect2(40, vp.y - 314, vp.x - 80, 194)
-	var ready := recipe_available(0)
+	var recipe := _recipes[_selected_recipe_idx]
+	var ready := recipe_available(_selected_recipe_idx)
 	var accent := Color("#FFD400") if ready else Color("#8A4B2A")
 	_draw_panel(panel, Color("#271D25"), accent)
 	var left := panel.position + Vector2(20, 0)
-	var recipe := _recipes[0]
-	var source: PartData = robot.equipped.get(PartData.Slot.HEAD) if robot != null else null
-	var toaster_ready := recipe.accepts(source)
-	var batteries := inventory.count(BATTERY_MODULE)
-	var title := "RECEITA PRONTA!  TORRADA TESLA" if ready else "LIVRO DE RECEITAS  /  TORRADA TESLA"
-	if source != null and source.id == &"head_toaster_tesla":
-		title = "TORRADA TESLA EQUIPADA"
-	draw_string(_font, left + Vector2(0, 30), title, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, accent if ready else Color("#F5F0E1"))
-	var ingredients := "%s Torradeira equipada    +    %s Bateria de Carro (%d)" % [
-		"[OK]" if toaster_ready else "[--]", "[OK]" if batteries > 0 else "[--]", batteries]
-	draw_string(_font, left + Vector2(0, 58), ingredients, HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#D6C9A8"))
-	draw_string(_font, left + Vector2(0, 83), recipe.description, HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#22E0FF"))
-	draw_string(_font, left + Vector2(0, 107), "Consome 1 bateria; preserva o tier; resultado Raro ou superior.", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#BCA68D"))
+	var source: PartData = robot.equipped.get(recipe.result_part.slot) if robot != null else null
+	var source_ready := recipe.accepts(source)
+	var module_count := inventory.count(recipe.module_id)
+	var module_name := PartLibrary.fusion_module_name(recipe.module_id)
+	var module_cost := PartLibrary.fusion_module_price(recipe.module_id)
+
+	var title := "RECEITA PRONTA!  %s" % recipe.result_part.display_name if ready else "LIVRO DE RECEITAS (%d/%d)  /  %s" % [_selected_recipe_idx + 1, _recipes.size(), recipe.result_part.display_name]
+	if source != null and source.id == recipe.result_part.id:
+		title = "%s EQUIPADA" % recipe.result_part.display_name
+
+	# Botoes de navegacao entre receitas < e >
+	var btn_prev := Rect2(left + Vector2(0, 10), Vector2(28, 24))
+	_draw_action_button(btn_prev, "<", "prev_recipe", null, true, Color("#D6C9A8"))
+	draw_string(_font, left + Vector2(36, 30), title, HORIZONTAL_ALIGNMENT_LEFT, -1, 20, accent if ready else Color("#F5F0E1"))
+	var title_w := _font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, 20).x
+	var btn_next := Rect2(left + Vector2(48 + title_w, 10), Vector2(28, 24))
+	_draw_action_button(btn_next, ">", "next_recipe", null, true, Color("#D6C9A8"))
+
+	var source_name := recipe.source_part_id
+	if source != null and source.id == recipe.source_part_id:
+		source_name = source.display_name
+	var ingredients := "%s %s    +    %s %s (%d)" % [
+		"[OK]" if source_ready else "[--]", source_name, "[OK]" if module_count > 0 else "[--]", module_name, module_count]
+	draw_string(_font, left + Vector2(0, 58), ingredients, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("#D6C9A8"))
+	draw_string(_font, left + Vector2(0, 83), recipe.description, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("#22E0FF"))
+	draw_string(_font, left + Vector2(0, 107), "Consome 1 modulo; preserva o tier; resultado Raro ou superior.", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("#BCA68D"))
 	var craft_button := Rect2(left + Vector2(0, 122), Vector2(510, 47))
-	_draw_action_button(craft_button, "FUNDIR RECEITA [F]  /  SEM TAXA", "fuse_recipe", 0, ready, Color("#FFD400"))
+	_draw_action_button(craft_button, "FUNDIR RECEITA [F]  /  SEM TAXA", "fuse_recipe", _selected_recipe_idx, ready, Color("#FFD400"))
 	if ready:
 		var pulse := 0.5 + 0.5 * sin(_pulse_time * 3.0)
 		draw_rect(craft_button.grow(3), Color(1.0, 0.83, 0.0, 0.3 + pulse * 0.3), false, 2.0)
@@ -496,15 +531,14 @@ func _draw_recipe_section(vp: Vector2) -> void:
 	draw_line(Vector2(stock_x - 18, panel.position.y + 20), Vector2(stock_x - 18, panel.end.y - 20), Color("#665044"), 2.0)
 	draw_string(_font, Vector2(stock_x, panel.position.y + 30), "MOCHILA DE MODULOS  %d / %d" % [inventory.size(), inventory.capacity], HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color("#F5F0E1"))
 	_draw_battery(Vector2(stock_x + 22, panel.position.y + 67))
-	var cost := PartLibrary.fusion_module_price(BATTERY_MODULE)
-	draw_string(_font, Vector2(stock_x + 58, panel.position.y + 61), "Bateria de Carro  /  %d Sucata" % cost, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("#FFD400"))
-	draw_string(_font, Vector2(stock_x + 58, panel.position.y + 84), "Guardada entre setores. Usada na fusao da Torradeira.", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#BCA68D"))
+	draw_string(_font, Vector2(stock_x + 58, panel.position.y + 61), "%s  /  %d Sucata" % [module_name, module_cost], HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("#FFD400"))
+	draw_string(_font, Vector2(stock_x + 58, panel.position.y + 84), "Guardado entre setores. Necessario para a receita ativa.", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("#BCA68D"))
 	var stock_w := panel.end.x - stock_x - 20
 	var module_button := Rect2(stock_x, panel.position.y + 122, stock_w * 0.62, 47)
-	var can_buy := robot != null and not inventory.is_full() and MetaManager.current_scrap >= cost
-	_draw_action_button(module_button, "COMPRAR BATERIA [M] (%d)" % cost, "buy_module", BATTERY_MODULE, can_buy, Color("#22E0FF"))
+	var can_buy := robot != null and not inventory.is_full() and MetaManager.current_scrap >= module_cost
+	_draw_action_button(module_button, "COMPRAR [M] (%d)" % module_cost, "buy_module", recipe.module_id, can_buy, Color("#22E0FF"))
 	var sell_button := Rect2(module_button.end.x + 12, module_button.position.y, stock_w - module_button.size.x - 12, 47)
-	_draw_action_button(sell_button, "VENDER [DEL] (+%d)" % (cost / 2), "sell_module", BATTERY_MODULE, batteries > 0, Color("#D6C9A8"))
+	_draw_action_button(sell_button, "VENDER [DEL] (+%d)" % (module_cost / 2), "sell_module", recipe.module_id, module_count > 0, Color("#D6C9A8"))
 
 	# Celebracao local: sem flash de tela inteira e sem retomar o combate.
 	if _fusion_time > 0.0:

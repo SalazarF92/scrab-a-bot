@@ -35,6 +35,7 @@ func tick(owner: Node2D, delta: float) -> void:
 		if wind_clock >= 0.10:
 			if player.get("pool") != null:
 				player.pool.deflect_in_cone(owner.global_position, Vector2.DOWN, 250.0, 900.0, 0.10)
+				Sfx.play("wind_deflect", -14.0)
 			wind_clock = 0.0
 		return
 	if warning > 0.0:
@@ -56,7 +57,10 @@ func tick(owner: Node2D, delta: float) -> void:
 	target = player.body_center()
 	warning = 1.0 if owner.mob_kind == &"bomber" else 0.8
 	if owner.mob_kind == &"printer": warning = 0.7
-	if owner.mob_kind == &"bomber": Sfx.play("overheat", -15.0)
+	match owner.mob_kind:
+		&"bomber": Sfx.play("beeper_countdown", -4.0)
+		&"laser": Sfx.play("laser_charge", -6.0)
+		&"printer": Sfx.play("printer_spawn", -6.0)
 
 
 func _execute(owner: Node2D, player: Node2D) -> void:
@@ -74,6 +78,7 @@ func _execute(owner: Node2D, player: Node2D) -> void:
 			for i in 5:
 				pool.spawn(owner.global_position + direction * (owner.body_radius + 12.0),
 					direction.rotated(deg_to_rad((i - 2) * 10.0)), shot, ProjectilePool.FACTION_ENEMY)
+			Sfx.play("keycap_burst", -4.0)
 		&"laser":
 			# A parede intercepta o feixe. A mira não persegue o jogador no aviso.
 			var query := PhysicsRayQueryParameters2D.create(owner.global_position, target, ProjectilePool.LAYER_WALLS)
@@ -81,6 +86,7 @@ func _execute(owner: Node2D, player: Node2D) -> void:
 			if not hit.is_empty(): target = hit["position"]
 			if Geometry2D.get_closest_point_to_segment(player.body_center(), owner.global_position, target).distance_to(player.body_center()) <= Robot.COLLISION_RADIUS + 5.0:
 				player.take_damage(owner.contact_damage, owner.global_position, 0, owner.source_text())
+			Sfx.play("laser_fire", -3.0)
 		&"lock":
 			if player.has_method("jam_slot"):
 				var slots: Array[int] = []
@@ -94,18 +100,20 @@ func _execute(owner: Node2D, player: Node2D) -> void:
 			if owner.global_position.distance_to(player.body_center()) <= 200.0 + Robot.COLLISION_RADIUS:
 				player.take_damage(owner.contact_damage, owner.global_position, 0, owner.source_text())
 			Vfx.spawn_death(owner.global_position, Color("#FF6B1A"))
-			Sfx.play("fire_heavy", -6.0)
+			Sfx.play("beeper_detonate", -2.0)
 			owner._dying = true
 			owner._release() # Detonar sozinho não paga recompensa de abate.
 		&"cable":
 			var offset: Vector2 = player.body_center() - owner.global_position
 			if offset.length() <= 180.0 and offset.normalized().dot((target - owner.global_position).normalized()) > 0.5:
 				player.take_damage(owner.contact_damage, owner.global_position, 0, owner.source_text())
+			Sfx.play("cable_whip", -4.0)
 			timer = 2.4
 		&"printer":
 			owner.get_tree().call_group(&"wave_director", &"spawn_minions", "parafuseta", owner.global_position + Vector2(0, 35), 1)
 			spawned += 1
 			timer = 2.3 # 2,3 + 0,7 de aviso = três segundos entre construções.
+			Sfx.play("printer_spawn", -4.0)
 
 
 func _try_merge(owner: Node2D) -> void:
@@ -123,6 +131,7 @@ func _try_merge(owner: Node2D) -> void:
 		other._dying = true
 		other._release()
 		Vfx.spawn_bounce(owner.global_position, Vector2.UP, 3)
+		Sfx.play("cable_whip", -2.0)
 		return
 
 

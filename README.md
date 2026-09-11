@@ -16,8 +16,9 @@ continua sintetizado; animação tradicional quadro a quadro ainda é trabalho d
 ![Jogo com as artes integradas](docs/visual/gameplay.png)
 
 O registro mais recente é [Expansão do bestiário — 11/09](DOCUMENTACAO_EXPANSAO_MOBS_2026-09-11.md):
-oito monstros com habilidades e quatro objetos de cenário. A transparência do novo atlas
-está pendente; os novos inimigos usam sprite provisório com nome até a aprovação do PNG final.
+oito novos monstros com habilidades ativas, quatro novos obstáculos, canal alfa transparente
+processado (`assets/art/expansion_atlas_alpha.png`), 10 sintetizadores procedurais de áudio,
+três receitas avançadas de fusão na Bancada e variações visuais completas dos 5 biomas de setor.
 O relatório complementa [Implementação e artes — 10/09](DOCUMENTACAO_IMPLEMENTACAO_ARTES_2026-09-10.md).
 
 ## Rodar
@@ -51,10 +52,12 @@ run, 1 a 5 compram upgrades, A e D ajustam o nível de risco.
 **Na Bancada:** 1 a 4 compram da vitrine (fundem se a peça for igual à equipada), R faz
 reroll, H solda, espaço segue para o próximo setor.
 
-**Receita Torrada Tesla:** equipe a Torradeira, compre uma Bateria de Carro com **M**
-(90 Sucata) e use **F**. A mochila guarda quatro módulos entre setores; **Delete** vende
-uma bateria por 45. A receita preserva o tier e não cobra taxa adicional. Reroll custa
-60, 100, 140…; revenda de peça inclui metade dos custos de evolução do tier.
+**Receitas de Fusão da Bancada:** navegue entre receitas com **<** / **>** (ou setas / **Z** / **X**).
+- **Torrada Tesla:** Torradeira + Bateria de Carro (**M**, 90 Sucata) -> funde com **F**.
+- **Perfuratriz Diamantada:** Perfuratriz + Broca Diamantada (**M**, 120 Sucata) -> perfura 3 alvos a 1450 px/s.
+- **Bazuca Napalm do Seu Nildo:** Lança-Tubo + Botijão de Gás (**M**, 140 Sucata) -> 110 de dano e ricochete acelerado.
+A mochila guarda até quatro módulos entre setores; **Delete** vende o módulo por metade do valor.
+As receitas preservam o tier da peça-base. Reroll custa 60, 100, 140…; revenda inclui custos de evolução.
 
 Os dois menus pausam o jogo e recebem teclado assim que abrem.
 

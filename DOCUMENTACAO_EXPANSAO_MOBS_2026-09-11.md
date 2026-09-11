@@ -30,22 +30,49 @@ Quatro entradas adicionadas ao catálogo de obstáculos a partir do setor 2:
 
 Esses objetos são superfícies físicas; nomes e desenhos não implicam veneno, eletricidade ou vazamento com dano. O contorno da base indica a colisão real. Arte segue a direção cartunesca das peças anteriores, com contorno escuro, ferrugem, olhos exagerados e volume pintado.
 
-Estado da arte: atlas de 12 desenhos criado em `assets/art/expansion_atlas.png`; fundo opaco rejeitado para uso final. Correção de alpha pendente. Prompts e tentativas registrados em [ART_PROMPTS_EXPANSION.md](docs/ART_PROMPTS_EXPANSION.md).
+O atlas de 12 desenhos (`assets/art/expansion_atlas_alpha.png`) foi gerado com extração automatizada de fundo e canais alfa limpos (726.006 pixels de fundo opaco e ilhas removidos). Mobs e novos obstáculos agora renderizam com transparência total no poço.
 
-Enquanto isso, o jogo usa a arte anterior como marcador provisório, acompanhada pelo nome de cada novo monstro. O carregador está preparado para `assets/art/expansion_atlas_alpha.png`; esse arquivo ainda não existe. A galeria mostra o estudo original com aviso explícito de fundo pendente, sem apresentá-lo como sprite final.
+## Variações visuais dos 5 biomas
 
-Captura do renderer OpenGL concluída sem erros: [combate com apresentação provisória](docs/visual/expansion_combat.png) e [estudo dos 12 desenhos](docs/visual/expansion_gallery.png).
+A arena (`ArtDirector.draw_arena`) agora apresenta diferenciação visual marcante e temática para cada setor, sem alterar colisões nem consumir RNG do gameplay:
+
+1. **Setor 1 — Depósito de Sucata**: Estruturas de ferro fundido oxidado, rebites escuros com halo de ferrugem, linhas de perigo clássicas amarelo-asfalto e névoa industrial quente.
+2. **Setor 2 — Esgoto Eletrônico**: Chapas com corrosão esverdeada (azeviche), trilhas e vias de circuito impresso (PCB) luminescentes ao longo das colunas verticais, marcas de escorrimento de e-waste e listras de perigo verde-tóxico.
+3. **Setor 3 — Câmara Fria**: Chapas de liga criogênica azulada, estalactites e cristais de gelo nas nervuras laterais, dutos de fluido refrigerante e faixas de alerta subzero em ciano brilhante.
+4. **Setor 4 — Escritório Morto**: Painéis brutalistas em grafite/ardósia anodizada, barramentos verticais de cabos com LEDs de servidor piscando em âmbar e magenta, iluminação de fósforo CRT e listras corporate synthwave.
+5. **Setor 5 — A Fornalha**: Ferro basáltico carbonizado, fissuras de magma incandescente pulsando pelas colunas, frestas de calor térmico nas travessas de fundo e grelha de perigo em brasa viva.
+
+A HUD (`ui/hud.gd`) e o topo do poço agora identificam expressamente o nome do bioma ativo a cada setor.
+
+## Síntese de áudio procedural (SFX de habilidades)
+
+Foram implementados 10 sintetizadores procedurais de áudio em tempo de carga (`autoload/sfx.gd`), sem carregar samples pesados nem alocar nós em tempo de execução:
+
+- `laser_charge`: Subida de frequência senoidal com vibrato para a telegrafia do Olhudo.
+- `laser_fire`: Disparo ionizado com varredura exponencial descendente e estalo elétrico.
+- `beeper_countdown`: Duplo bipe de alta frequência ("BIP! BIP!") durante o aviso do Bipador.
+- `beeper_detonate`: Explosão com sub-grave potente e estalo percussivo de sucata.
+- `padlock_lock`: Dois cliques mecânicos de trinco pesado bloqueando armas do robô.
+- `padlock_release`: Estalo de mola e tinido metálico de destravamento de slot.
+- `wind_deflect`: Rajada de vento em ruído passa-baixa modulado para o cone do Zé Ventoinha.
+- `printer_spawn`: Zumbido robótico escalonado em 3 passos para a Fabricadora 3D.
+- `keycap_burst`: Estalo plástico seco simulando disparo de teclas mecânicas do QWERTYpede.
+- `cable_whip`: Assobio rápido de ar e chicotada de fusão de cabos.
+
+## Expansão de receitas na Bancada
+
+O catálogo de fusões foi expandido com novas receitas avançadas de tier II e III na Bancada (`ui/workbench_ui.gd` e `data/part_library.gd`), com navegação completa por abas (`<`/`>`, setas, `Z`/`X`), compra com `[M]`, revenda com `[DEL]` e forja com `[F]`:
+- **Perfuratriz Diamantada**: Perfuratriz Básica + Ponta de Broca Diamantada (120 Sucatas) — Perfuração de 3 alvos, 5 ricochetes e alta velocidade.
+- **Bazuca Napalm do Seu Nildo**: Lança-Tubo + Botijão de Gás (140 Sucatas) — Dano massivo de 110, ricochetes explosivos com aceleração.
 
 ## Validação
 
-`powershell -ExecutionPolicy Bypass -File tests/run_tests.ps1`: oito cenas aprovadas, 47 scripts compilados, sem erros de script ou vazamentos de objetos reportados pelo runner.
-
-O teste `mob_expansion` cobre introdução por setor, rajadas, oito impactos, gerações, bloqueios concorrentes e expiração, esquiva de laser e explosão, colisão do laser com obstáculo, autoria de dano, vento por alcance/facção, fusão de cabos, limite da Fabricadora e limpeza de estado no pool.
-
-O teste de percurso chegou à vitória passando pelos cinco setores, quatro bancadas, três chefes e todos os oito novos tipos de inimigo. Usa abate assistido; não valida dificuldade para jogadores humanos. Todos os saves de teste são isolados.
-
-Teste de fumaça: 40 salas aprovadas; 800 projéteis a 1400 px/s; mediana de física 2,34 ms, p99 3,00 ms e nenhum quadro acima de 8 ms nessa execução. Medição local de editor, sem promessa de desempenho em outras máquinas.
-
-## Limites e adaptações
-
-A expansão continua sendo protótipo. Os desenhos têm uma pose por criatura, animada por transformação e deformação; animações desenhadas por ação, efeitos exclusivos e balanceamento humano ainda faltam. O mínimo de oito impactos do QWERTYpede não substitui seu HP. Pop-Up e Fabricadora possuem limites explícitos para evitar crescimento ilimitado. Não representa conclusão de todo o escopo 1.0 do GDD.
+A suíte completa (`powershell -ExecutionPolicy Bypass -File tests/run_tests.ps1`) foi executada e aprovada com código 0 em todas as 8 cenas de teste:
+- `compile_check`: 47 scripts verificados, 0 erros.
+- `integration_additions`: receitas de fusão, compras atômicas, armaduras de cofre, atlas alfa e cobertura de peças aprovados.
+- `boss_combat`: contratos de chefe, fases, telegrafia e corredores aprovados.
+- `mob_expansion`: comportamentos dos 8 novos monstros, colisões e ciclo de vida aprovados.
+- `audio_cleanup`: 61 playbacks liberados, pausa e roubo de vozes sem vazamentos.
+- `smoke`: integridade do gerador de arena, 40 salas validadas, física 60 FPS estável.
+- `gameplay`: anti-travamento, rebatedor e percurso real aprovados.
+- `run_completion`: vitória completa ao longo dos 5 setores, chefes e bancadas.

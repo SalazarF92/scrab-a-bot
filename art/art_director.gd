@@ -13,14 +13,27 @@ const EXPANSION_CELLS := {&"qwertypede": 0, &"popup_vivo": 1, &"cadeado_chorao":
 const PROP_CELLS := {"Barril Toxico": 8, "TV Quebrada": 9, "Bobina de Cobre": 10, "Tubulacao": 11}
 const BACKGROUND_PATH := "res://assets/art/junkyard.png"
 const PART_CELLS := {
-	&"arm_l_mousetrap": 0, &"arm_l_drill": 1, &"arm_l_stapler": 2,
-	&"arm_r_psu": 3, &"arm_r_pipe_bazooka": 4, &"arm_r_hdd": 5,
+	&"arm_l_mousetrap": 0, &"arm_l_drill": 1, &"arm_l_stapler": 2, &"arm_l_drill_super": 1,
+	&"arm_r_psu": 3, &"arm_r_pipe_bazooka": 4, &"arm_r_hdd": 5, &"arm_r_pipe_napalm": 4,
 	&"head_toaster": 6, &"head_toaster_tesla": 7,
 	&"chassis_springs": 8, &"chassis_treads": 9, &"chassis_casters": 10,
 	&"chassis_mannequin": 11, &"chassis_safe": 12, &"car_battery": 13,
+	&"diamond_drillbit": 1, &"propane_tank": 4,
 }
 const BIOMES := ["DEPÓSITO DE SUCATA", "ESGOTO ELETRÔNICO", "CÂMARA FRIA", "ESCRITÓRIO MORTO", "A FORNALHA"]
-const BIOME_COLORS := [Color("#C5A77A"), Color("#91B795"), Color("#97BEC9"), Color("#B6A2C4"), Color("#D79676")]
+const BIOME_COLORS := [Color("#C5A77A"), Color("#68BA80"), Color("#70BCD4"), Color("#BD8EFF"), Color("#FF5722")]
+const BIOME_WALL_COLORS := [Color("#3E332B"), Color("#183024"), Color("#1C2C3D"), Color("#2A1B36"), Color("#331208")]
+const BIOME_CONDUIT_COLORS := [Color("#B87333"), Color("#39FF14"), Color("#5CE1E6"), Color("#E056FD"), Color("#FF3D00")]
+const BIOME_HAZARD_A := [Color("#FFCC00"), Color("#39FF14"), Color("#5CE1E6"), Color("#FF2D95"), Color("#FF4500")]
+const BIOME_HAZARD_B := [Color("#1C1510"), Color("#0A1C12"), Color("#0A1826"), Color("#180B22"), Color("#200802")]
+const BIOME_HAZARD_WIRE := [Color("#FF8C00", 0.70), Color("#39FF14", 0.75), Color("#74E5FF", 0.85), Color("#FF2D95", 0.80), Color("#FFAA00", 0.90)]
+const BIOME_WASH := [
+	Color(0.20, 0.14, 0.08, 0.38),
+	Color(0.04, 0.18, 0.08, 0.42),
+	Color(0.05, 0.15, 0.25, 0.40),
+	Color(0.14, 0.06, 0.20, 0.42),
+	Color(0.25, 0.07, 0.01, 0.44),
+]
 static var _textures: Dictionary = {}
 static var _layout: Dictionary = {}
 
@@ -128,8 +141,16 @@ static func draw_enemy(canvas: Node2D, enemy: Node2D) -> void:
 
 
 static func draw_arena(canvas: Node2D, sector: int) -> void:
-	var tint: Color = BIOME_COLORS[clampi(sector - 1, 0, 4)]
-	canvas.draw_rect(Rect2(-900, -400, 2800, 1900), Color("#191719"))
+	var s_idx: int = clampi(sector - 1, 0, 4)
+	var tint: Color = BIOME_COLORS[s_idx]
+	var wall_col: Color = BIOME_WALL_COLORS[s_idx]
+	var conduit_col: Color = BIOME_CONDUIT_COLORS[s_idx]
+	var hz_a: Color = BIOME_HAZARD_A[s_idx]
+	var hz_b: Color = BIOME_HAZARD_B[s_idx]
+	var hz_wire: Color = BIOME_HAZARD_WIRE[s_idx]
+	var wash: Color = BIOME_WASH[s_idx]
+
+	canvas.draw_rect(Rect2(-900, -400, 2800, 1900), Color("#121013"))
 	var tex := texture(BACKGROUND_PATH)
 	if tex:
 		# Camada distante acompanha só uma fração do deslocamento da câmera.
@@ -139,20 +160,50 @@ static func draw_arena(canvas: Node2D, sector: int) -> void:
 		canvas.draw_texture_rect(tex, Rect2(Vector2(-460, 0) + parallax, Vector2(1920, 1080)), false, tint)
 		canvas.draw_texture_rect_region(tex, Rect2(0, 0, 1000, 1080),
 			Rect2(tex.get_width() * 0.29, 0, tex.get_width() * 0.42, tex.get_height()), tint)
-	canvas.draw_rect(Rect2(0, 0, 1000, 1080), Color(0.055, 0.045, 0.06, 0.48))
-	# Nervuras fixas e face frontal produzem profundidade sem deslocar a colisão.
+
+	# Atmosfera específica do bioma sobreposta ao poço:
+	canvas.draw_rect(Rect2(0, 0, 1000, 1080), wash)
+
+	# Identificação stencil do setor no topo do poço:
+	canvas.draw_string(ThemeDB.fallback_font, Vector2(0, 28), "/// SETOR %d : %s ///" % [s_idx + 1, BIOMES[s_idx]],
+		HORIZONTAL_ALIGNMENT_CENTER, 1000.0, 13, Color(tint, 0.32))
+
+	# Nervuras fixas e face frontal produzem profundidade sem deslocar a colisão:
 	for x in [-15.0, 1000.0]:
-		canvas.draw_rect(Rect2(x, 0, 15, 1080), Color("#4C4245"))
-		canvas.draw_line(Vector2(x + 4, 0), Vector2(x + 4, 1080), tint.darkened(0.25), 3.0)
+		canvas.draw_rect(Rect2(x, 0, 15, 1080), wall_col)
+		canvas.draw_line(Vector2(x + 4, 0), Vector2(x + 4, 1080), conduit_col, 2.5)
+		# Detalhes específicos de bioma nos pilares laterais:
 		for y in range(35, 1080, 90):
 			canvas.draw_circle(Vector2(x + 8, y), 4, INK)
 			canvas.draw_circle(Vector2(x + 7, y - 1), 2, tint)
-	for y in range(100, 920, 100):
-		canvas.draw_line(Vector2(12, y), Vector2(988, y + 9), Color(0.8, 0.75, 0.8, 0.045), 2.0)
-	canvas.draw_rect(Rect2(0, 982, 1000, 98), Color("#1A141D", 0.7))
-	canvas.draw_line(Vector2(0, 960), Vector2(1000, 960), Color("#FF2D95", 0.55), 2.0)
+			match s_idx:
+				1: # Esgoto Eletrônico: trilhas e vias de circuito impresso
+					canvas.draw_line(Vector2(x + 4, y), Vector2(x + 13, y), conduit_col, 1.5)
+					canvas.draw_circle(Vector2(x + 13, y), 1.5, Color("#B2FF59"))
+				2: # Câmara Fria: cristais de gelo e pontas de estalactite
+					canvas.draw_line(Vector2(x + 4, y), Vector2(x + 11, y + 7), Color("#DDF7FF", 0.7), 2.0)
+				3: # Escritório Morto: LEDs de status em barramentos de servidores
+					var led_col := Color("#FFBE53") if (y / 90) % 2 == 0 else Color("#E056FD")
+					canvas.draw_circle(Vector2(x + 11, y), 2.0, led_col)
+				4: # A Fornalha: fissuras incandescentes de magma
+					canvas.draw_circle(Vector2(x + 4, y), 3.0, Color("#FFAA00", 0.8))
+					canvas.draw_line(Vector2(x + 4, y), Vector2(x + 10, y + 5), Color("#FF3D00", 0.6), 2.0)
+
+	# Vigas estruturais horizontais de fundo:
+	for y in range(110, 920, 100):
+		canvas.draw_line(Vector2(12, y), Vector2(988, y + 6), Color(tint, 0.08), 2.0)
+		if s_idx == 4:
+			canvas.draw_line(Vector2(20, y + 1), Vector2(980, y + 7), Color(1.0, 0.4, 0.1, 0.06), 4.0)
+		elif s_idx == 1:
+			canvas.draw_line(Vector2(180 + (y * 3) % 640, y + 6), Vector2(180 + (y * 3) % 640, y + 26), Color(conduit_col, 0.12), 1.5)
+
+	# Piso e Linha de Base:
+	canvas.draw_rect(Rect2(0, 982, 1000, 98), Color("#141017", 0.82))
+	canvas.draw_line(Vector2(0, 960), Vector2(1000, 960), hz_wire, 2.5)
+	# Listras diagonais de perigo industriais:
 	for x in range(0, 1000, 36):
-		canvas.draw_line(Vector2(x, 985), Vector2(x + 16, 996), Color("#C5A77A", 0.65), 7.0)
+		canvas.draw_line(Vector2(x, 985), Vector2(x + 18, 1000), hz_a, 7.0)
+		canvas.draw_line(Vector2(x + 18, 985), Vector2(x + 36, 1000), hz_b, 7.0)
 
 
 static func draw_obstacle(canvas: Node2D, obstacle: Node2D) -> void:
@@ -166,8 +217,12 @@ static func draw_obstacle(canvas: Node2D, obstacle: Node2D) -> void:
 	canvas.draw_rect(r, Color("#352B28"))
 	canvas.draw_rect(r, Color("#88756A"), false, 2.0)
 	canvas.draw_line(r.position, r.position + Vector2(size.x, 0), Color("#B6A299"), 3.0)
+	var s_idx: int = 0
+	if obstacle.get_parent() != null and obstacle.get_parent().get("visual_sector") != null:
+		s_idx = clampi(int(obstacle.get_parent().visual_sector) - 1, 0, 4)
+	var rivet_color: Color = BIOME_COLORS[s_idx].lightened(0.2)
 	for side in [-1.0, 1.0]:
-		canvas.draw_circle(Vector2(side * (size.x * 0.5 - 7), -size.y * 0.5 + 7), 2, BONE)
+		canvas.draw_circle(Vector2(side * (size.x * 0.5 - 7), -size.y * 0.5 + 7), 2, rivet_color)
 	var tint := Color(1.25, 1.25, 1.25) if obstacle._flash > 0.0 else Color(0.85, 0.85, 0.85)
 	if PROP_CELLS.has(obstacle.label) and texture(EXPANSION_PATH) != null:
 		cell(canvas, EXPANSION_PATH, PROP_CELLS[obstacle.label], 3, r.grow(8), tint)

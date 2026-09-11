@@ -54,6 +54,16 @@ func _ready() -> void:
 	_streams["overheat"] = _make_kettle(0.6)
 	_streams["projectile_plop"] = _make_pop(0.10)
 	_streams["paddle"] = _make_boing(0.16)
+	_streams["laser_charge"] = _make_laser_charge(0.65)
+	_streams["laser_fire"] = _make_laser_fire(0.22)
+	_streams["beeper_countdown"] = _make_beeper(0.18)
+	_streams["beeper_detonate"] = _make_beeper_detonate(0.40)
+	_streams["padlock_lock"] = _make_padlock(0.22)
+	_streams["padlock_release"] = _make_padlock_release(0.16)
+	_streams["wind_deflect"] = _make_wind(0.24)
+	_streams["printer_spawn"] = _make_printer(0.20)
+	_streams["keycap_burst"] = _make_mechanical_click(0.08)
+	_streams["cable_whip"] = _make_whip(0.18)
 
 
 ## Limitador de vozes, GDD 3.4.3: "maximo de 4 instancias simultaneas por som,
@@ -187,6 +197,192 @@ func _make_kettle(duration: float) -> AudioStreamWAV:
 		var f := 1800.0 + 400.0 * t / duration
 		var env: float = minf(t * 8.0, 1.0) * exp(-maxf(0.0, t - duration * 0.7) * 12.0)
 		data[n] = (sin(TAU * f * t) + sin(TAU * f * 1.5 * t) * 0.4) * env * 0.14
+	return _to_wav(data)
+
+
+func _make_laser_charge(duration: float) -> AudioStreamWAV:
+	# Carga do Olhudo: tom senoidal subindo de 240 Hz a 900 Hz com vibrato e rampa de ganho.
+	var samples := int(duration * MIX_RATE)
+	var data := PackedFloat32Array()
+	data.resize(samples)
+	var phase := 0.0
+	for n in samples:
+		var t := float(n) / MIX_RATE
+		var progress := t / duration
+		var freq: float = 240.0 + 660.0 * pow(progress, 1.6) + sin(t * 50.0) * 12.0
+		phase += TAU * freq / MIX_RATE
+		var env: float = (1.0 - cos(minf(progress * PI, PI * 0.5))) * 0.28
+		data[n] = (sin(phase) + sin(phase * 2.0) * 0.25) * env
+	return _to_wav(data)
+
+
+func _make_laser_fire(duration: float) -> AudioStreamWAV:
+	# Disparo de laser: sweep exponencial descendente de 1600 Hz para 120 Hz + estalo elétrico.
+	var samples := int(duration * MIX_RATE)
+	var data := PackedFloat32Array()
+	data.resize(samples)
+	var noise := RandomNumberGenerator.new()
+	noise.seed = 44210
+	var phase := 0.0
+	for n in samples:
+		var t := float(n) / MIX_RATE
+		var freq: float = 1600.0 * exp(-t * 22.0) + 120.0
+		phase += TAU * freq / MIX_RATE
+		var env := exp(-t / (duration * 0.35))
+		var wave: float = sin(phase)
+		wave = clampf(wave * 1.5, -1.0, 1.0)
+		if t < 0.015:
+			wave += (noise.randf() * 2.0 - 1.0) * 0.6
+		data[n] = wave * env * 0.35
+	return _to_wav(data)
+
+
+func _make_beeper(duration: float) -> AudioStreamWAV:
+	# BIP! BIP! do Bipador: dois pulsos agudos curtos (1760 Hz / La6).
+	var samples := int(duration * MIX_RATE)
+	var data := PackedFloat32Array()
+	data.resize(samples)
+	var p1_len := duration * 0.32
+	var p2_start := duration * 0.50
+	var p2_len := duration * 0.32
+	for n in samples:
+		var t := float(n) / MIX_RATE
+		var env := 0.0
+		if t < p1_len:
+			env = sin((t / p1_len) * PI)
+		elif t >= p2_start and t < p2_start + p2_len:
+			env = sin(((t - p2_start) / p2_len) * PI)
+		var s := sin(TAU * 1760.0 * t)
+		data[n] = s * env * 0.28
+	return _to_wav(data)
+
+
+func _make_beeper_detonate(duration: float) -> AudioStreamWAV:
+	# Explosão autodestrutiva: sub-grave caindo + crunch percussivo de sucata.
+	var samples := int(duration * MIX_RATE)
+	var data := PackedFloat32Array()
+	data.resize(samples)
+	var noise := RandomNumberGenerator.new()
+	noise.seed = 99823
+	var phase := 0.0
+	for n in samples:
+		var t := float(n) / MIX_RATE
+		var f: float = 140.0 * exp(-t * 10.0) + 45.0
+		phase += TAU * f / MIX_RATE
+		var env := exp(-t / (duration * 0.32))
+		var sub := sin(phase) * 0.5
+		var crunch: float = (noise.randf() * 2.0 - 1.0) * exp(-t / (duration * 0.18)) * 0.5
+		var sample := clampf((sub + crunch) * 1.4, -1.0, 1.0)
+		data[n] = sample * env * 0.42
+	return _to_wav(data)
+
+
+func _make_padlock(duration: float) -> AudioStreamWAV:
+	# Tranca do Cadeado Chorão: dois impactos mecânicos metálicos (latch trancando).
+	var samples := int(duration * MIX_RATE)
+	var data := PackedFloat32Array()
+	data.resize(samples)
+	var noise := RandomNumberGenerator.new()
+	noise.seed = 77123
+	for n in samples:
+		var t := float(n) / MIX_RATE
+		var v := 0.0
+		if t < 0.05:
+			var env1 := exp(-t / 0.012)
+			v += (sin(TAU * 880.0 * t) * 0.4 + (noise.randf() * 2.0 - 1.0) * 0.6) * env1
+		if t >= 0.055:
+			var t2 := t - 0.055
+			var env2 := exp(-t2 / (duration * 0.28))
+			var metal := sin(TAU * 420.0 * t2) + sin(TAU * 1150.0 * t2) * 0.6 + sin(TAU * 2280.0 * t2) * 0.35
+			if t2 < 0.005:
+				metal += (noise.randf() * 2.0 - 1.0) * 1.5
+			v += metal * env2 * 0.5
+		data[n] = clampf(v * 0.32, -1.0, 1.0)
+	return _to_wav(data)
+
+
+func _make_padlock_release(duration: float) -> AudioStreamWAV:
+	# Cadeado destrancando: estalo de mola e ressonância metálica aguda (tinido).
+	var samples := int(duration * MIX_RATE)
+	var data := PackedFloat32Array()
+	data.resize(samples)
+	for n in samples:
+		var t := float(n) / MIX_RATE
+		var env := exp(-t / (duration * 0.35))
+		var chime := sin(TAU * 1480.0 * t) * 0.6 + sin(TAU * 2960.0 * t) * 0.4
+		data[n] = chime * env * 0.25
+	return _to_wav(data)
+
+
+func _make_wind(duration: float) -> AudioStreamWAV:
+	# Rajada de vento do Zé Ventoinha: ruído filtrado passa-baixa modulado em amplitude.
+	var samples := int(duration * MIX_RATE)
+	var data := PackedFloat32Array()
+	data.resize(samples)
+	var noise := RandomNumberGenerator.new()
+	noise.seed = 33112
+	var lp := 0.0
+	for n in samples:
+		var t := float(n) / MIX_RATE
+		var progress := t / duration
+		var env := sin(progress * PI)
+		var cutoff: float = 700.0 + 400.0 * sin(progress * PI)
+		var alpha: float = clampf(cutoff / float(MIX_RATE), 0.0, 1.0)
+		lp += alpha * ((noise.randf() * 2.0 - 1.0) - lp)
+		data[n] = lp * env * 0.35
+	return _to_wav(data)
+
+
+func _make_printer(duration: float) -> AudioStreamWAV:
+	# Fabricadora 3D: zumbido de motor de passo com 3 degraus de frequência.
+	var samples := int(duration * MIX_RATE)
+	var data := PackedFloat32Array()
+	data.resize(samples)
+	for n in samples:
+		var t := float(n) / MIX_RATE
+		var step := int((t / duration) * 3.0)
+		var freqs := [520.0, 780.0, 1040.0]
+		var f: float = freqs[clampi(step, 0, 2)]
+		var env := 1.0 - (t / duration) * 0.3
+		var wave := sin(TAU * f * t) + sin(TAU * f * 2.0 * t) * 0.3
+		data[n] = wave * env * 0.22
+	return _to_wav(data)
+
+
+func _make_mechanical_click(duration: float) -> AudioStreamWAV:
+	# Tecla mecânica (QWERTYpede): estalo percussivo seco de plástico reforçado.
+	var samples := int(duration * MIX_RATE)
+	var data := PackedFloat32Array()
+	data.resize(samples)
+	var noise := RandomNumberGenerator.new()
+	noise.seed = 11055
+	for n in samples:
+		var t := float(n) / MIX_RATE
+		var env := exp(-t / (duration * 0.22))
+		var v := sin(TAU * 1350.0 * t) * 0.5
+		if t < 0.003:
+			v += (noise.randf() * 2.0 - 1.0) * 1.8
+		data[n] = v * env * 0.30
+	return _to_wav(data)
+
+
+func _make_whip(duration: float) -> AudioStreamWAV:
+	# Chicote de cabos: assobio rápido de ar seguido de estalo elétrico.
+	var samples := int(duration * MIX_RATE)
+	var data := PackedFloat32Array()
+	data.resize(samples)
+	var noise := RandomNumberGenerator.new()
+	noise.seed = 66120
+	var lp := 0.0
+	for n in samples:
+		var t := float(n) / MIX_RATE
+		var env := exp(-t / (duration * 0.40))
+		var alpha: float = clampf((1800.0 - 1200.0 * (t / duration)) / float(MIX_RATE), 0.0, 1.0)
+		lp += alpha * ((noise.randf() * 2.0 - 1.0) - lp)
+		var v: float = lp * 0.4
+		if t >= 0.03 and t < 0.045:
+			v += (sin(TAU * 2200.0 * t) + (noise.randf() * 2.0 - 1.0) * 0.8) * 0.6
+		data[n] = v * env * 0.36
 	return _to_wav(data)
 
 

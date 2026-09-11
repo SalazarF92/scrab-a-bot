@@ -131,8 +131,9 @@ func _draw_header(vp: Vector2) -> void:
 	if director == null:
 		return
 	var left := vp.x * 0.5 - 260.0
-	var text := "SETOR %d   ONDA %d/%d" % [director.sector, director.wave_index, WaveDirector.WAVES_PER_ROOM]
-	draw_string(_font, Vector2(left, 42.0), text, HORIZONTAL_ALIGNMENT_CENTER, 520.0, 20, Color(1, 1, 1, 0.75))
+	var s_idx: int = clampi(director.sector - 1, 0, 4)
+	var text := "SETOR %d: %s   ONDA %d/%d" % [director.sector, ArtDirector.BIOMES[s_idx], director.wave_index, WaveDirector.WAVES_PER_ROOM]
+	draw_string(_font, Vector2(left, 42.0), text, HORIZONTAL_ALIGNMENT_CENTER, 520.0, 18, Color(1, 1, 1, 0.85))
 
 	draw_string(_font, Vector2(left, 68.0),
 		"%d DESMONTADOS   /   %d REBATIDAS" % [Telemetry.enemies_killed, Telemetry.paddle_catches],

@@ -109,12 +109,18 @@ func jam_slot(slot: int, source_id: int, duration: float) -> void:
 	if not equipped.has(slot) or slot == PartData.Slot.CHASSIS: return
 	if not _jammed_slots.has(slot): _jammed_slots[slot] = {}
 	_jammed_slots[slot][source_id] = maxf(duration, 0.0)
+	Sfx.play("padlock_lock", -4.0)
 
 
 func release_jam(source_id: int) -> void:
+	var released := false
 	for slot in _jammed_slots.keys():
-		_jammed_slots[slot].erase(source_id)
+		if _jammed_slots[slot].has(source_id):
+			_jammed_slots[slot].erase(source_id)
+			released = true
 		if _jammed_slots[slot].is_empty(): _jammed_slots.erase(slot)
+	if released:
+		Sfx.play("padlock_release", -6.0)
 
 
 func slot_jam_remaining(slot: int) -> float:
