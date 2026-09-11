@@ -32,15 +32,36 @@ func _ready() -> void:
 	_tex = load("res://assets/art/mini_prensa_animated.png")
 
 
+var auto_loop: bool = true
+var _state_timer: float = 0.0
+const STATE_DURATION := 3.2
+var _last_step := -1
+
+
 func _process(delta: float) -> void:
 	_timer += delta
 	_shake = maxf(0.0, _shake - delta * 4.0)
 
+	if auto_loop and mode != Mode.GRID:
+		_state_timer += delta
+		if _state_timer >= STATE_DURATION:
+			_state_timer = 0.0
+			_timer = 0.0
+			match mode:
+				Mode.WALK:
+					mode = Mode.ATTACK
+				Mode.ATTACK:
+					mode = Mode.POWER
+				Mode.POWER:
+					mode = Mode.WALK
+
 	match mode:
 		Mode.WALK:
+			var prev_frame := _anim_frame
 			_anim_frame = int(floorf(_timer * 5.0)) % 3
+			if _anim_frame != prev_frame and (_anim_frame == 0 or _anim_frame == 2):
+				Sfx.play("dash", -16.0)
 		Mode.ATTACK:
-			# Ciclo de ataque com pausa no impacto
 			var cycle := fmod(_timer, 1.6)
 			if cycle < 0.5:
 				_anim_frame = 0
@@ -48,11 +69,14 @@ func _process(delta: float) -> void:
 				_anim_frame = 1
 			else:
 				if _anim_frame != 2:
-					_shake = 12.0
+					_shake = 14.0
+					Sfx.play("fire_heavy", 2.0)
 				_anim_frame = 2
 		Mode.POWER:
-			# Alterna entre fornalha ativa e arrefecimento
+			var prev_frame := _anim_frame
 			_anim_frame = 1 if (int(floorf(_timer * 6.0)) % 2 == 0) else 2
+			if _anim_frame == 1 and prev_frame == 2:
+				Sfx.play("overheat", -10.0)
 		Mode.GRID:
 			_anim_frame = 0
 
@@ -65,18 +89,25 @@ func _unhandled_input(event: InputEvent) -> void:
 	match event.keycode:
 		KEY_1:
 			mode = Mode.WALK
+			auto_loop = false
 			_timer = 0.0
+			_state_timer = 0.0
 		KEY_2:
 			mode = Mode.ATTACK
+			auto_loop = false
 			_timer = 0.0
+			_state_timer = 0.0
 		KEY_3:
 			mode = Mode.POWER
+			auto_loop = false
 			_timer = 0.0
+			_state_timer = 0.0
 		KEY_4:
 			mode = Mode.GRID
+			auto_loop = false
 		KEY_SPACE:
-			mode = (mode + 1) % 4
-			_timer = 0.0
+			auto_loop = not auto_loop
+			_state_timer = 0.0
 		KEY_ESCAPE:
 			get_tree().quit(0)
 
@@ -142,8 +173,23 @@ func _draw() -> void:
 	draw_texture_rect_region(_tex, target_rect, current_rect)
 
 	# Faixas e legendas do estado ativo:
-	draw_string(font, Vector2(0, vp.y - 120), mode_label, HORIZONTAL_ALIGNMENT_CENTER, vp.x, 20, badge_color)
-	draw_string(font, Vector2(0, vp.y - 90), mode_desc, HORIZONTAL_ALIGNMENT_CENTER, vp.x, 15, Color("#F5F0E1"))
+	draw_string(font, Vector2(0, vp.y - 130), mode_label, HORIZONTAL_ALIGNMENT_CENTER, vp.x, 20, badge_color)
+	draw_string(font, Vector2(0, vp.y - 100), mode_desc, HORIZONTAL_ALIGNMENT_CENTER, vp.x, 15, Color("#F5F0E1"))
+
+	# Barra de progresso do loop automático:
+	if auto_loop:
+		var bar_w := 400.0
+		var bar_h := 8.0
+		var bar_x := (vp.x - bar_w) * 0.5
+		var bar_y := vp.y - 55.0
+		var next_label := "Próximo: ATAQUE" if mode == Mode.WALK else ("Próximo: PODER" if mode == Mode.ATTACK else "Próximo: ANDAR")
+		var progress := clampf(_state_timer / STATE_DURATION, 0.0, 1.0)
+		draw_rect(Rect2(bar_x, bar_y, bar_w, bar_h), Color("#1C1622"))
+		draw_rect(Rect2(bar_x, bar_y, bar_w * progress, bar_h), badge_color)
+		draw_rect(Rect2(bar_x, bar_y, bar_w, bar_h), Color(1, 1, 1, 0.3), false, 1.0)
+		draw_string(font, Vector2(0, bar_y - 8), "LOOP ATIVO — " + next_label, HORIZONTAL_ALIGNMENT_CENTER, vp.x, 12, Color(1, 1, 1, 0.6))
+	else:
+		draw_string(font, Vector2(0, vp.y - 50), "[LOOP PAUSADO - MODO TRAVADO - PRESSIONE ESPAÇO PARA REATIVAR]", HORIZONTAL_ALIGNMENT_CENTER, vp.x, 13, Color("#FFD400"))
 
 
 func _draw_grid(font: Font, vp: Vector2) -> void:
