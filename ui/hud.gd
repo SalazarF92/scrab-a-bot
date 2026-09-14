@@ -115,6 +115,14 @@ func _draw_parts(vp: Vector2) -> void:
 		if name_text.length() > 24: name_text = name_text.left(22) + "…"
 		draw_string(_font, r.position + Vector2(107, 52), name_text, HORIZONTAL_ALIGNMENT_LEFT, 228, 17, Color("#F5F0E1"))
 		draw_string(_font, r.position + Vector2(107, 78), "TIER %s   %d W" % [part.fusion_roman(), part.watts], HORIZONTAL_ALIGNMENT_LEFT, -1, 15, part.rarity_color())
+		if slots[i] == PartData.Slot.HEAD and part.has_active_ability():
+			var ratio_q := robot.head_ability_ratio()
+			var q_text := "Q  PRONTA" if ratio_q <= 0.0 else "Q  %.1f s" % (ratio_q * part.ability_cooldown)
+			if part.ability == &"alarm":
+				q_text = "AUTO  %.1f s" % (ratio_q * part.ability_cooldown)
+			draw_string(_font, r.position + Vector2(240, 28), q_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color("#8CFF1A") if ratio_q <= 0.0 else Color("#FFD400"))
+		if not part.grafts.is_empty():
+			draw_string(_font, r.position + Vector2(240, 78), "+%d enx." % part.grafts.size(), HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color("#22E0FF"))
 		var jammed := robot.slot_jam_remaining(slots[i])
 		if jammed > 0.0:
 			draw_rect(Rect2(r.position + Vector2(100, 58), Vector2(235, 29)), Color("#382138"))

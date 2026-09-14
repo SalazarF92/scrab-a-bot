@@ -97,6 +97,10 @@ func _gui_input(event: InputEvent) -> void:
 				_heat_step(-1)
 			KEY_RIGHT, KEY_D, KEY_BRACKETRIGHT:
 				_heat_step(1)
+			KEY_Z:
+				_cpu_step(-1)
+			KEY_X:
+				_cpu_step(1)
 			_:
 				handled = false
 		if handled:
@@ -142,6 +146,12 @@ func _handle_button_click(btn: Dictionary) -> void:
 			queue_redraw()
 		"buy":
 			_buy_branch_safe(btn["branch"])
+		"select_cpu":
+			if MetaManager.select_cpu(StringName(btn["branch"])):
+				Sfx.play("paddle", -8.0)
+			else:
+				Sfx.play("projectile_plop", -4.0)
+			queue_redraw()
 		"heat_down":
 			_heat_step(-1)
 		"heat_up":
@@ -169,7 +179,56 @@ func _draw() -> void:
 	_draw_header(vp)
 	_draw_branch_tabs(vp)
 	_draw_branch_details(vp)
+	_draw_cpu_shelf(vp)
 	_draw_footer(vp)
+
+
+## GDD 6.3.2: a prateleira de CPUs. Bloqueadas aparecem com a condicao
+## visivel, porque condicao visivel gera objetivo. Z e X trocam a selecao.
+func _draw_cpu_shelf(vp: Vector2) -> void:
+	var shelf := Rect2(40, 640, vp.x - 80, 132)
+	ArtDirector.panel(self, shelf, Color("#22E0FF"))
+	draw_string(_font, shelf.position + Vector2(24, 30), "PRATELEIRA DE CPUs   [Z] < > [X]", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("#22E0FF"))
+	var cpus := PartLibrary.cpus()
+	var cur := MetaManager.selected_cpu()
+	var tray_w := (shelf.size.x - 48.0) / float(cpus.size())
+	for i in cpus.size():
+		var c: CpuData = cpus[i]
+		var unlocked := MetaManager.is_cpu_unlocked(c.id)
+		var is_sel := c.id == cur.id
+		var tray := Rect2(shelf.position.x + 24.0 + tray_w * float(i), shelf.position.y + 42.0, tray_w - 6.0, 78.0)
+		draw_rect(tray, Color("#1E2A2C") if unlocked else Color("#151313"))
+		draw_rect(tray, Color("#22E0FF") if is_sel else Color(1, 1, 1, 0.15), false, 2.0 if is_sel else 1.0)
+		var name_short := c.display_name.split("(")[0].strip_edges()
+		draw_string(_font, tray.position + Vector2(8, 18), name_short, HORIZONTAL_ALIGNMENT_LEFT, tray.size.x - 16, 13, Color.WHITE if unlocked else Color(1, 1, 1, 0.35))
+		if unlocked:
+			draw_string(_font, tray.position + Vector2(8, 36), "%d W  •  calor %d  •  %d/s" % [c.tdp, int(c.heat_capacity), int(c.heat_dissipation)], HORIZONTAL_ALIGNMENT_LEFT, tray.size.x - 16, 11, Color("#FFD400"))
+			_draw_wrapped(tray.position + Vector2(8, 52), c.description, tray.size.x - 16, 11, Color(1, 1, 1, 0.7), 2)
+		else:
+			var have := MetaManager.unlock_stat_value(c.unlock_stat)
+			draw_string(_font, tray.position + Vector2(8, 36), "BLOQUEADA  %d / %d" % [have, c.unlock_value], HORIZONTAL_ALIGNMENT_LEFT, tray.size.x - 16, 11, Color("#FF6B1A"))
+			_draw_wrapped(tray.position + Vector2(8, 52), c.unlock_text, tray.size.x - 16, 11, Color(1, 1, 1, 0.45), 2)
+		_buttons.append({"rect": tray, "branch": String(c.id), "action": "select_cpu"})
+
+
+func _draw_wrapped(at: Vector2, text: String, width: float, font_size: int, color: Color, max_lines: int) -> void:
+	draw_multiline_string(_font, at, text, HORIZONTAL_ALIGNMENT_LEFT, width, font_size, max_lines, color)
+
+
+func _cpu_step(direction: int) -> void:
+	var cpus := PartLibrary.cpus()
+	var idx := 0
+	for i in cpus.size():
+		if cpus[i].id == MetaManager.selected_cpu_id:
+			idx = i
+	# Anda ate a proxima desbloqueada, dando a volta na prateleira.
+	for step in cpus.size():
+		idx = (idx + direction + cpus.size()) % cpus.size()
+		if MetaManager.is_cpu_unlocked(cpus[idx].id):
+			MetaManager.select_cpu(cpus[idx].id)
+			Sfx.play("paddle", -8.0)
+			break
+	queue_redraw()
 
 
 func _draw_header(vp: Vector2) -> void:
@@ -230,7 +289,7 @@ func _draw_branch_tabs(vp: Vector2) -> void:
 
 
 func _draw_branch_details(vp: Vector2) -> void:
-	var panel_rect := Rect2(40, 226, vp.x - 80, vp.y - 366)
+	var panel_rect := Rect2(40, 226, vp.x - 80, 400)
 	ArtDirector.panel(self, panel_rect, BRANCH_COLORS[_selected_branch])
 	draw_rect(panel_rect, (BRANCH_COLORS[_selected_branch] as Color).darkened(0.4), false, 2.0)
 
@@ -318,7 +377,7 @@ func _draw_footer(vp: Vector2) -> void:
 	draw_string(_font, daily_rect.position + Vector2(0, 42), status, HORIZONTAL_ALIGNMENT_CENTER, daily_rect.size.x, 11, Color("#22E0FF"))
 	_buttons.append({"rect": daily_rect, "branch": "", "action": "start_daily"})
 
-	draw_string(_font, Vector2(40, vp.y - 32), "[1..5] Upgrades • [< >] Risco • [ESPAÇO] Run • [H] Desafio de hoje • [C] Copiar legenda", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(1, 1, 1, 0.45))
+	draw_string(_font, Vector2(40, vp.y - 32), "[1..5] Upgrades • [< >] Risco • [Z X] CPU • [ESPAÇO] Run • [H] Desafio de hoje • [C] Copiar legenda", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(1, 1, 1, 0.45))
 
 	var armed := _reset_armed > 0.0
 	var reset_rect := Rect2(vp.x - 200, vp.y - 42, 160, 26)

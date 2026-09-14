@@ -26,6 +26,8 @@ var paddle_catches: int = 0
 var projectiles_lost_floor: int = 0
 ## Inimigos que chegaram na base. Nao contam como abate.
 var enemies_breached: int = 0
+## Abates cujo ultimo acerto tinha pelo menos um quique. Desbloqueio da AMDeus.
+var ricochet_kills: int = 0
 
 var _running: bool = false
 
@@ -53,7 +55,17 @@ func reset() -> void:
 	paddle_catches = 0
 	projectiles_lost_floor = 0
 	enemies_breached = 0
+	ricochet_kills = 0
 	_running = true
+
+
+## Acertos no tier magenta (quique 4 ou mais). Condicao de desbloqueio da
+## Placa de Video: "alcancar multiplicador 4 vinte vezes numa run".
+func magenta_hits() -> int:
+	var n := 0
+	for b in range(4, BUCKETS):
+		n += hits_by_bounce[b]
+	return n
 
 
 func record_hit(bounce_index: int, damage: float) -> void:

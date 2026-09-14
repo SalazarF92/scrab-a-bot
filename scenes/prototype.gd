@@ -163,6 +163,11 @@ func _new_room(sector: int) -> void:
 	# Apenas na primeira sala da run equipa o loadout inicial;
 	# nas salas seguintes preserva as compras e evolucoes feitas na Bancada.
 	if sector == 1:
+		# CPU vem da prateleira da Garagem (GDD 6.3.2). O diario fixa a inicial.
+		var chosen := MetaManager.selected_cpu()
+		if MetaManager.run_is_daily:
+			chosen = _cpus[0]
+		_cpu_index = maxi(0, _cpus.find(chosen))
 		robot.set_cpu(_cpus[_cpu_index])
 		robot.equip(_catalog[PartData.Slot.CHASSIS][0].clone())
 		for slot in _part_index:
@@ -183,6 +188,9 @@ func _refresh_pause() -> void:
 func _on_room_cleared() -> void:
 	if _run_over:
 		return
+	# Xeon: "sobreviver a um setor sem tomar dano".
+	if robot.damage_taken_this_sector <= 0.0 and not MetaManager.run_is_daily:
+		MetaManager.record_flawless_sector()
 	if director.sector >= 5:
 		_finish_run(true)
 		return
@@ -263,6 +271,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		KEY_F4:
 			Vfx.colorblind_shapes = not Vfx.colorblind_shapes
 		KEY_F5:
+			# Debug: percorre a prateleira inteira, inclusive CPUs bloqueadas.
 			_cpu_index = (_cpu_index + 1) % _cpus.size()
 			robot.set_cpu(_cpus[_cpu_index])
 		KEY_F6:

@@ -41,8 +41,26 @@ const UPGRADE_COSTS := [80, 140, 220]
 ## na tabela de drops". Fica fora da vitrine.
 @export var recipe_only: bool = false
 
+@export_group("Habilidade ativa")
+## GDD 4.3: a cabeca oferece uma habilidade ativa com recarga, mais um bonus
+## passivo. `ability` vazio = a peca dispara projetil como um braco. Valores:
+## mark, scream, alarm (ver combat/head_ability.gd). `passive` = os behaviors
+## desta cabeca rodam no disparo de TODOS os bracos (Abajur).
+@export var ability: StringName = &""
+@export var ability_cooldown: float = 6.0
+@export var ability_duration: float = 4.0
+@export var ability_value: float = 0.0
+@export var ability_radius: float = 300.0
+@export var passive: bool = false
+
 @export_group("Comportamento")
 @export var behaviors: Array[PartBehavior] = []
+
+@export_group("Enxertos")
+## GDD 4.7.3: modulos enxertados na peca. Cada um e uma chave de
+## PartLibrary.GRAFTS. Maximo em graft_slots(); a Cyrix Bode soma 2.
+@export var grafts: Array[StringName] = []
+const MAX_GRAFTS := 2
 
 @export_group("Visual")
 @export var color: Color = Color("#8A4B2A")
@@ -63,6 +81,27 @@ func fusion_mult() -> float:
 ## Raridade vezes tier de fusao, os dois multiplicadores nomeados de GDD_ADENDOS B.6.
 func power_mult() -> float:
 	return rarity_mult() * fusion_mult()
+
+
+## Soma de um efeito numerico de todos os enxertos desta peca.
+func graft_sum(effect: StringName) -> float:
+	var total := 0.0
+	for g in grafts:
+		total += float(PartLibrary.GRAFTS.get(g, {}).get("effects", {}).get(effect, 0.0))
+	return total
+
+
+## Watts depois do Oleo de Motor. O orcamento da CPU le isto, nao `watts`.
+func effective_watts() -> int:
+	return int(round(float(watts) * maxf(0.0, 1.0 - graft_sum(&"watts_reduction"))))
+
+
+func heat_mult() -> float:
+	return maxf(0.0, 1.0 + graft_sum(&"heat_add"))
+
+
+func has_active_ability() -> bool:
+	return ability != &"" and not passive
 
 
 func effective_damage() -> float:
@@ -154,6 +193,13 @@ func clone() -> PartData:
 	c.dash_charges = dash_charges
 	c.restitution = restitution
 	c.recipe_only = recipe_only
+	c.ability = ability
+	c.ability_cooldown = ability_cooldown
+	c.ability_duration = ability_duration
+	c.ability_value = ability_value
+	c.ability_radius = ability_radius
+	c.passive = passive
+	c.grafts = grafts.duplicate()
 	c.behaviors = []
 	for b in behaviors:
 		c.behaviors.append(b.duplicate())

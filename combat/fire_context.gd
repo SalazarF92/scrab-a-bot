@@ -24,6 +24,10 @@ var fusion_mult: float = 1.0
 var extra_shots: int = 0
 var spread_radians: float = 0.0
 var bonus_bounces: int = 0
+## Enxertos (GDD 4.7.3): tamanho, vida e perfuracao do projetil.
+var radius_add: float = 0.0
+var ttl_add: float = 0.0
+var pierce_add: int = 0
 var cancelled: bool = false
 
 
@@ -39,6 +43,9 @@ func reset(p_robot: Node, p_origin: Vector2, p_direction: Vector2) -> void:
 	extra_shots = 0
 	spread_radians = 0.0
 	bonus_bounces = 0
+	radius_add = 0.0
+	ttl_add = 0.0
+	pierce_add = 0
 	cancelled = false
 
 

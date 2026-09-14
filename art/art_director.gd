@@ -18,6 +18,11 @@ const PART_CELLS := {
 	&"arm_l_mousetrap": 0, &"arm_l_drill": 1, &"arm_l_stapler": 2, &"arm_l_drill_super": 1,
 	&"arm_r_psu": 3, &"arm_r_pipe_bazooka": 4, &"arm_r_hdd": 5, &"arm_r_pipe_napalm": 4,
 	&"head_toaster": 6, &"head_toaster_tesla": 7,
+	# Cabecas com habilidade ativa: sem ilustracao propria ainda, usam a celula
+	# da Torradeira tingida pela cor da peca (ver part_icon).
+	&"head_camera": 6, &"head_lamp": 6, &"head_doll": 6, &"head_radio_clock": 6,
+	&"speaker_magnet": 13, &"burnt_gpu": 13, &"copper_coil": 13, &"quartz_crystal": 13,
+	&"cassette_tape": 13, &"projector_lens": 13, &"motor_oil": 13,
 	&"chassis_springs": 8, &"chassis_treads": 9, &"chassis_casters": 10,
 	&"chassis_mannequin": 11, &"chassis_safe": 12, &"car_battery": 13,
 	&"diamond_drillbit": 1, &"propane_tank": 4,
@@ -73,7 +78,10 @@ static func cell(canvas: CanvasItem, path: String, index: int, rows: int, rect: 
 
 static func part_icon(canvas: CanvasItem, part: PartData, rect: Rect2) -> void:
 	if part != null:
-		cell(canvas, PARTS_PATH, PART_CELLS.get(part.id, 13), 4, rect)
+		# Cabecas de habilidade ainda sem ilustracao: a celula emprestada recebe a
+		# cor da peca, para as quatro nao parecerem a mesma torradeira.
+		var tint := part.color.lerp(Color.WHITE, 0.35) if part.ability != &"" else Color.WHITE
+		cell(canvas, PARTS_PATH, PART_CELLS.get(part.id, 13), 4, rect, tint)
 
 
 static func shadow(canvas: CanvasItem, at: Vector2, radius: Vector2, alpha: float = 0.34) -> void:

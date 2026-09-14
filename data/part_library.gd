@@ -254,6 +254,76 @@ static func head_parts() -> Array[PartData]:
 	tesla.behaviors.append(chain)
 	out.append(tesla)
 
+	# --- Cabecas com habilidade ativa (GDD 4.3). Nenhuma dispara projetil:
+	# Q aciona a habilidade, e o bonus passivo vem dos behaviors ou do campo
+	# de habilidade. Ver combat/head_ability.gd. Arte: usam a celula da
+	# Torradeira ate ganharem ilustracao propria.
+	var camera := PartData.new()
+	camera.id = &"head_camera"
+	camera.display_name = "Câmera de Segurança \"Vigia Bêbado\""
+	camera.caption = "uma câmera de segurança bêbada"
+	camera.slot = PartData.Slot.HEAD
+	camera.watts = 16
+	camera.heat_per_shot = 1.0
+	camera.automatic = false
+	camera.color = Color("#4A4F52")
+	camera.ability = &"mark"
+	camera.ability_cooldown = 4.0
+	camera.ability_duration = 5.0
+	camera.ability_value = 0.30     # +30% de dano no alvo marcado
+	camera.ability_radius = 300.0   # atrai projeteis ricocheteados neste raio
+	out.append(camera)
+
+	var lamp := PartData.new()
+	lamp.id = &"head_lamp"
+	lamp.display_name = "Abajur \"Farol da Depressão\""
+	lamp.caption = "um abajur deprimido"
+	lamp.slot = PartData.Slot.HEAD
+	lamp.watts = 24
+	lamp.heat_per_shot = 0.0
+	lamp.automatic = false
+	lamp.color = Color("#FFD400")
+	lamp.ability = &"light"
+	lamp.passive = true
+	var lamp_bounce := BhvExtraBounces.new()
+	lamp_bounce.amount = 1
+	var lamp_speed := BhvSpeedAdd.new()
+	lamp_speed.amount = 0.15
+	lamp.behaviors.append(lamp_bounce)
+	lamp.behaviors.append(lamp_speed)
+	out.append(lamp)
+
+	var doll := PartData.new()
+	doll.id = &"head_doll"
+	doll.display_name = "Boneca Queimada \"Bebê Chorão\""
+	doll.caption = "uma boneca queimada"
+	doll.slot = PartData.Slot.HEAD
+	doll.watts = 21
+	doll.heat_per_shot = 8.0
+	doll.automatic = false
+	doll.color = Color("#FF2D95")
+	doll.ability = &"scream"
+	doll.ability_cooldown = 8.0
+	doll.ability_duration = 0.9    # atordoamento
+	doll.ability_value = 45.0      # dano
+	doll.ability_radius = 450.0
+	out.append(doll)
+
+	var radio := PartData.new()
+	radio.id = &"head_radio_clock"
+	radio.display_name = "Rádio-Relógio \"Alarme Eterno\""
+	radio.caption = "um rádio-relógio piscando 12:00"
+	radio.slot = PartData.Slot.HEAD
+	radio.watts = 23
+	radio.heat_per_shot = 0.0
+	radio.automatic = true
+	radio.color = Color("#FF0000")
+	radio.ability = &"alarm"
+	radio.ability_cooldown = 12.0
+	radio.ability_value = 70.0     # dano em toda a tela
+	radio.ability_radius = 9999.0
+	out.append(radio)
+
 	return out
 
 
@@ -349,8 +419,9 @@ static func cpus() -> Array[CpuData]:
 	# Subvoltagem, que e uma penalidade, nao uma escolha. Os TDPs abaixo seguem
 	# a regra proposta: no minimo 1,15 vez a build mais barata legal, calculada
 	# por cheapest_build_watts() e verificada no teste de integracao. Com o
-	# catalogo atual a build mais barata custa 111 W, o piso e 128 W, e o
-	# loadout inicial (117 W) cabe em todas as CPUs.
+	# catalogo atual a build mais barata custa 109 W (a Camera de Seguranca e a
+	# cabeca mais barata), o piso e 126 W, e o loadout inicial (117 W) cabe em
+	# todas as CPUs.
 	var pentiun := CpuData.new()
 	pentiun.id = &"cpu_pentiun"
 	pentiun.display_name = "Pentiun Ferrugem 100 MHz"
@@ -385,9 +456,103 @@ static func cpus() -> Array[CpuData]:
 	gpu.projectile_speed_mult = 1.40
 	gpu.heat_gen_mult = 2.0
 	gpu.description = "Nao deveria funcionar. Mais 2 quiques e 40% de velocidade. Calor dobrado."
+	gpu.unlock_stat = &"best_magenta_hits_run"
+	gpu.unlock_value = 20
+	gpu.unlock_text = "Alcancar multiplicador 4 vinte vezes numa run"
 	out.append(gpu)
 
+	# --- Prateleira (GDD 4.1.3 e 6.3.2). Condicoes de desbloqueio visiveis,
+	# lidas de campos persistidos do MetaManager. TDPs seguem o piso de A.5.
+	var amdeus := CpuData.new()
+	amdeus.id = &"cpu_amdeus"
+	amdeus.display_name = "AMDeus Camelô (Pirata)"
+	amdeus.caption = "um AMDeus pirata"
+	amdeus.tdp = 140
+	amdeus.heat_capacity = 110.0
+	amdeus.heat_dissipation = 14.0
+	amdeus.misfire_chance = 0.12
+	amdeus.triple_damage_chance = 0.09
+	amdeus.description = "12% dos tiros falham com tela azul; 9% dao dano triplo."
+	amdeus.unlock_stat = &"ricochet_kills"
+	amdeus.unlock_value = 50
+	amdeus.unlock_text = "Matar 50 inimigos com projeteis ricocheteados"
+	out.append(amdeus)
+
+	var bitcorn := CpuData.new()
+	bitcorn.id = &"cpu_bitcorn"
+	bitcorn.display_name = "Bitcorn Rig (Mineradora)"
+	bitcorn.caption = "uma mineradora barulhenta"
+	bitcorn.tdp = 150
+	bitcorn.heat_capacity = 130.0
+	bitcorn.heat_dissipation = 9.0
+	bitcorn.scrap_per_kill = 2
+	bitcorn.rare_chance_bonus = 0.25
+	bitcorn.damage_mult = 0.80
+	bitcorn.heat_gen_mult = 2.0
+	bitcorn.description = "+2 Sucata por abate e +25% de peca rara. -20% de dano, calor dobrado."
+	bitcorn.unlock_stat = &"lifetime_scrap"
+	bitcorn.unlock_value = 10000
+	bitcorn.unlock_text = "Acumular 10.000 de Sucata no total"
+	out.append(bitcorn)
+
+	var coffee := CpuData.new()
+	coffee.id = &"cpu_coffee"
+	coffee.display_name = "Café Derramado (Molhada)"
+	coffee.caption = "uma CPU com café derramado"
+	coffee.tdp = 130
+	coffee.heat_capacity = 100.0
+	coffee.heat_dissipation = 11.0
+	var arc := BhvChainLightning.new()
+	arc.jumps = 3
+	arc.range_px = 250.0
+	arc.damage_ratio = 0.35
+	arc.trigger_on_bounce = false
+	coffee.behaviors.append(arc)
+	coffee.self_shock_chance = 0.04
+	coffee.self_shock_damage = 15.0
+	coffee.description = "Todo acerto solta um arco em cadeia (3 alvos, 35%). 4% dos tiros dao curto em voce."
+	coffee.unlock_stat = &"deaths_sector2"
+	coffee.unlock_value = 3
+	coffee.unlock_text = "Morrer 3 vezes no setor 2"
+	out.append(coffee)
+
+	var xeon := CpuData.new()
+	xeon.id = &"cpu_xeon"
+	xeon.display_name = "Xeon do Servidor da Prefeitura"
+	xeon.caption = "um Xeon da prefeitura"
+	xeon.tdp = 150
+	xeon.heat_capacity = 150.0
+	xeon.heat_dissipation = 18.0
+	xeon.damage_mult = 0.75
+	xeon.hp_mult = 2.0
+	xeon.description = "-25% de dano, +100% de vida. Lenta, gorda e nao morre."
+	xeon.unlock_stat = &"flawless_sectors"
+	xeon.unlock_value = 1
+	xeon.unlock_text = "Sobreviver a um setor sem tomar dano"
+	out.append(xeon)
+
+	var cyrix := CpuData.new()
+	cyrix.id = &"cpu_cyrix"
+	cyrix.display_name = "Cyrix Bode (Genérica)"
+	cyrix.caption = "uma Cyrix generica"
+	cyrix.tdp = 150
+	cyrix.heat_capacity = 140.0
+	cyrix.heat_dissipation = 15.0
+	cyrix.extra_graft_slots = 2
+	cyrix.description = "+2 enxertos por peca. Nenhum bonus de combate."
+	cyrix.unlock_stat = &"upgrades_bought"
+	cyrix.unlock_value = 20
+	cyrix.unlock_text = "Comprar 20 upgrades na Garagem"
+	out.append(cyrix)
+
 	return out
+
+
+static func cpu_by_id(id: StringName) -> CpuData:
+	for c in cpus():
+		if c.id == id:
+			return c
+	return null
 
 
 ## GDD_ADENDOS A.5 e APENDICE B item 6: soma da peca mais barata em Watts de
@@ -454,21 +619,63 @@ static func fusion_recipes() -> Array[FusionRecipe]:
 	return [tesla, drill_super, napalm]
 
 
+## GDD 4.7.2 e 4.7.3: modulos de sucata. Servem de ingrediente de receita OU de
+## enxerto direto numa peca (ate PartData.MAX_GRAFTS por peca, +2 na Cyrix).
+## Os efeitos entram no FireContext pela ordem fixa de GDD_ADENDOS B.6:
+## aditivos somam, multiplicadores nomeados multiplicam.
+const GRAFTS := {
+	&"car_battery": {"name": "Bateria de Carro", "price": 90,
+		"desc": "Enxerto: +22% de dano, +15% de calor.",
+		"effects": {&"damage_add": 0.22, &"heat_add": 0.15}},
+	&"speaker_magnet": {"name": "Ímã de Alto-Falante", "price": 110,
+		"desc": "Enxerto: +1 quique; projéteis buscam o alvo de leve depois de quicar.",
+		"effects": {&"bonus_bounces": 1.0, &"homing": 1.0}},
+	&"burnt_gpu": {"name": "Placa de Vídeo Queimada", "price": 100,
+		"desc": "Enxerto: +30% de velocidade de projétil, +20% de calor.",
+		"effects": {&"speed_add": 0.30, &"heat_add": 0.20}},
+	&"copper_coil": {"name": "Bobina de Cobre", "price": 100,
+		"desc": "Enxerto: -25% de calor gerado.",
+		"effects": {&"heat_add": -0.25}},
+	&"quartz_crystal": {"name": "Cristal de Quartzo", "price": 110,
+		"desc": "Enxerto: +18% de cadência.",
+		"effects": {&"fire_rate_add": 0.18}},
+	&"cassette_tape": {"name": "Fita Cassete", "price": 100,
+		"desc": "Enxerto: todo 8º disparo sai duplicado.",
+		"effects": {&"duplicate_every": 8.0}},
+	&"projector_lens": {"name": "Lente de Projetor", "price": 110,
+		"desc": "Enxerto: +20% de tamanho do projétil, +35% de vida do projétil.",
+		"effects": {&"radius_add": 0.20, &"ttl_add": 0.35}},
+	&"motor_oil": {"name": "Óleo de Motor", "price": 90,
+		"desc": "Enxerto: -15% de Watts consumidos pela peça.",
+		"effects": {&"watts_reduction": 0.15}},
+	# Ingredientes de receita do prototipo. Tambem enxertaveis, com efeito modesto.
+	&"diamond_drillbit": {"name": "Broca Diamantada", "price": 120,
+		"desc": "Enxerto: +1 perfuração.",
+		"effects": {&"pierce_add": 1.0}},
+	&"propane_tank": {"name": "Botijão de Propano", "price": 140,
+		"desc": "Enxerto: +15% de dano, +25% de calor.",
+		"effects": {&"damage_add": 0.15, &"heat_add": 0.25}},
+}
+
+
+static func graft_modules() -> Array[StringName]:
+	var out: Array[StringName] = []
+	for k in GRAFTS:
+		out.append(k)
+	return out
+
+
 static func fusion_module_name(module_id: StringName) -> String:
-	match module_id:
-		&"car_battery": return "Bateria de Carro"
-		&"diamond_drillbit": return "Broca Diamantada"
-		&"propane_tank": return "Botijão de Propano"
-	return "Modulo desconhecido"
+	return str(GRAFTS.get(module_id, {}).get("name", "Modulo desconhecido"))
 
 
-## Preco de prototipo, equivalente a uma peca Comum/Incomum. A receita nao cobra taxa.
+static func fusion_module_desc(module_id: StringName) -> String:
+	return str(GRAFTS.get(module_id, {}).get("desc", ""))
+
+
+## Preco em Sucata, equivalente a uma peca Comum/Incomum. A receita nao cobra taxa.
 static func fusion_module_price(module_id: StringName) -> int:
-	match module_id:
-		&"car_battery": return 90
-		&"diamond_drillbit": return 120
-		&"propane_tank": return 140
-	return -1
+	return int(GRAFTS.get(module_id, {}).get("price", -1))
 
 
 ## Pesos de raridade da vitrine para um setor, com o bonus do Olho Clinico.

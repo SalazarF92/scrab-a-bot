@@ -37,7 +37,11 @@ var _font: Font
 var _buttons: Array[Dictionary] = [] # {"rect": Rect2, "action": String, "payload": Variant}
 var inventory := FusionInventory.new()
 var _recipes: Array[FusionRecipe] = PartLibrary.fusion_recipes()
-var _selected_recipe_idx: int = 0
+## Catalogo de modulos (GDD 4.7.2 e 4.7.3): a navegacao da Bancada percorre
+## modulos; a receita, quando existe, aparece junto do modulo que a exige.
+var _modules: Array[StringName] = PartLibrary.graft_modules()
+var _selected_module_idx: int = 0
+var _graft_target: int = PartData.Slot.ARM_LEFT
 var _status: String = ""
 var _fusion_time: float = 0.0
 var _fusion_name: String = ""
@@ -69,7 +73,8 @@ func reset_for_run() -> void:
 	_repair_used = false
 	_status = ""
 	_fusion_time = 0.0
-	_selected_recipe_idx = 0
+	_selected_module_idx = 0
+	_graft_target = PartData.Slot.ARM_LEFT
 
 
 func _on_visibility_changed() -> void:
@@ -81,10 +86,10 @@ func open_workbench(p_sector: int) -> void:
 	sector = p_sector
 	_rerolls_used = 0
 	_repair_used = false
-	_selected_recipe_idx = 0
+	_selected_module_idx = 0
 	for r_idx in _recipes.size():
 		if recipe_available(r_idx):
-			_selected_recipe_idx = r_idx
+			_selected_module_idx = maxi(0, _modules.find(_recipes[r_idx].module_id))
 			break
 	_status = "Pecas repetidas sobem o tier. Trocas devolvem metade do valor, incluindo o tier."
 	_roll_offers()
@@ -95,6 +100,9 @@ func open_workbench(p_sector: int) -> void:
 func _roll_offers() -> void:
 	var count := MetaManager.get_workbench_options_count()
 	var rare_bonus: float = 0.15 if MetaManager.get_upgrade_level("sorte") >= 2 else 0.0
+	# Bitcorn Rig: "+25% de chance de peca rara".
+	if robot != null and robot.cpu != null:
+		rare_bonus += robot.cpu.rare_chance_bonus
 	_offers = PartLibrary.roll_shop_offer(count, sector, rare_bonus)
 
 
@@ -125,19 +133,19 @@ func _gui_input(event: InputEvent) -> void:
 			KEY_H:
 				_try_repair()
 			KEY_LEFT, KEY_Z:
-				_selected_recipe_idx = (_selected_recipe_idx - 1 + _recipes.size()) % _recipes.size()
-				queue_redraw()
+				_cycle_module(-1)
 			KEY_RIGHT, KEY_X:
-				_selected_recipe_idx = (_selected_recipe_idx + 1) % _recipes.size()
-				queue_redraw()
+				_cycle_module(1)
 			KEY_M:
-				var rec: FusionRecipe = _recipes[_selected_recipe_idx]
-				_try_buy_module(rec.module_id)
+				_try_buy_module(_selected_module())
 			KEY_F:
-				_try_fuse_recipe(_selected_recipe_idx)
+				_try_fuse_recipe(_selected_recipe_index())
 			KEY_DELETE:
-				var rec: FusionRecipe = _recipes[_selected_recipe_idx]
-				_try_sell_module(rec.module_id)
+				_try_sell_module(_selected_module())
+			KEY_G:
+				_try_graft(_selected_module(), _graft_target)
+			KEY_T:
+				_cycle_graft_target()
 			KEY_1:
 				_try_buy_offer(0)
 			KEY_2:
@@ -161,11 +169,11 @@ func _handle_button_action(action: String, payload: Variant) -> void:
 		"reroll":
 			_try_reroll()
 		"prev_recipe":
-			_selected_recipe_idx = (_selected_recipe_idx - 1 + _recipes.size()) % _recipes.size()
-			queue_redraw()
+			_cycle_module(-1)
 		"next_recipe":
-			_selected_recipe_idx = (_selected_recipe_idx + 1) % _recipes.size()
-			queue_redraw()
+			_cycle_module(1)
+		"graft_module":
+			_try_graft(StringName(payload), _graft_target)
 		"buy_offer":
 			_try_buy_offer(int(payload))
 		"upgrade_slot":
@@ -424,7 +432,13 @@ func _draw_equipped_section(vp: Vector2) -> void:
 			if slot_id == PartData.Slot.CHASSIS:
 				tier_str += "  •  rebatedor x%.2f" % part.restitution
 			_draw_ellipsis(card_rect.position + Vector2(112, 49), tier_str, card_rect.size.x - 266, 16, part.rarity_color())
-			draw_string(_font, card_rect.position + Vector2(112, 72), "Troca devolve %d Sucata" % part.sell_value(), HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#BCA68D"))
+			var trade_line := "Troca devolve %d Sucata" % part.sell_value()
+			if not part.grafts.is_empty():
+				var names := PackedStringArray()
+				for g in part.grafts:
+					names.append(PartLibrary.fusion_module_name(g))
+				trade_line += "  •  Enxertos: " + ", ".join(names)
+			_draw_ellipsis(card_rect.position + Vector2(112, 72), trade_line, card_rect.size.x - 266, 15, Color("#BCA68D"))
 
 			var up_cost: int = part.upgrade_cost()
 			var up_btn := Rect2(card_rect.position.x + card_rect.size.x - 140, card_rect.position.y + 10, 130, card_rect.size.y - 20)
@@ -506,24 +520,78 @@ func _draw_shop_section(vp: Vector2) -> void:
 	_buttons.append({"rect": reroll_btn, "action": "reroll", "payload": null})
 
 
+func _selected_module() -> StringName:
+	if _modules.is_empty():
+		return &""
+	return _modules[clampi(_selected_module_idx, 0, _modules.size() - 1)]
+
+
+## Indice em _recipes da receita que usa o modulo selecionado, ou -1.
+func _selected_recipe_index() -> int:
+	var module := _selected_module()
+	for i in _recipes.size():
+		if _recipes[i].module_id == module:
+			return i
+	return -1
+
+
+func _cycle_module(direction: int) -> void:
+	if _modules.is_empty():
+		return
+	_selected_module_idx = (_selected_module_idx + direction + _modules.size()) % _modules.size()
+	queue_redraw()
+
+
+func _cycle_graft_target() -> void:
+	var order := [PartData.Slot.ARM_LEFT, PartData.Slot.ARM_RIGHT, PartData.Slot.HEAD, PartData.Slot.CHASSIS]
+	_graft_target = order[(order.find(_graft_target) + 1) % order.size()]
+	queue_redraw()
+
+
+## GDD 4.7.3: enxerta o modulo na peca do slot alvo. Consome o modulo. Nao ha
+## como remover um enxerto; trocar a peca na vitrine descarta os dela.
+func _try_graft(module_id: StringName, slot: int) -> bool:
+	if robot == null or not PartLibrary.GRAFTS.has(module_id):
+		return false
+	var part: PartData = robot.equipped.get(slot)
+	if part == null:
+		_status = "Nao ha peca no slot %s para enxertar." % SLOT_LABELS.get(slot, "?")
+		return false
+	if part.grafts.size() >= robot.graft_slots():
+		_status = "%s ja tem %d enxertos, o maximo desta CPU." % [part.display_name, part.grafts.size()]
+		Sfx.play("projectile_plop", -4.0)
+		return false
+	if inventory.count(module_id) <= 0:
+		_status = "Compre %s antes de enxertar." % PartLibrary.fusion_module_name(module_id)
+		return false
+	if not inventory.consume(module_id):
+		return false
+	part.grafts.append(module_id)
+	robot.call("_recompute_stats")
+	_status = "%s enxertada em %s. %s" % [PartLibrary.fusion_module_name(module_id), part.display_name, PartLibrary.fusion_module_desc(module_id)]
+	_fusion_time = 1.2
+	_fusion_name = "ENXERTO: " + PartLibrary.fusion_module_name(module_id)
+	Sfx.play_varied("fire_heavy", 0.0)
+	queue_redraw()
+	return true
+
+
 func _draw_recipe_section(vp: Vector2) -> void:
 	var panel := Rect2(40, vp.y - 314, vp.x - 80, 194)
-	var recipe := _recipes[_selected_recipe_idx]
-	var ready := recipe_available(_selected_recipe_idx)
+	var module := _selected_module()
+	var recipe_idx := _selected_recipe_index()
+	var recipe: FusionRecipe = _recipes[recipe_idx] if recipe_idx >= 0 else null
+	var ready := recipe_idx >= 0 and recipe_available(recipe_idx)
 	var accent := Color("#FFD400") if ready else Color("#8A4B2A")
 	_draw_panel(panel, Color("#271D25"), accent)
 	var left := panel.position + Vector2(20, 0)
-	var source: PartData = robot.equipped.get(recipe.result_part.slot) if robot != null else null
-	var source_ready := recipe.accepts(source)
-	var module_count := inventory.count(recipe.module_id)
-	var module_name := PartLibrary.fusion_module_name(recipe.module_id)
-	var module_cost := PartLibrary.fusion_module_price(recipe.module_id)
+	var module_count := inventory.count(module)
+	var module_name := PartLibrary.fusion_module_name(module)
+	var module_cost := PartLibrary.fusion_module_price(module)
 
-	var title := "RECEITA PRONTA!  %s" % recipe.result_part.display_name if ready else "LIVRO DE RECEITAS (%d/%d)  /  %s" % [_selected_recipe_idx + 1, _recipes.size(), recipe.result_part.display_name]
-	if source != null and source.id == recipe.result_part.id:
-		title = "%s EQUIPADA" % recipe.result_part.display_name
-
-	# Botoes de navegacao entre receitas < e >
+	var title := "MODULOS DE SUCATA (%d/%d)  /  %s" % [_selected_module_idx + 1, _modules.size(), module_name]
+	if ready:
+		title = "RECEITA PRONTA!  %s" % recipe.result_part.display_name
 	var btn_prev := Rect2(left + Vector2(0, 10), Vector2(28, 24))
 	_draw_action_button(btn_prev, "<", "prev_recipe", null, true, Color("#D6C9A8"))
 	draw_string(_font, left + Vector2(36, 30), title, HORIZONTAL_ALIGNMENT_LEFT, -1, 20, accent if ready else Color("#F5F0E1"))
@@ -531,32 +599,52 @@ func _draw_recipe_section(vp: Vector2) -> void:
 	var btn_next := Rect2(left + Vector2(48 + title_w, 10), Vector2(28, 24))
 	_draw_action_button(btn_next, ">", "next_recipe", null, true, Color("#D6C9A8"))
 
-	var source_name := recipe.source_part_id
-	if source != null and source.id == recipe.source_part_id:
-		source_name = source.display_name
-	var ingredients := "%s %s    +    %s %s (%d)" % [
-		"[OK]" if source_ready else "[--]", source_name, "[OK]" if module_count > 0 else "[--]", module_name, module_count]
-	draw_string(_font, left + Vector2(0, 58), ingredients, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("#D6C9A8"))
-	draw_string(_font, left + Vector2(0, 83), recipe.description, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("#22E0FF"))
-	draw_string(_font, left + Vector2(0, 107), "Consome 1 modulo; preserva o tier; resultado Raro ou superior.", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("#BCA68D"))
-	var craft_button := Rect2(left + Vector2(0, 122), Vector2(510, 47))
-	_draw_action_button(craft_button, "FUNDIR RECEITA [F]  /  SEM TAXA", "fuse_recipe", _selected_recipe_idx, ready, Color("#FFD400"))
+	# Linha 1: a receita, se o modulo for ingrediente de alguma.
+	if recipe != null:
+		var source: PartData = robot.equipped.get(recipe.result_part.slot) if robot != null else null
+		var source_ready := recipe.accepts(source)
+		var source_name := _recipe_source_name(recipe)
+		var ingredients := "RECEITA  %s %s  +  %s %s (%d)  =  %s" % [
+			"[OK]" if source_ready else "[--]", source_name, "[OK]" if module_count > 0 else "[--]", module_name, module_count, recipe.result_part.display_name]
+		_draw_ellipsis(left + Vector2(0, 58), ingredients, panel.size.x * 0.55 - 30, 15, Color("#D6C9A8"))
+		_draw_ellipsis(left + Vector2(0, 80), recipe.description, panel.size.x * 0.55 - 30, 14, Color("#22E0FF"))
+	else:
+		draw_string(_font, left + Vector2(0, 58), "Sem receita: este modulo serve so de enxerto.", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#BCA68D"))
+	# Linha 2: o enxerto, sempre.
+	var target: PartData = robot.equipped.get(_graft_target) if robot != null else null
+	var target_name := target.display_name if target != null else "(vazio)"
+	var target_grafts := target.grafts.size() if target != null else 0
+	var slots_max := robot.graft_slots() if robot != null else PartData.MAX_GRAFTS
+	_draw_ellipsis(left + Vector2(0, 104), "ENXERTO  %s   ->   [T] alvo: %s / %s (%d/%d)" % [
+		PartLibrary.fusion_module_desc(module), SLOT_LABELS.get(_graft_target, "?"), target_name, target_grafts, slots_max],
+		panel.size.x * 0.55 - 30, 14, Color("#8CFF1A"))
+	var half_w := (panel.size.x * 0.55 - 40.0) * 0.5
+	var craft_button := Rect2(left + Vector2(0, 122), Vector2(half_w - 6.0, 47))
+	_draw_action_button(craft_button, "FUNDIR RECEITA [F]", "fuse_recipe", recipe_idx, ready, Color("#FFD400"))
 	if ready:
 		var pulse := 0.5 + 0.5 * sin(_pulse_time * 3.0)
 		draw_rect(craft_button.grow(3), Color(1.0, 0.83, 0.0, 0.3 + pulse * 0.3), false, 2.0)
+	var graft_button := Rect2(left + Vector2(half_w + 6.0, 122), Vector2(half_w - 6.0, 47))
+	var can_graft := module_count > 0 and target != null and target_grafts < slots_max
+	_draw_action_button(graft_button, "ENXERTAR [G]", "graft_module", module, can_graft, Color("#8CFF1A"))
 
 	var stock_x := panel.position.x + panel.size.x * 0.55
 	draw_line(Vector2(stock_x - 18, panel.position.y + 20), Vector2(stock_x - 18, panel.end.y - 20), Color("#665044"), 2.0)
 	draw_string(_font, Vector2(stock_x, panel.position.y + 30), "MOCHILA DE MODULOS  %d / %d" % [inventory.size(), inventory.capacity], HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color("#F5F0E1"))
 	_draw_battery(Vector2(stock_x + 22, panel.position.y + 67))
 	draw_string(_font, Vector2(stock_x + 58, panel.position.y + 61), "%s  /  %d Sucata" % [module_name, module_cost], HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("#FFD400"))
-	draw_string(_font, Vector2(stock_x + 58, panel.position.y + 84), "Guardado entre setores. Necessario para a receita ativa.", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("#BCA68D"))
+	var bag := ""
+	for m in _modules:
+		var n := inventory.count(m)
+		if n > 0:
+			bag += "%s x%d  " % [PartLibrary.fusion_module_name(m), n]
+	_draw_ellipsis(Vector2(stock_x + 58, panel.position.y + 84), "Na mochila: " + (bag if bag != "" else "nada"), panel.end.x - stock_x - 80, 14, Color("#BCA68D"))
 	var stock_w := panel.end.x - stock_x - 20
 	var module_button := Rect2(stock_x, panel.position.y + 122, stock_w * 0.62, 47)
 	var can_buy := robot != null and not inventory.is_full() and MetaManager.current_scrap >= module_cost
-	_draw_action_button(module_button, "COMPRAR [M] (%d)" % module_cost, "buy_module", recipe.module_id, can_buy, Color("#22E0FF"))
+	_draw_action_button(module_button, "COMPRAR [M] (%d)" % module_cost, "buy_module", module, can_buy, Color("#22E0FF"))
 	var sell_button := Rect2(module_button.end.x + 12, module_button.position.y, stock_w - module_button.size.x - 12, 47)
-	_draw_action_button(sell_button, "VENDER [DEL] (+%d)" % (module_cost / 2), "sell_module", recipe.module_id, module_count > 0, Color("#D6C9A8"))
+	_draw_action_button(sell_button, "VENDER [DEL] (+%d)" % (module_cost / 2), "sell_module", module, module_count > 0, Color("#D6C9A8"))
 
 	# Celebracao local: sem flash de tela inteira e sem retomar o combate.
 	if _fusion_time > 0.0:

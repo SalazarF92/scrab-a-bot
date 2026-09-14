@@ -86,6 +86,13 @@ const FACTORY := {
 @export var is_elite: bool = false
 var _mob := MobAbility.new()
 var _hits_received := 0
+## Camera de Seguranca (HeadAbility.mark): multiplicador de dano recebido e
+## sinal visual. Boneca Queimada: atordoamento com empurrao.
+var damage_taken_mult: float = 1.0
+var marked: bool = false
+var _stun: float = 0.0
+var _stun_push: Vector2 = Vector2.ZERO
+var _last_hit_bounce: int = 0
 
 var hp: float = 12.0
 var scrap_value: int = 3
@@ -152,6 +159,11 @@ func _ready() -> void:
 func activate(spec: Dictionary, ai_group: int, at: Vector2) -> void:
 	_mob.reset(self)
 	_hits_received = 0
+	damage_taken_mult = 1.0
+	marked = false
+	_stun = 0.0
+	_stun_push = Vector2.ZERO
+	_last_hit_bounce = 0
 	for k in FACTORY:
 		set(k, FACTORY[k])
 	for k in spec:
@@ -245,7 +257,13 @@ func _physics_process(delta: float) -> void:
 		_mob.tick(self, delta)
 		if not active or _dying: return
 
-	velocity = velocity.lerp(_desired_velocity, minf(1.0, delta * 12.0))
+	if _stun > 0.0:
+		# Atordoado: nao decide, so recebe o empurrao do grito e freia.
+		_stun = maxf(0.0, _stun - delta)
+		velocity = velocity.lerp(_stun_push, minf(1.0, delta * 6.0))
+		_stun_push = _stun_push.lerp(Vector2.ZERO, minf(1.0, delta * 4.0))
+	else:
+		velocity = velocity.lerp(_desired_velocity, minf(1.0, delta * 12.0))
 	var y_before := global_position.y
 	move_and_slide()
 	if _squeezing:
@@ -289,6 +307,24 @@ func _think() -> void:
 	if mob_kind == &"bomber" and _mob.warning > 0.0:
 		_desired_velocity = Vector2.ZERO
 		velocity = Vector2.ZERO
+
+
+## Boneca Queimada: para por `duration` s e e empurrado por `push` px/s.
+## Chefes nao atordoam, mas recebem o empurrao reduzido.
+func apply_stun(duration: float, push: Vector2) -> void:
+	if not active or _dying:
+		return
+	if is_boss:
+		_stun_push = push * 0.15
+		_stun = maxf(_stun, 0.08)
+		return
+	_stun = maxf(_stun, duration)
+	_stun_push = push
+	_deform = Vector2(1.25, 0.75)
+
+
+func is_stunned() -> bool:
+	return _stun > 0.0
 
 
 func _exit_tree() -> void:
@@ -653,9 +689,10 @@ func take_damage(amount: float, from: Vector2 = Vector2.ZERO, bounce_index: int 
 		Vfx.spawn_bounce(global_position, (from - global_position).normalized(), 1)
 		return 0.0
 
-	var applied := amount * damage_multiplier_from(from)
+	var applied := amount * damage_multiplier_from(from) * damage_taken_mult
 	if applied <= 0.0: return 0.0
 	_hits_received += 1
+	_last_hit_bounce = bounce_index
 	if _hits_received < minimum_hits:
 		applied = minf(applied, maxf(hp - 1.0, 0.0))
 	hp -= applied
@@ -698,7 +735,13 @@ func _die() -> void:
 	Vfx.spawn_death(global_position, color)
 	Sfx.play_varied("enemy_death", -8.0)
 	Telemetry.enemies_killed += 1
-	MetaManager.add_scrap(scrap_value)
+	if _last_hit_bounce >= 1:
+		Telemetry.ricochet_kills += 1
+	var scrap := scrap_value
+	# Bitcorn Rig: "+2 de Sucata por inimigo morto".
+	if player_ok and _player.get("cpu") != null:
+		scrap += int(_player.cpu.scrap_per_kill)
+	MetaManager.add_scrap(scrap)
 	_release()
 
 
@@ -721,6 +764,17 @@ func _draw() -> void:
 	ArtDirector.draw_enemy(self, self)
 	if is_elite:
 		draw_arc(Vector2.ZERO, body_radius + 9, 0, TAU, 30, Color("#7B2FBF"), 4.0)
+	if marked:
+		# Mira desenhada a mao da Camera de Seguranca: alvo marcado atrai ricochete.
+		var mr := body_radius + 12.0 + sin(_phase * 9.0) * 3.0
+		draw_arc(Vector2.ZERO, mr, 0, TAU, 24, Color("#FF2D95"), 3.0)
+		for k in 4:
+			var d := Vector2.from_angle(TAU * float(k) / 4.0 + _phase * 1.5)
+			draw_line(d * (mr - 6.0), d * (mr + 10.0), Color("#FF2D95"), 3.0)
+	if _stun > 0.0:
+		for k in 3:
+			var sp := Vector2.from_angle(_phase * 6.0 + TAU * float(k) / 3.0) * (body_radius * 0.7)
+			draw_circle(sp + Vector2(0, -body_radius - 6.0), 3.0, Color("#FFD400"))
 	if _flash > 0.0:
 		draw_circle(Vector2.ZERO, body_radius, Color(1.0, 1.0, 1.0, 0.5))
 	if front_damage_mult < 1.0 and not boss_exposed:

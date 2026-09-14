@@ -248,7 +248,10 @@ func spawn(
 	damage_override: float = -1.0,
 	bonus_bounces: int = 0,
 	speed_mult: float = 1.0,
-	generation: int = 0
+	generation: int = 0,
+	radius_mult: float = 1.0,
+	ttl_mult: float = 1.0,
+	pierce_add: int = 0
 ) -> int:
 	var i := _take_index()
 	if i < 0:
@@ -264,11 +267,11 @@ func spawn(
 	_floor_immune[i] = 1 if type.ignore_floor else 0
 	_damage[i] = type.damage if damage_override < 0.0 else damage_override
 	_damage_source[i] = type.damage_source
-	_radius[i] = type.radius
+	_radius[i] = type.radius * radius_mult
 	_restitution[i] = type.restitution
-	_ttl[i] = type.ttl
+	_ttl[i] = type.ttl * ttl_mult
 	_age[i] = 0.0
-	_pierce[i] = type.pierce
+	_pierce[i] = type.pierce + pierce_add
 	_faction[i] = faction
 	_generation[i] = generation
 	_last_hit_id[i] = 0
@@ -400,6 +403,35 @@ func total_bounces() -> int:
 # --- simulacao ----------------------------------------------------------------
 
 ## Ventoinha consulta o pool a 10 Hz. Mantém facção, energia e teto de velocidade.
+## Camera de Seguranca: projeteis do jogador com pelo menos `min_bounces`
+## quiques dentro do raio curvam para o alvo marcado. So ricochete e atraido,
+## para a fisica do tiro direto continuar legivel (GDD 3.2, assistencia).
+func attract_to(target: Vector2, radius: float, strength: float, delta: float, min_bounces: int = 1) -> int:
+	var pulled := 0
+	for i in MAX_PROJECTILES:
+		if _alive[i] == 0 or _faction[i] != FACTION_PLAYER or _bounces[i] < min_bounces: continue
+		var offset := target - _pos[i]
+		if offset.length_squared() > radius * radius or offset.is_zero_approx(): continue
+		var speed := _vel[i].length()
+		_vel[i] = (_vel[i] + offset.normalized() * strength * delta).normalized() * speed
+		pulled += 1
+	return pulled
+
+
+## Boneca Queimada: projeteis do jogador dentro do anel invertem a direcao e
+## ganham quiques de orcamento. Devolve quantos foram invertidos.
+func reverse_in_radius(origin: Vector2, radius: float, bonus_bounces: int) -> int:
+	var flipped := 0
+	for i in MAX_PROJECTILES:
+		if _alive[i] == 0 or _faction[i] != FACTION_PLAYER: continue
+		if _pos[i].distance_squared_to(origin) > radius * radius: continue
+		_vel[i] = -_vel[i]
+		_max_bounces[i] = mini(_max_bounces[i] + bonus_bounces, HARD_BOUNCE_CAP)
+		_last_hit_id[i] = 0
+		flipped += 1
+	return flipped
+
+
 ## Devolve quantos projeteis foram empurrados, para o som so tocar com efeito.
 func deflect_in_cone(origin: Vector2, axis: Vector2, reach: float, strength: float, delta: float) -> int:
 	var pushed := 0

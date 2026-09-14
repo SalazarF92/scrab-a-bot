@@ -39,7 +39,7 @@ Godot_v4.7.2-stable_win64.exe --path .
 | mouse | mirar, sempre para cima |
 | botão esquerdo / direito | disparar braço esquerdo / direito |
 | espaço ou shift | dash |
-| Q | habilidade da cabeça |
+| Q | habilidade da cabeça (Câmera, Boneca) ou disparo da cabeça que atira (Torradeira) |
 | E | Purga de Calor, que ergue uma parede de vapor no ponto mirado |
 | G | abrir / fechar a Garagem |
 | B | abrir / fechar a Bancada |
@@ -47,18 +47,18 @@ Godot_v4.7.2-stable_win64.exe --path .
 | F2 | gerar nova arena |
 | F3 | teste de estresse: 800 projéteis |
 | F4 | alternar formas de quique para daltonismo |
-| F5 | trocar CPU |
+| F5 | percorrer todas as CPUs, inclusive as bloqueadas (debug) |
 | 1 / 2 / 3 | trocar braço esquerdo / braço direito / cabeça |
 | F6 | tremor de tela em 0%, para ver a vinheta substituta |
 | R | zerar telemetria |
 
 **Na Garagem:** espaço inicia a run, H inicia o desafio de hoje, C copia a legenda da última
-run, 1 a 5 compram upgrades, A e D ajustam o nível de risco.
+run, 1 a 5 compram upgrades, A e D ajustam o nível de risco, Z e X escolhem a CPU na prateleira.
 
 **Na Bancada:** 1 a 4 compram da vitrine (fundem se a peça for igual à equipada), R faz
-reroll, H solda, espaço segue para o próximo setor.
+reroll, H solda, T escolhe o slot do enxerto, G enxerta o módulo selecionado, espaço segue para o próximo setor.
 
-**Receitas de Fusão da Bancada:** navegue entre receitas com **<** / **>** (ou setas / **Z** / **X**).
+**Módulos, receitas e enxertos da Bancada:** navegue entre os dez módulos com **<** / **>** (ou setas / **Z** / **X**). Cada módulo pode ser comprado (**M**), vendido (**Delete**), enxertado na peça do slot alvo (**G**, até dois por peça, quatro com a Cyrix Bode) ou fundido na receita que o usa (**F**).
 - **Torrada Tesla:** Torradeira + Bateria de Carro (**M**, 90 Sucata) -> funde com **F**.
 - **Perfuratriz Diamantada:** Perfuratriz + Broca Diamantada (**M**, 120 Sucata) -> perfura 3 alvos a 1450 px/s.
 - **Bazuca Napalm do Seu Nildo:** Lança-Tubo + Botijão de Gás (**M**, 140 Sucata) -> 110 de dano e ricochete acelerado.
@@ -94,7 +94,8 @@ só passa com código 0, a linha `=== TUDO OK ===` e nenhum `SCRIPT ERROR` na sa
   defesa/reflexão do Cofre, dano mitigado na telemetria e assets com alpha.
   Também o piso de TDP das CPUs (adendo A.5), o reset entre setores, a barra de recarga,
   a fonte de dano dos filhos de divisão, cenário imune a tiro inimigo, dano por risco e
-  isolamento de recursos nos clones.
+  isolamento de recursos nos clones, as habilidades das cabeças (Câmera, Boneca, Rádio-Relógio e
+  Abajur), os enxertos e a prateleira de CPUs com save v3.
 - **Testes de rig** (`tests/*_motion.gd`, `creature_mouths.gd`, `creature_joint_contacts.gd`,
   `boss_revision.gd`) verificam rigidez, continuidade, bocas e juntas dos rigs articulados.
 - **`tests/boss_combat.tscn`** verifica blindagem, fases, telegrafia, esquiva e pool dos chefes,
@@ -130,7 +131,7 @@ autoload/     combat_feel (hitstop e trauma), game_rng (fluxos semeados e sement
               sfx (síntese e limitador de vozes), vfx (pools de efeito), telemetry (GDD 7.7),
               game_input, meta_manager (Cobre, Sucata, árvore de 5 ramos e desafio diário)
 combat/       projectile_pool (o coração, com rebatedor e chão), projectile_type, fire_context,
-              wave_director (ondas e onda de bumpers), enemy_pool, steam_wall
+              wave_director (ondas e onda de bumpers), enemy_pool, steam_wall, head_ability
 data/         part_data, cpu_data, part_behavior + comportamentos, part_library
 actors/       robot, enemies (com anti-travamento), arena_camera
 generation/   arena_generator, obstacle
@@ -164,7 +165,9 @@ na base, coice e antecipação de câmera na direção da mira.
 **Modularidade (GDD 4, o pilar 2).** Peça é dado, não código: `PartData` com array de
 `PartBehavior`. A TORRADA TESLA é a Torradeira com um comportamento a mais no array e o
 leque de 3 para 5, sem uma linha de código nova. Sistema de Watts com subvoltagem, sistema
-de calor com superaquecimento e Purga.
+de calor com superaquecimento e Purga. Quatro cabeças com habilidade ativa ou passiva, dez
+módulos que servem de receita ou de enxerto, e oito CPUs na prateleira da Garagem, cada uma
+com a condição de desbloqueio visível.
 
 **Economia e retenção (GDD 6 e 1.4).** Garagem com árvore de 25 nós e nível de risco.
 Bancada com vitrine pela raridade do setor, fusão de duplicata, troca com reembolso de 50%,

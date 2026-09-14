@@ -98,12 +98,13 @@ var _spasm_lock: float = 0.0
 var _cooldowns: Dictionary = {}
 var _cooldown_full: Dictionary = {}  # duracao total da ultima recarga por slot, para a HUD
 var _external_push: Vector2 = Vector2.ZERO
+## Habilidade ativa da cabeca (GDD 4.3). Ver combat/head_ability.gd.
+var head_ability := HeadAbility.new()
+var _shots_fired: Dictionary = {}
+var _blue_screen: float = 0.0
+## Dano sofrido na sala atual; zero ao limpar a sala conta para a Xeon.
+var damage_taken_this_sector: float = 0.0
 
-
-## Empurrao externo em px/s aplicado no proximo quadro de movimento. Chefes
-## usam para succao (Sugao) e esteira de papel (Formulario).
-func apply_push(velocity_px: Vector2) -> void:
-	_external_push += velocity_px
 var _fire_ctx := FireContext.new()
 var _recoil: Vector2 = Vector2.ZERO
 var _hit_flash: float = 0.0
@@ -111,6 +112,12 @@ var _paddle_flash: float = 0.0
 var _paddle_tier: int = 0
 var _using_gamepad: bool = false
 var _jammed_slots: Dictionary = {}
+
+
+## Empurrao externo em px/s aplicado no proximo quadro de movimento. Chefes
+## usam para succao (Sugao) e esteira de papel (Formulario).
+func apply_push(velocity_px: Vector2) -> void:
+	_external_push += velocity_px
 
 
 func jam_slot(slot: int, source_id: int, duration: float) -> void:
@@ -181,6 +188,10 @@ func set_cpu(c: CpuData) -> void:
 ## da run anterior vazavam para a primeira sala da seguinte.
 func reset_for_run() -> void:
 	_jammed_slots.clear()
+	head_ability.reset()
+	_shots_fired.clear()
+	_blue_screen = 0.0
+	damage_taken_this_sector = 0.0
 	heat = 0.0
 	overheated = false
 	_overheat_timer = 0.0
@@ -216,7 +227,7 @@ func _recompute_stats() -> void:
 		# Raridade e tier de fusao multiplicam o HP do chassi como multiplicam o
 		# dano de uma arma. Antes o tier do chassi era vendido na Bancada e nao
 		# fazia nada.
-		new_max_hp = (chassis.hp * chassis.power_mult() + MetaManager.get_bonus_hp_flat()) * MetaManager.get_bonus_hp_mult()
+		new_max_hp = (chassis.hp * chassis.power_mult() + MetaManager.get_bonus_hp_flat()) * MetaManager.get_bonus_hp_mult() * (cpu.hp_mult if cpu != null else 1.0)
 		_max_speed = chassis.move_speed * MetaManager.get_bonus_speed_mult()
 		_dash_charges_max = chassis.dash_charges + MetaManager.get_bonus_dash_charges()
 		paddle_restitution = chassis.restitution
@@ -227,8 +238,33 @@ func _recompute_stats() -> void:
 
 	watts_used = 0
 	for slot in equipped:
-		watts_used += (equipped[slot] as PartData).watts
+		watts_used += (equipped[slot] as PartData).effective_watts()
 	stats_changed.emit()
+
+
+## GDD 4.7.3: enxertos da peca entram no contexto de disparo como aditivos.
+func _apply_grafts(part: PartData, slot: int) -> void:
+	if part.grafts.is_empty():
+		return
+	_fire_ctx.damage_add += part.graft_sum(&"damage_add")
+	_fire_ctx.fire_rate_add += part.graft_sum(&"fire_rate_add")
+	_fire_ctx.speed_add += part.graft_sum(&"speed_add")
+	_fire_ctx.bonus_bounces += int(part.graft_sum(&"bonus_bounces"))
+	_fire_ctx.radius_add += part.graft_sum(&"radius_add")
+	_fire_ctx.ttl_add += part.graft_sum(&"ttl_add")
+	_fire_ctx.pierce_add += int(part.graft_sum(&"pierce_add"))
+	# Fita Cassete: todo N-esimo disparo sai duplicado.
+	var every := int(part.graft_sum(&"duplicate_every"))
+	if every > 0:
+		_shots_fired[slot] = int(_shots_fired.get(slot, 0)) + 1
+		if _shots_fired[slot] % every == 0:
+			_fire_ctx.extra_shots += 1
+			_fire_ctx.spread_radians = maxf(_fire_ctx.spread_radians, deg_to_rad(6.0))
+
+
+## Enxertos por peca: 2, mais os da CPU (Cyrix Bode).
+func graft_slots() -> int:
+	return PartData.MAX_GRAFTS + (cpu.extra_graft_slots if cpu != null else 0)
 
 
 func total_tdp() -> int:
@@ -282,6 +318,9 @@ func cooldown_ratio(slot: int) -> float:
 ## cargas de dash gastas sao mantidos, porque sao o custo da run.
 func reset_between_sectors() -> void:
 	_jammed_slots.clear()
+	head_ability.reset()
+	_blue_screen = 0.0
+	damage_taken_this_sector = 0.0
 	heat = 0.0
 	overheated = false
 	_overheat_timer = 0.0
@@ -333,6 +372,15 @@ func _tick_timers(delta: float) -> void:
 	_dash_buffer = maxf(0.0, _dash_buffer - delta)
 	_iframes = maxf(0.0, _iframes - delta)
 	_purge_cd = maxf(0.0, _purge_cd - delta)
+	_blue_screen = maxf(0.0, _blue_screen - delta)
+	var head: PartData = equipped.get(PartData.Slot.HEAD)
+	# Cabeca encriptada pelo Cadeado Chorao nao marca, nao atrai e nao dispara alarme.
+	if head != null and head.ability != &"" and slot_jam_remaining(PartData.Slot.HEAD) <= 0.0:
+		head_ability.tick(self, head, delta)
+	# GDD 7.3: on_tick roda para toda peca equipada, a cada passo de fisica.
+	for slot in equipped:
+		for b in (equipped[slot] as PartData).behaviors:
+			b.on_tick(self, delta)
 	_hit_flash = maxf(0.0, _hit_flash - delta)
 	_paddle_flash = maxf(0.0, _paddle_flash - delta)
 	_recoil = _recoil.lerp(Vector2.ZERO, minf(1.0, delta * 8.0))
@@ -474,7 +522,22 @@ func _handle_firing(_delta: float) -> void:
 		return
 	_try_fire(PartData.Slot.ARM_LEFT, "fire_left")
 	_try_fire(PartData.Slot.ARM_RIGHT, "fire_right")
-	_try_fire(PartData.Slot.HEAD, "head_ability")
+	var head: PartData = equipped.get(PartData.Slot.HEAD)
+	if head != null and head.has_active_ability():
+		# O Radio-Relogio e automatico: Q nao antecipa o alarme.
+		if head.ability != &"alarm" and slot_jam_remaining(PartData.Slot.HEAD) <= 0.0 and Input.is_action_just_pressed("head_ability"):
+			if head_ability.use(self, head):
+				heat += head.heat_per_shot * head.heat_mult() * (cpu.heat_gen_mult if cpu else 1.0) * MetaManager.get_heat_gen_mult()
+				_heat_idle = 0.0
+	else:
+		_try_fire(PartData.Slot.HEAD, "head_ability")
+
+
+func head_ability_ratio() -> float:
+	var head: PartData = equipped.get(PartData.Slot.HEAD)
+	if head == null or not head.has_active_ability() or head.ability_cooldown <= 0.0:
+		return 0.0
+	return clampf(head_ability.cooldown / head.ability_cooldown, 0.0, 1.0)
 
 	if Input.is_action_just_pressed("heat_purge"):
 		_heat_purge()
@@ -502,12 +565,25 @@ func _try_fire(slot: int, action: String) -> void:
 	_fire_ctx.fusion_mult = part.fusion_mult()
 	for b in part.behaviors:
 		b.on_fire(_fire_ctx)
+	# Abajur e afins: os behaviors de uma cabeca passiva entram em todo disparo.
+	var head: PartData = equipped.get(PartData.Slot.HEAD)
+	if head != null and head.passive and head != part:
+		for b in head.behaviors:
+			b.on_fire(_fire_ctx)
+	_apply_grafts(part, slot)
 	if _fire_ctx.cancelled:
 		return
 
 	rate *= (1.0 + _fire_ctx.fire_rate_add)
 	_cooldowns[slot] = 1.0 / maxf(rate, 0.01)
 	_cooldown_full[slot] = _cooldowns[slot]
+
+	# AMDeus Camelo: 12% dos tiros falham com tela azul. O tempo de recarga e
+	# pago mesmo assim; a piada e essa.
+	if cpu != null and cpu.misfire_chance > 0.0 and GameRng.randf_in(GameRng.Stream.COMBAT) < cpu.misfire_chance:
+		_blue_screen = 0.35
+		Sfx.play("projectile_plop", -6.0)
+		return
 
 	var shots: int = 1 + _fire_ctx.extra_shots
 	var spread: float = _fire_ctx.spread_radians
@@ -517,18 +593,30 @@ func _try_fire(slot: int, action: String) -> void:
 	var is_crit := GameRng.randf_in(GameRng.Stream.COMBAT) < MetaManager.get_crit_chance()
 	if is_crit:
 		damage *= 2.0
+	if cpu != null and cpu.triple_damage_chance > 0.0 and GameRng.randf_in(GameRng.Stream.COMBAT) < cpu.triple_damage_chance:
+		damage *= 3.0
 	var speed_mult: float = (cpu.projectile_speed_mult if cpu else 1.0) * (1.0 + _fire_ctx.speed_add) * MetaManager.get_proj_speed_mult()
 	var bonus_bounces: int = _fire_ctx.bonus_bounces + (cpu.bonus_bounces if cpu else 0) + MetaManager.get_free_bounces()
+	# Behaviors da CPU (Cafe Derramado) viajam junto com os da peca.
+	var shot_behaviors: Array = part.behaviors
+	if cpu != null and not cpu.behaviors.is_empty():
+		shot_behaviors = part.behaviors + cpu.behaviors
 
 	for s in shots:
 		var t := 0.0 if shots == 1 else (float(s) / float(shots - 1) - 0.5) * 2.0
 		var dir := aim_direction.rotated(t * spread * 0.5)
 		pool.spawn(muzzle, dir, part.projectile, ProjectilePool.FACTION_PLAYER,
-			part.behaviors, damage, bonus_bounces, speed_mult)
+			shot_behaviors, damage, bonus_bounces, speed_mult, 0,
+			1.0 + _fire_ctx.radius_add, 1.0 + _fire_ctx.ttl_add, _fire_ctx.pierce_add)
+
+	# Cafe Derramado: 4% de curto-circuito no proprio robo.
+	if cpu != null and cpu.self_shock_chance > 0.0 and GameRng.randf_in(GameRng.Stream.COMBAT) < cpu.self_shock_chance:
+		_iframes = 0.0
+		take_damage(cpu.self_shock_damage, body_center(), 0, "pelo próprio curto-circuito")
 
 	# Calor, coice e tremor escalam com o peso da arma. GDD 3.4.2 e 3.4.4.
 	var heavy := part.heat_per_shot >= 10.0
-	heat += part.heat_per_shot * (cpu.heat_gen_mult if cpu else 1.0) * MetaManager.get_heat_gen_mult()
+	heat += part.heat_per_shot * part.heat_mult() * (cpu.heat_gen_mult if cpu else 1.0) * MetaManager.get_heat_gen_mult()
 	_heat_idle = 0.0
 	CombatFeel.add_trauma(0.22 if heavy else 0.08)
 	if heavy:
@@ -648,6 +736,7 @@ func take_damage(amount: float, from: Vector2 = Vector2.ZERO, _bounce_index: int
 	if not breach and chassis != null and chassis.id == &"chassis_safe" and is_front_hit(from):
 		final_amount *= 0.30
 	hp -= final_amount
+	damage_taken_this_sector += final_amount
 	_iframes = HIT_IFRAMES
 	_hit_flash = 0.12
 	# GDD 2.4: tomar dano espreme 0,80 uniforme mais flash branco.
@@ -681,6 +770,13 @@ func heal(amount: float) -> void:
 
 func _draw() -> void:
 	ArtDirector.draw_robot(self, self)
+
+	# AMDeus Camelo: tela azul comica no lugar do tiro que falhou.
+	if _blue_screen > 0.0:
+		var bsod := Rect2(BODY_CENTER + Vector2(-34.0, -78.0), Vector2(68.0, 40.0))
+		draw_rect(bsod, Color("#0000AA", minf(1.0, _blue_screen * 4.0)))
+		draw_string(ThemeDB.fallback_font, bsod.position + Vector2(6.0, 16.0), ":(", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color.WHITE)
+		draw_string(ThemeDB.fallback_font, bsod.position + Vector2(6.0, 32.0), "FATAL ERR", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color.WHITE)
 
 	# Rebatedor: o arco no alto do corpo e a superficie que devolve o que cai.
 	# Amarelo quando o chassi acelera o projetil; pisca na cor do quique ao rebater.

@@ -13,7 +13,8 @@ signal scrap_changed(current_scrap: int)
 const DEFAULT_SAVE_PATH := "user://save.json"
 ## Versao 2 acrescenta os campos do desafio diario. Um save da versao 1 carrega
 ## com esses campos no valor padrao, entao a migracao e a propria leitura.
-const SAVE_VERSION := 2
+## v3: CPU selecionada e estatisticas de desbloqueio da prateleira (GDD 6.3.2).
+const SAVE_VERSION := 3
 
 ## GDD 6.2: "Desafio diario completo: 150."
 const DAILY_REWARD := 150
@@ -76,6 +77,14 @@ var highest_heat_beaten: int = 0
 var daily_date: String = ""
 var daily_best_sectors: int = 0
 var daily_rewarded: bool = false
+## Prateleira de CPUs (GDD 6.3.2). Estatisticas lidas por CpuData.unlock_stat.
+var selected_cpu_id: StringName = &"cpu_pentiun"
+var ricochet_kills: int = 0
+var lifetime_scrap: int = 0
+var deaths_sector2: int = 0
+var flawless_sectors: int = 0
+var upgrades_bought: int = 0
+var best_magenta_hits_run: int = 0
 
 # --- Estado da Run Atual ---
 var current_scrap: int = 0
@@ -150,6 +159,11 @@ func refresh_daily() -> void:
 func end_run(sector_reached: int, won: bool = false, extra: Dictionary = {}) -> Dictionary:
 	total_runs += 1
 	total_kills += Telemetry.enemies_killed
+	ricochet_kills += Telemetry.ricochet_kills
+	lifetime_scrap += current_scrap
+	best_magenta_hits_run = maxi(best_magenta_hits_run, Telemetry.magenta_hits())
+	if not won and sector_reached == 2:
+		deaths_sector2 += 1
 	if sector_reached > best_sector:
 		best_sector = sector_reached
 
@@ -205,6 +219,46 @@ func end_run(sector_reached: int, won: bool = false, extra: Dictionary = {}) -> 
 	return last_run_summary
 
 
+# --- Prateleira de CPUs (GDD 6.3.2) ---
+
+## Valor atual da estatistica de desbloqueio. Nome vazio = sempre liberada.
+func unlock_stat_value(stat: StringName) -> int:
+	if stat == &"":
+		return 0
+	var v = get(stat)
+	return int(v) if v != null else 0
+
+
+func is_cpu_unlocked(cpu_id: StringName) -> bool:
+	var cpu := PartLibrary.cpu_by_id(cpu_id)
+	if cpu == null:
+		return false
+	if cpu.unlock_stat == &"":
+		return true
+	return unlock_stat_value(cpu.unlock_stat) >= cpu.unlock_value
+
+
+func select_cpu(cpu_id: StringName) -> bool:
+	if not is_cpu_unlocked(cpu_id):
+		return false
+	selected_cpu_id = cpu_id
+	save_game()
+	save_updated.emit()
+	return true
+
+
+func selected_cpu() -> CpuData:
+	var cpu := PartLibrary.cpu_by_id(selected_cpu_id)
+	return cpu if cpu != null else PartLibrary.cpus()[0]
+
+
+## Xeon: "sobreviver a um setor sem tomar dano". Chamado pela cena principal
+## ao limpar uma sala em que o robo nao levou dano.
+func record_flawless_sector() -> void:
+	flawless_sectors += 1
+	save_game()
+
+
 # --- Upgrades API ---
 
 func get_upgrade_level(branch: String) -> int:
@@ -230,6 +284,7 @@ func buy_upgrade(branch: String) -> bool:
 	var cost := get_next_upgrade_cost(branch)
 	copper -= cost
 	upgrades[branch] = get_upgrade_level(branch) + 1
+	upgrades_bought += 1
 	save_game()
 	save_updated.emit()
 	return true
@@ -374,6 +429,13 @@ func save_game() -> void:
 		"daily_date": daily_date,
 		"daily_best_sectors": daily_best_sectors,
 		"daily_rewarded": daily_rewarded,
+		"selected_cpu_id": String(selected_cpu_id),
+		"ricochet_kills": ricochet_kills,
+		"lifetime_scrap": lifetime_scrap,
+		"deaths_sector2": deaths_sector2,
+		"flawless_sectors": flawless_sectors,
+		"upgrades_bought": upgrades_bought,
+		"best_magenta_hits_run": best_magenta_hits_run,
 	}
 	var file := FileAccess.open(save_path, FileAccess.WRITE)
 	if file != null:
@@ -411,6 +473,15 @@ func load_save() -> void:
 	daily_date = str(data.get("daily_date", ""))
 	daily_best_sectors = int(data.get("daily_best_sectors", 0))
 	daily_rewarded = bool(data.get("daily_rewarded", false))
+	selected_cpu_id = StringName(str(data.get("selected_cpu_id", "cpu_pentiun")))
+	ricochet_kills = int(data.get("ricochet_kills", 0))
+	lifetime_scrap = int(data.get("lifetime_scrap", 0))
+	deaths_sector2 = int(data.get("deaths_sector2", 0))
+	flawless_sectors = int(data.get("flawless_sectors", 0))
+	upgrades_bought = int(data.get("upgrades_bought", 0))
+	best_magenta_hits_run = int(data.get("best_magenta_hits_run", 0))
+	if not is_cpu_unlocked(selected_cpu_id):
+		selected_cpu_id = &"cpu_pentiun"
 
 	var upg = data.get("upgrades", {})
 	if typeof(upg) == TYPE_DICTIONARY:
@@ -433,6 +504,13 @@ func reset_save() -> void:
 	daily_rewarded = false
 	run_is_daily = false
 	run_seed = 0
+	selected_cpu_id = &"cpu_pentiun"
+	ricochet_kills = 0
+	lifetime_scrap = 0
+	deaths_sector2 = 0
+	flawless_sectors = 0
+	upgrades_bought = 0
+	best_magenta_hits_run = 0
 	last_run_summary = {}
 	_init_default_upgrades()
 	save_game()
