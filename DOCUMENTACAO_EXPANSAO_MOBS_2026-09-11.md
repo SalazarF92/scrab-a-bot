@@ -4,6 +4,10 @@ Continuação do GDD, do relatório de 09/09 e de `DOCUMENTACAO_IMPLEMENTACAO_AR
 
 ## Monstros integrados
 
+Atualização visual de 13/09: o [Olhudo ganhou assets próprios e rig articulado](docs/OLHUDO_ANIMACOES.md),
+com olho independente, pálpebras mecânicas e laser. A cena reutilizável e as prévias
+estão prontas; esta atualização visual ainda não substitui seu desenho no gameplay.
+
 | Monstro | Primeiro setor | Comportamento |
 |---|---:|---|
 | QWERTYpede | 2 | Exige pelo menos oito impactos; dispara cinco teclas e libera três Parafusetas ao morrer. |

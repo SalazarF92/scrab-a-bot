@@ -1,0 +1,14 @@
+﻿Use case: precise-object-edit. Input image is the identity and artwork reference of Mini-Prensa 500, a rusty orange hydraulic crusher robot. Create ONE production-ready TRANSPARENT PNG texture atlas of SEPARATED RIGID BODY PARTS for skeletal 2D animation. NOT animation frames, NOT a whole robot, NOT an assembled view. Preserve this exact angry face, cylindrical steel teeth, orange chipped paint, black ink outlines, yellow-black hazard stripes, 3/4 perspective. Reconstruct clean complete edges and hidden attachment surfaces on each part. Absolutely no duplicate attached neighboring parts. True alpha transparency everywhere outside the parts; no checkerboard painted into image, no shadows, no labels or text.
+
+Layout: square 1536x1536, EXACT 3x3 equal grid of 512x512 cells, no visible grid. Each item centered in its cell with minimum 35 pixels transparent padding. Nine items in strict row-major order:
+TOP LEFT: upper jaw head ONLY: angry eyes, orange steel hood, hazard striped lip and all hanging upper cylindrical teeth. NO chimney cap, NO side hoses, NO long hydraulic rods, NO lower mouth cavity, NO lower jaw, NO feet. Same wide short head proportions as reference. It should occupy about 440 wide by 320 high inside cell.
+TOP MIDDLE: lower jaw/chassis ONLY: wide orange lower steel trough, 5 upright blunt cylindrical steel teeth, black undercarriage beam. NO feet, NO side pistons, NO upper jaw, NO tall back panel. About 440 wide by 240 high.
+TOP RIGHT: dark rusty internal backplate of crushing cavity, rectangular vertical steel panel with rounded corners, heavy shadow, worn rust and a small dark circular pressure furnace in center. NO teeth or orange outside jaws. About 260 wide by 370 tall.
+MIDDLE LEFT: left foot ONLY, orange armored heavy boot with black three-rib tread sole, original same perspective, complete upper ankle socket. About 330 wide by 220 high.
+MIDDLE MIDDLE: right foot ONLY, matching original right smaller angled foot, orange armor, black tread, complete ankle socket. About 300 wide by 220 high.
+MIDDLE RIGHT: ONE round orange and dark steel ankle hinge with central bolt, viewed 3/4 matching original. About 180 diameter.
+BOTTOM LEFT: ONE orange hydraulic CYLINDER SLEEVE ONLY, straight vertical thick worn orange tube housing with metal end collars and a round pivot at its lower end. NO silver extending rod. About 110 wide by 330 tall.
+BOTTOM MIDDLE: ONE chrome hydraulic PISTON ROD ONLY, straight vertical polished silver narrow rod with a small circular eyelet at its TOP end. No orange sleeve. About 65 wide by 390 tall.
+BOTTOM RIGHT: ONLY the small yellow-black striped domed pressure cap from original robot's very top, with a dark metal rim. About 230 wide by 120 high.
+
+All components are mechanically rigid replacement sprites for rebuilding the original robot. Clean usable silhouettes, consistent lighting, same original illustrated game art, accurate item count and placement, no floating debris.

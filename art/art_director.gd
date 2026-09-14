@@ -12,6 +12,7 @@ const EXPANSION_CELLS := {&"qwertypede": 0, &"popup_vivo": 1, &"cadeado_chorao":
 	&"bipador": 4, &"ze_ventoinha": 5, &"cabo_cobra": 6, &"fabricadora": 7}
 const PROP_CELLS := {"Barril Toxico": 8, "TV Quebrada": 9, "Bobina de Cobre": 10, "Tubulacao": 11}
 const BACKGROUND_PATH := "res://assets/art/junkyard.png"
+const FrostbytePuppet = preload("res://art/frostbyte_puppet.gd")
 const MiniPrensaPuppet = preload("res://art/mini_prensa_puppet.gd")
 const PART_CELLS := {
 	&"arm_l_mousetrap": 0, &"arm_l_drill": 1, &"arm_l_stapler": 2, &"arm_l_drill_super": 1,
@@ -133,16 +134,16 @@ static func draw_enemy(canvas: Node2D, enemy: Node2D) -> void:
 	shadow(canvas, Vector2(3, radius * 0.7), Vector2(radius * 1.2, radius * 0.35))
 	var tint := Color(1.3, 1.3, 1.3) if enemy._flash > 0.0 else Color.WHITE
 
-	# Mini-Prensa 500 com rig articulado modular 2D rígido (10 passos):
+	# Mini-Prensa: malha da arte original com relogio continuo.
 	if enemy.get("boss_kind") == &"mini_prensa" and texture(MiniPrensaPuppet.ATLAS_PATH) != null:
 		var tex := texture(MiniPrensaPuppet.ATLAS_PATH)
 		var state_val = enemy.get("boss_state") # 0 = APPROACH, 1 = RECOVERY, 2 = TELEGRAPH, 3 = STRIKE
 		var timer: float = float(enemy.get("_boss_timer"))
 		var act := MiniPrensaPuppet.Action.WALK
-		var puppet_t := t
+		var puppet_t: float = Time.get_ticks_msec() * 0.001 + enemy._phase
 		if state_val == 0:
 			act = MiniPrensaPuppet.Action.WALK
-			puppet_t = t * 1.3
+			puppet_t *= 1.0
 		elif state_val == 2:
 			act = MiniPrensaPuppet.Action.ATTACK
 			var dur: float = maxf(0.001, float(enemy.get("_boss_telegraph_duration")))
@@ -150,16 +151,60 @@ static func draw_enemy(canvas: Node2D, enemy: Node2D) -> void:
 			puppet_t = prog * 0.70 # Antecipação e abertura ampla da mandíbula
 		elif state_val == 3:
 			act = MiniPrensaPuppet.Action.ATTACK
-			var dur := 0.35
+			var dur := 0.4
 			var p := clampf(1.0 - (timer / dur), 0.0, 1.0)
 			puppet_t = 0.70 + p * 0.55 # Golpe veloz e impacto amortecido
 		elif state_val == 1:
 			act = MiniPrensaPuppet.Action.POWER
-			puppet_t = 0.50 + fmod(t * 1.5, 1.60) # Fornalha e vapor durante recuperação
+			puppet_t = minf(2.599, maxf(0.0, (3.8 - 0.6 * float(enemy.boss_phase - 1)) - timer)) # Exposicao do nucleo durante recuperacao
 
 		var pose := MiniPrensaPuppet.compute_pose(act, puppet_t)
-		var puppet_scale := (extent * 0.95) / 320.0
-		MiniPrensaPuppet.draw_puppet(canvas, tex, Vector2(0.0, bob - 12.0), puppet_scale, pose, tint)
+		# Recovery exposes the core without advertising a damaging plasma attack.
+		if state_val == 1:
+			pose.blast = 0.0
+		var now := Time.get_ticks_msec() * 0.001
+		if int(enemy.get_meta("press_state", -1)) != int(state_val):
+			enemy.set_meta("press_from", enemy.get_meta("press_pose", pose))
+			enemy.set_meta("press_changed", now)
+			enemy.set_meta("press_state", int(state_val))
+		var weight := smoothstep(0.0, 1.0, (now - float(enemy.get_meta("press_changed", now))) / .18)
+		pose = MiniPrensaPuppet.blend_pose(enemy.get_meta("press_from", pose), pose, weight)
+		enemy.set_meta("press_pose", pose)
+		var puppet_scale := (extent * 1.15) / 418.0
+		MiniPrensaPuppet.draw_puppet(canvas, tex, Vector2(0.0, -12.0), puppet_scale, pose, tint)
+		return
+
+	# Frostbyte uses continuous rigid articulation; combat timing remains authoritative.
+	if enemy.get("boss_kind") == &"frostbyte" and texture(FrostbytePuppet.ATLAS_PATH) != null:
+		var tex := texture(FrostbytePuppet.ATLAS_PATH)
+		var state: int = int(enemy.boss_state)
+		var timer: float = float(enemy._boss_timer)
+		var shards: bool = bool(enemy._boss_shards)
+		var act := FrostbytePuppet.Action.WALK
+		var now := Time.get_ticks_msec() * .001
+		var playhead: float = now + float(enemy._phase)
+		if state == 2:
+			act = FrostbytePuppet.Action.ATTACK if shards else FrostbytePuppet.Action.POWER
+			var progress := clampf(1 - timer / maxf(.001, float(enemy._boss_telegraph_duration)), 0, 1)
+			playhead = progress * (.74 if shards else .94)
+		elif state == 3:
+			act = FrostbytePuppet.Action.ATTACK if shards else FrostbytePuppet.Action.POWER
+			var progress := clampf(1 - timer / (.3 if shards else .9), 0, 1)
+			playhead = .74 + progress * .6 if shards else .94 + progress * 1.76
+		elif state == 1:
+			act = FrostbytePuppet.Action.POWER
+			playhead = 1.9
+		var pose := FrostbytePuppet.compute_pose(act, playhead)
+		if state == 1:
+			pose.blast = 0.0
+		if int(enemy.get_meta("frost_state", -1)) != state:
+			enemy.set_meta("frost_from", enemy.get_meta("frost_pose", pose))
+			enemy.set_meta("frost_changed", now)
+			enemy.set_meta("frost_state", state)
+		var weight := smoothstep(0, 1, (now - float(enemy.get_meta("frost_changed", now))) / .16)
+		pose = FrostbytePuppet.blend_pose(enemy.get_meta("frost_from", pose), pose, weight)
+		enemy.set_meta("frost_pose", pose)
+		FrostbytePuppet.draw_puppet(canvas, tex, Vector2(0, -12), extent * 1.15 / 460.0, pose, tint)
 		return
 
 	var expanded := EXPANSION_CELLS.has(enemy.visual_id) and texture(EXPANSION_PATH) != null

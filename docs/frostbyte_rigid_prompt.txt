@@ -1,0 +1,14 @@
+﻿Use case: precise-object-edit. Asset: production 2D rigid articulated boss sprite parts atlas. Reference input is an enemy atlas. USE ONLY the icy blue server/refrigerator monster in SECOND ROW, FOURTH COLUMN (far right middle), FROSTBYTE 500. Ignore every other character. Preserve the angular pale blue frozen mainframe tower, blue-black metal grille panels, heavy icicles, pale angry bloodshot eyes, and large ice fangs. Same hand-inked detailed worn game illustration and 3/4 front view. All artwork mechanical and rigid. Create ONE square sheet of NINE fully separated components, strict 3 columns x 3 rows, no assembled character and no animation frames. Each part fully contained in its own cell, generous margins, no overlap. Paint complete attachment areas previously hidden. True transparent alpha background if supported. NO mist, smoke, snow particles, checkerboard, shadows, words, numbers or labels outside parts.
+
+Strict reading order:
+TOP LEFT: upper armored head/upper jaw ONLY, angular icy blue top hood, both furious eyes, row of long hanging ice fangs. Wide short silhouette. NO body below, NO side columns extending down, no lower teeth. Front face and visible left side, with a flat dark mounting surface behind.
+TOP MIDDLE: lower jaw ONLY, dark blue vented steel chin with upright ice fangs on upper lip. Wide low rectangle in same perspective. NO upper jaw, no feet.
+TOP RIGHT: tall central server chassis ONLY, narrow dark navy rectangular cabinet with icy blue side rails and visible left side, TWO large black rectangular recessed cryogenic ducts stacked in its front, top duct containing a cyan turbine, bottom duct containing a small frosty glass mayonnaise jar as an easter egg. No face, no teeth, no mist, no doors attached.
+MIDDLE LEFT: left heavy ice-armored mechanical foot ONLY with dark tread sole and exposed ankle mounting stub. Short, wide chunky shape.
+MIDDLE MIDDLE: right heavy ice-armored mechanical foot ONLY, in matching perspective, short wide chunky shape.
+MIDDLE RIGHT: a single dark blue round mechanical ankle hinge with frosted silver bolt. No extra parts.
+BOTTOM LEFT: a rectangular blue steel UPPER CRYOGENIC DUCT SHUTTER ONLY, narrow horizontal grille and icicles on bottom edge, complete panel with tiny hinge tabs. Width about 2x height. No ducts or vapor behind.
+BOTTOM MIDDLE: rectangular blue steel LOWER CRYOGENIC DUCT SHUTTER ONLY matching the upper shutter, same width but taller, with a square handle. Fully isolated.
+BOTTOM RIGHT: one long angular blue-white ice spear/crystal projectile, vertical, sharp pointed top, no glow, no snow.
+
+Crisp thick dark outlines, cold palette navy blue, icy cyan, white frost, slight rusty damage, same recognizable identity as reference. Consistent scale within paired parts, perfectly separated silhouettes, reusable as rigid sprites.

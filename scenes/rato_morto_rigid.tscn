@@ -1,0 +1,642 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://art/rato_morto_rigid.gd" id="1_vvanu"]
+[ext_resource type="Texture2D" path="res://assets/art/enemies_atlas.png" id="2_25lrk"]
+[ext_resource type="Script" path="res://art/rato_morto_rigid_fx.gd" id="3_2xkdi"]
+
+[node name="RatoMortoRigid" type="Node2D" unique_id=1041846838]
+script = ExtResource("1_vvanu")
+
+[node name="body_0_0" type="Polygon2D" parent="." unique_id=261393344]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(80, -52, 103, -35, 38, -60)
+uv = PackedVector2Array(564, 168, 587, 185, 522, 160)
+
+[node name="body_0_1" type="Polygon2D" parent="." unique_id=1079831490]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(114, -11, 102, 27, 103, -35)
+uv = PackedVector2Array(598, 209, 586, 247, 587, 185)
+
+[node name="body_0_10" type="Polygon2D" parent="." unique_id=1672557928]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(138, 73, 110, 52, 154, 52)
+uv = PackedVector2Array(622, 293, 594, 272, 638, 272)
+
+[node name="body_0_11" type="Polygon2D" parent="." unique_id=1217417480]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(53, 121, -74, 173, 63, 84)
+uv = PackedVector2Array(537, 341, 410, 393, 547, 304)
+
+[node name="body_0_12" type="Polygon2D" parent="." unique_id=1988821708]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-74, 173, -45.294678, 133.63272, -15.769226, 114.769226)
+uv = PackedVector2Array(410, 393, 438.70532, 353.63272, 468.23077, 334.76923)
+
+[node name="body_0_13" type="Polygon2D" parent="." unique_id=1611901506]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-11, 110, -10.071442, 108.60715, -9, 108)
+uv = PackedVector2Array(473, 330, 473.92856, 328.60715, 475, 328)
+
+[node name="body_0_14" type="Polygon2D" parent="." unique_id=533950085]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-111.86517, 107.34833, -116.06897, 108.06897, -112.18182, 104.18182)
+uv = PackedVector2Array(372.13483, 327.34833, 367.93103, 328.06897, 371.81818, 324.18182)
+
+[node name="body_0_15" type="Polygon2D" parent="." unique_id=1295998971]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-112.73724, 82.590515, -114, 86, -113.212585, 93.87402, -127, 59, -154, -210)
+uv = PackedVector2Array(371.26276, 302.5905, 370, 306, 370.7874, 313.87402, 357, 279, 330, 10)
+
+[node name="body_0_16" type="Polygon2D" parent="." unique_id=1159835656]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-6, -100, 5, -74, -154, -210)
+uv = PackedVector2Array(478, 120, 489, 146, 330, 10)
+
+[node name="body_0_17" type="Polygon2D" parent="." unique_id=218512206]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(38, -60, 102, 27, 5, -74)
+uv = PackedVector2Array(522, 160, 586, 247, 489, 146)
+
+[node name="body_0_18" type="Polygon2D" parent="." unique_id=891781800]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(138, 73, 88, 73, 110, 52)
+uv = PackedVector2Array(622, 293, 572, 293, 594, 272)
+
+[node name="body_0_19" type="Polygon2D" parent="." unique_id=2072482252]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-74, 173, -15.769226, 114.769226, -13, 113, -11, 110, -9, 108, 63, 84)
+uv = PackedVector2Array(410, 393, 468.23077, 334.76923, 471, 333, 473, 330, 475, 328, 547, 304)
+
+[node name="body_0_2" type="Polygon2D" parent="." unique_id=2133702652]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(154, 173, 138, 73, 154, 52)
+uv = PackedVector2Array(638, 393, 622, 293, 638, 272)
+
+[node name="body_0_20" type="Polygon2D" parent="." unique_id=680447225]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(5, -74, 102, 27, -154, -210)
+uv = PackedVector2Array(489, 146, 586, 247, 330, 10)
+
+[node name="body_0_21" type="Polygon2D" parent="." unique_id=148718852]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(110, 52, 88, 73, 102, 27)
+uv = PackedVector2Array(594, 272, 572, 293, 586, 247)
+
+[node name="body_0_22" type="Polygon2D" parent="." unique_id=1290293818]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(63, 84, -9, 108, 88, 73)
+uv = PackedVector2Array(547, 304, 475, 328, 572, 293)
+
+[node name="body_0_23" type="Polygon2D" parent="." unique_id=801032501]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-101.35242, 56.058258, -104, 59, -112.73724, 82.590515, -154, -210)
+uv = PackedVector2Array(382.64758, 276.05826, 380, 279, 371.26276, 302.5905, 330, 10)
+
+[node name="body_0_24" type="Polygon2D" parent="." unique_id=1347118572]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(102, 27, 88, 73, -154, -210)
+uv = PackedVector2Array(586, 247, 572, 293, 330, 10)
+
+[node name="body_0_25" type="Polygon2D" parent="." unique_id=1171454613]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-9, 108, -8.217407, 105.82608, 3, 89, 2.6499329, 82.69885, 88, 73)
+uv = PackedVector2Array(475, 328, 475.7826, 325.82608, 487, 309, 486.64993, 302.69885, 572, 293)
+
+[node name="body_0_26" type="Polygon2D" parent="." unique_id=2026528983]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-20.856476, 58.123535, -39, 54, -61, 44, -86, 39, -101.35242, 56.058258, -154, -210)
+uv = PackedVector2Array(463.14352, 278.12354, 445, 274, 423, 264, 398, 259, 382.64758, 276.05826, 330, 10)
+
+[node name="body_0_27" type="Polygon2D" parent="." unique_id=1958558922]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(88, 73, 2.6499329, 82.69885, 2, 71, -10.435059, 63.14627, -154, -210)
+uv = PackedVector2Array(572, 293, 486.64993, 302.69885, 486, 291, 473.56494, 283.14627, 330, 10)
+
+[node name="body_0_28" type="Polygon2D" parent="." unique_id=183356766]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-10.435059, 63.14627, -17, 59, -20.856476, 58.123535, -154, -210)
+uv = PackedVector2Array(473.56494, 283.14627, 467, 279, 463.14352, 278.12354, 330, 10)
+
+[node name="body_0_3" type="Polygon2D" parent="." unique_id=1688377169]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(45, 173, -74, 173, 53, 121)
+uv = PackedVector2Array(529, 393, 410, 393, 537, 341)
+
+[node name="body_0_4" type="Polygon2D" parent="." unique_id=1953776820]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-74, 173, -74, 144.65384, -49, 136, -45.294678, 133.63272)
+uv = PackedVector2Array(410, 393, 410, 364.65384, 435, 356, 438.70532, 353.63272)
+
+[node name="body_0_5" type="Polygon2D" parent="." unique_id=1764757686]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-111.67859, 109.214294, -116.06897, 108.06897, -111.86517, 107.34833)
+uv = PackedVector2Array(372.3214, 329.2143, 367.93103, 328.06897, 372.13483, 327.34833)
+
+[node name="body_0_6" type="Polygon2D" parent="." unique_id=1527105513]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-113.212585, 93.87402, -113, 96, -118, 86, -127, 59)
+uv = PackedVector2Array(370.7874, 313.87402, 371, 316, 366, 306, 357, 279)
+
+[node name="body_0_7" type="Polygon2D" parent="." unique_id=1650310937]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-127, 59, -154, 53, -154, -210)
+uv = PackedVector2Array(357, 279, 330, 273, 330, 10)
+
+[node name="body_0_8" type="Polygon2D" parent="." unique_id=972603997]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-6, -100, -154, -210, -6, -210)
+uv = PackedVector2Array(478, 120, 330, 10, 478, 10)
+
+[node name="body_0_9" type="Polygon2D" parent="." unique_id=1817271187]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(103, -35, 102, 27, 38, -60)
+uv = PackedVector2Array(587, 185, 586, 247, 522, 160)
+
+[node name="jaw_0" type="Polygon2D" parent="." unique_id=1355182989]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-9, 108, -9, 107, -8.217407, 105.82608)
+uv = PackedVector2Array(475, 328, 475, 327, 475.7826, 325.82608)
+
+[node name="jaw_1" type="Polygon2D" parent="." unique_id=1640818399]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-10.071442, 108.60715, -10.007751, 108.51163, -9, 108)
+uv = PackedVector2Array(473.92856, 328.60715, 473.99225, 328.51163, 475, 328)
+
+[node name="jaw_2" type="Polygon2D" parent="." unique_id=529965161]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-75, 145, -74, 144.65384, -74, 173, -104, 173, -77, 144.20001)
+uv = PackedVector2Array(409, 365, 410, 364.65384, 410, 393, 380, 393, 407, 364.2)
+
+[node name="jaw_3" type="Polygon2D" parent="." unique_id=279126992]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-101.34067, 128.67786, -104, 173, -104, 125.1875)
+uv = PackedVector2Array(382.65933, 348.67786, 380, 393, 380, 345.1875)
+
+[node name="jaw_4" type="Polygon2D" parent="." unique_id=2129599092]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-9, 108, -9.649689, 107.97452, -9, 107)
+uv = PackedVector2Array(475, 328, 474.3503, 327.97452, 475, 327)
+
+[node name="jaw_5" type="Polygon2D" parent="." unique_id=1202023521]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-95, 137, -77, 144.20001, -104, 173, -101.34067, 128.67786)
+uv = PackedVector2Array(389, 357, 407, 364.2, 380, 393, 382.65933, 348.67786)
+
+[node name="jaw_6" type="Polygon2D" parent="." unique_id=45104663]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-9, 108, -10.007751, 108.51163, -9.649689, 107.97452)
+uv = PackedVector2Array(475, 328, 473.99225, 328.51163, 474.3503, 327.97452)
+
+[node name="paw_back_0" type="Polygon2D" parent="." unique_id=50481061]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-127, 59, -118, 86, -154, 53)
+uv = PackedVector2Array(357, 279, 366, 306, 330, 273)
+
+[node name="paw_back_1" type="Polygon2D" parent="." unique_id=695949456]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-113, 96, -112.18182, 104.18182, -133, 125, -118, 86)
+uv = PackedVector2Array(371, 316, 371.81818, 324.18182, 351, 345, 366, 306)
+
+[node name="paw_back_2" type="Polygon2D" parent="." unique_id=2041326088]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-133, 125, -154, 126, -154, 53)
+uv = PackedVector2Array(351, 345, 330, 346, 330, 273)
+
+[node name="paw_back_3" type="Polygon2D" parent="." unique_id=1819411946]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-118, 86, -133, 125, -154, 53)
+uv = PackedVector2Array(366, 306, 351, 345, 330, 273)
+
+[node name="paw_front_0" type="Polygon2D" parent="." unique_id=760024870]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-111.67859, 109.214294, -111, 116, -104, 125.1875, -104, 173, -116.06897, 108.06897)
+uv = PackedVector2Array(372.3214, 329.2143, 373, 336, 380, 345.1875, 380, 393, 367.93103, 328.06897)
+
+[node name="paw_front_1" type="Polygon2D" parent="." unique_id=1985680105]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-104, 173, -154, 173, -154, 126)
+uv = PackedVector2Array(380, 393, 330, 393, 330, 346)
+
+[node name="paw_front_2" type="Polygon2D" parent="." unique_id=1914609510]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-104, 173, -133, 125, -116.06897, 108.06897)
+uv = PackedVector2Array(380, 393, 351, 345, 367.93103, 328.06897)
+
+[node name="paw_front_3" type="Polygon2D" parent="." unique_id=2079005769]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-104, 173, -154, 126, -133, 125)
+uv = PackedVector2Array(380, 393, 330, 346, 351, 345)
+
+[node name="paw_right" type="Polygon2D" parent="." unique_id=1948023208]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(154, 173, 45, 173, 53, 121, 63, 84, 88, 73, 138, 73)
+uv = PackedVector2Array(638, 393, 529, 393, 537, 341, 547, 304, 572, 293, 622, 293)
+
+[node name="socket_back_body_0" type="Polygon2D" parent="." unique_id=1853883029]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-134, 76, -136, 76, -136, 77, -137, 77, -137, 78, -138, 78, -139, 80, -140, 80, -140, 83, -139, 83, -139, 94, -140, 94, -140, 96, -139, 96, -139, 98, -138, 98, -138, 99, -136, 100, -136, 101, -134, 101, -134, 93, -133, 93, -133, 89, -132, 89, -132, 83, -131, 83, -131, 82, -130, 82, -130, 81, -129, 81, -129, 80, -128, 80, -127, 78, -125, 78, -124, 76, -123, 76, -123, 75, -134, 75)
+uv = PackedVector2Array(350, 296, 348, 296, 348, 297, 347, 297, 347, 298, 346, 298, 345, 300, 344, 300, 344, 303, 345, 303, 345, 314, 344, 314, 344, 316, 345, 316, 345, 318, 346, 318, 346, 319, 348, 320, 348, 321, 350, 321, 350, 313, 351, 313, 351, 309, 352, 309, 352, 303, 353, 303, 353, 302, 354, 302, 354, 301, 355, 301, 355, 300, 356, 300, 357, 298, 359, 298, 360, 296, 361, 296, 361, 295, 350, 295)
+
+[node name="socket_back_body_1" type="Polygon2D" parent="." unique_id=930516762]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-118, 81, -117, 81, -117, 80, -118, 80)
+uv = PackedVector2Array(366, 301, 367, 301, 367, 300, 366, 300)
+
+[node name="socket_back_body_2" type="Polygon2D" parent="." unique_id=1232698216]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-117, 84, -116, 84, -116, 86, -115, 86, -115, 83, -116, 83, -116, 81, -117, 81)
+uv = PackedVector2Array(367, 304, 368, 304, 368, 306, 369, 306, 369, 303, 368, 303, 368, 301, 367, 301)
+
+[node name="socket_back_paw_back_0" type="Polygon2D" parent="." unique_id=640321727]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-134, 76, -136, 76, -136, 77, -137, 77, -137, 78, -138, 78, -139, 80, -140, 80, -140, 83, -139, 83, -139, 94, -140, 94, -140, 96, -139, 96, -139, 98, -138, 98, -138, 99, -136, 100, -136, 101, -134, 101, -134, 93, -133, 93, -133, 89, -132, 89, -132, 83, -131, 83, -131, 82, -130, 82, -130, 81, -129, 81, -129, 80, -128, 80, -127, 78, -125, 78, -124, 76, -123, 76, -123, 75, -134, 75)
+uv = PackedVector2Array(350, 296, 348, 296, 348, 297, 347, 297, 347, 298, 346, 298, 345, 300, 344, 300, 344, 303, 345, 303, 345, 314, 344, 314, 344, 316, 345, 316, 345, 318, 346, 318, 346, 319, 348, 320, 348, 321, 350, 321, 350, 313, 351, 313, 351, 309, 352, 309, 352, 303, 353, 303, 353, 302, 354, 302, 354, 301, 355, 301, 355, 300, 356, 300, 357, 298, 359, 298, 360, 296, 361, 296, 361, 295, 350, 295)
+
+[node name="socket_back_paw_back_1" type="Polygon2D" parent="." unique_id=1928682197]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-118, 81, -117, 81, -117, 80, -118, 80)
+uv = PackedVector2Array(366, 301, 367, 301, 367, 300, 366, 300)
+
+[node name="socket_back_paw_back_2" type="Polygon2D" parent="." unique_id=1157651958]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-117, 84, -116, 84, -116, 86, -115, 86, -115, 83, -116, 83, -116, 81, -117, 81)
+uv = PackedVector2Array(367, 304, 368, 304, 368, 306, 369, 306, 369, 303, 368, 303, 368, 301, 367, 301)
+
+[node name="socket_front_body_0_0" type="Polygon2D" parent="." unique_id=1614183605]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-104, 125.1875, -104, 126, -105, 126, -104.70941, 124.25641)
+uv = PackedVector2Array(380, 345.1875, 380, 346, 379, 346, 379.2906, 344.2564)
+
+[node name="socket_front_body_0_1" type="Polygon2D" parent="." unique_id=1661523642]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-105, 128, -106, 128, -105, 126)
+uv = PackedVector2Array(379, 348, 378, 348, 379, 346)
+
+[node name="socket_front_body_0_10" type="Polygon2D" parent="." unique_id=1532501829]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-121, 129, -121, 127, -120, 127)
+uv = PackedVector2Array(363, 349, 363, 347, 364, 347)
+
+[node name="socket_front_body_0_11" type="Polygon2D" parent="." unique_id=1158839793]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-120, 127, -120, 122, -119, 122)
+uv = PackedVector2Array(364, 347, 364, 342, 365, 342)
+
+[node name="socket_front_body_0_12" type="Polygon2D" parent="." unique_id=94851814]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-119, 122, -119, 121, -118, 121)
+uv = PackedVector2Array(365, 342, 365, 341, 366, 341)
+
+[node name="socket_front_body_0_13" type="Polygon2D" parent="." unique_id=457964494]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-118, 121, -118, 119, -117, 119)
+uv = PackedVector2Array(366, 341, 366, 339, 367, 339)
+
+[node name="socket_front_body_0_14" type="Polygon2D" parent="." unique_id=1585103729]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-117, 119, -117, 117, -116, 117)
+uv = PackedVector2Array(367, 339, 367, 337, 368, 337)
+
+[node name="socket_front_body_0_15" type="Polygon2D" parent="." unique_id=444501070]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-111.04169, 115.58331, -116, 117, -115, 115, -111.100006, 115)
+uv = PackedVector2Array(372.9583, 335.5833, 368, 337, 369, 335, 372.9, 335)
+
+[node name="socket_front_body_0_16" type="Polygon2D" parent="." unique_id=110668391]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-104.70941, 124.25641, -105, 126, -106, 128, -104.97647, 123.90588)
+uv = PackedVector2Array(379.2906, 344.2564, 379, 346, 378, 348, 379.02353, 343.90588)
+
+[node name="socket_front_body_0_17" type="Polygon2D" parent="." unique_id=557148235]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-102, 135, -103, 135, -103, 134)
+uv = PackedVector2Array(382, 355, 381, 355, 381, 354)
+
+[node name="socket_front_body_0_18" type="Polygon2D" parent="." unique_id=1040472646]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-105, 136, -116, 137, -103, 135)
+uv = PackedVector2Array(379, 356, 368, 357, 381, 355)
+
+[node name="socket_front_body_0_19" type="Polygon2D" parent="." unique_id=329941124]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-116, 136, -118, 135, -122, 131)
+uv = PackedVector2Array(368, 356, 366, 355, 362, 351)
+
+[node name="socket_front_body_0_2" type="Polygon2D" parent="." unique_id=1647037078]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-105, 132, -106, 131, -105, 131)
+uv = PackedVector2Array(379, 352, 378, 351, 379, 351)
+
+[node name="socket_front_body_0_20" type="Polygon2D" parent="." unique_id=1230530109]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-122, 131, -123, 129, -121, 129)
+uv = PackedVector2Array(362, 351, 361, 349, 363, 349)
+
+[node name="socket_front_body_0_21" type="Polygon2D" parent="." unique_id=1424997600]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-120, 127, -119, 122, -118, 121)
+uv = PackedVector2Array(364, 347, 365, 342, 366, 341)
+
+[node name="socket_front_body_0_22" type="Polygon2D" parent="." unique_id=955138966]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-111, 116, -117, 119, -116, 117, -111.04169, 115.58331)
+uv = PackedVector2Array(373, 336, 367, 339, 368, 337, 372.9583, 335.5833)
+
+[node name="socket_front_body_0_23" type="Polygon2D" parent="." unique_id=1955048752]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-103, 134, -103, 135, -105, 132)
+uv = PackedVector2Array(381, 354, 381, 355, 379, 352)
+
+[node name="socket_front_body_0_24" type="Polygon2D" parent="." unique_id=2140599042]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-116, 137, -116, 136, -103, 135)
+uv = PackedVector2Array(368, 357, 368, 356, 381, 355)
+
+[node name="socket_front_body_0_25" type="Polygon2D" parent="." unique_id=2031198810]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-116, 136, -122, 131, -121, 129)
+uv = PackedVector2Array(368, 356, 362, 351, 363, 349)
+
+[node name="socket_front_body_0_26" type="Polygon2D" parent="." unique_id=1327515573]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-120, 127, -118, 121, -117, 119)
+uv = PackedVector2Array(364, 347, 366, 341, 367, 339)
+
+[node name="socket_front_body_0_27" type="Polygon2D" parent="." unique_id=276102404]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-105, 132, -103, 135, -106, 131)
+uv = PackedVector2Array(379, 352, 381, 355, 378, 351)
+
+[node name="socket_front_body_0_28" type="Polygon2D" parent="." unique_id=1524433671]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-103, 135, -116, 136, -121, 129)
+uv = PackedVector2Array(381, 355, 368, 356, 363, 349)
+
+[node name="socket_front_body_0_29" type="Polygon2D" parent="." unique_id=574765115]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-111, 116, -110.50827, 116.645386, -120, 127, -117, 119)
+uv = PackedVector2Array(373, 336, 373.49173, 336.6454, 364, 347, 367, 339)
+
+[node name="socket_front_body_0_3" type="Polygon2D" parent="." unique_id=1675201933]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-103, 133, -103, 134, -105, 132)
+uv = PackedVector2Array(381, 353, 381, 354, 379, 352)
+
+[node name="socket_front_body_0_30" type="Polygon2D" parent="." unique_id=1479275589]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-106, 131, -103, 135, -121, 129)
+uv = PackedVector2Array(378, 351, 381, 355, 363, 349)
+
+[node name="socket_front_body_0_31" type="Polygon2D" parent="." unique_id=450712540]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-110.46219, 116.70587, -121, 129, -120, 127, -110.50827, 116.645386)
+uv = PackedVector2Array(373.5378, 336.70587, 363, 349, 364, 347, 373.49173, 336.6454)
+
+[node name="socket_front_body_0_32" type="Polygon2D" parent="." unique_id=422263336]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-106, 131, -121, 129, -106, 128)
+uv = PackedVector2Array(378, 351, 363, 349, 378, 348)
+
+[node name="socket_front_body_0_33" type="Polygon2D" parent="." unique_id=481822353]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-106.816376, 121.49103, -121, 129, -110.46219, 116.70587)
+uv = PackedVector2Array(377.18362, 341.49103, 363, 349, 373.5378, 336.70587)
+
+[node name="socket_front_body_0_34" type="Polygon2D" parent="." unique_id=1447755642]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-104.97647, 123.90588, -106, 128, -121, 129, -106.816376, 121.49103)
+uv = PackedVector2Array(379.02353, 343.90588, 378, 348, 363, 349, 377.18362, 341.49103)
+
+[node name="socket_front_body_0_4" type="Polygon2D" parent="." unique_id=1542675223]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-102, 135, -103, 134, -102, 134)
+uv = PackedVector2Array(382, 355, 381, 354, 382, 354)
+
+[node name="socket_front_body_0_5" type="Polygon2D" parent="." unique_id=1846683429]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-103, 136, -105, 136, -103, 135)
+uv = PackedVector2Array(381, 356, 379, 356, 381, 355)
+
+[node name="socket_front_body_0_6" type="Polygon2D" parent="." unique_id=418552554]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-105, 137, -116, 137, -105, 136)
+uv = PackedVector2Array(379, 357, 368, 357, 379, 356)
+
+[node name="socket_front_body_0_7" type="Polygon2D" parent="." unique_id=1534495524]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-116, 136, -118, 136, -118, 135)
+uv = PackedVector2Array(368, 356, 366, 356, 366, 355)
+
+[node name="socket_front_body_0_8" type="Polygon2D" parent="." unique_id=1728214564]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-118, 135, -122, 133, -122, 131)
+uv = PackedVector2Array(366, 355, 362, 353, 362, 351)
+
+[node name="socket_front_body_0_9" type="Polygon2D" parent="." unique_id=1555248708]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-122, 131, -123, 131, -123, 129)
+uv = PackedVector2Array(362, 351, 361, 351, 361, 349)
+
+[node name="socket_front_paw_front_0_0" type="Polygon2D" parent="." unique_id=1781321922]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-104, 125.1875, -104, 126, -105, 126, -104.70941, 124.25641)
+uv = PackedVector2Array(380, 345.1875, 380, 346, 379, 346, 379.2906, 344.2564)
+
+[node name="socket_front_paw_front_0_1" type="Polygon2D" parent="." unique_id=1466077785]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-105, 128, -106, 128, -105, 126)
+uv = PackedVector2Array(379, 348, 378, 348, 379, 346)
+
+[node name="socket_front_paw_front_0_10" type="Polygon2D" parent="." unique_id=1562493339]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-121, 129, -121, 127, -120, 127)
+uv = PackedVector2Array(363, 349, 363, 347, 364, 347)
+
+[node name="socket_front_paw_front_0_11" type="Polygon2D" parent="." unique_id=727750122]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-120, 127, -120, 122, -119, 122)
+uv = PackedVector2Array(364, 347, 364, 342, 365, 342)
+
+[node name="socket_front_paw_front_0_12" type="Polygon2D" parent="." unique_id=1421439466]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-119, 122, -119, 121, -118, 121)
+uv = PackedVector2Array(365, 342, 365, 341, 366, 341)
+
+[node name="socket_front_paw_front_0_13" type="Polygon2D" parent="." unique_id=436375076]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-118, 121, -118, 119, -117, 119)
+uv = PackedVector2Array(366, 341, 366, 339, 367, 339)
+
+[node name="socket_front_paw_front_0_14" type="Polygon2D" parent="." unique_id=472969216]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-117, 119, -117, 117, -116, 117)
+uv = PackedVector2Array(367, 339, 367, 337, 368, 337)
+
+[node name="socket_front_paw_front_0_15" type="Polygon2D" parent="." unique_id=206273992]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-111.04169, 115.58331, -116, 117, -115, 115, -111.100006, 115)
+uv = PackedVector2Array(372.9583, 335.5833, 368, 337, 369, 335, 372.9, 335)
+
+[node name="socket_front_paw_front_0_16" type="Polygon2D" parent="." unique_id=75169029]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-104.70941, 124.25641, -105, 126, -106, 128, -104.97647, 123.90588)
+uv = PackedVector2Array(379.2906, 344.2564, 379, 346, 378, 348, 379.02353, 343.90588)
+
+[node name="socket_front_paw_front_0_17" type="Polygon2D" parent="." unique_id=456830700]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-102, 135, -103, 135, -103, 134)
+uv = PackedVector2Array(382, 355, 381, 355, 381, 354)
+
+[node name="socket_front_paw_front_0_18" type="Polygon2D" parent="." unique_id=1137742858]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-105, 136, -116, 137, -103, 135)
+uv = PackedVector2Array(379, 356, 368, 357, 381, 355)
+
+[node name="socket_front_paw_front_0_19" type="Polygon2D" parent="." unique_id=1008802897]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-116, 136, -118, 135, -122, 131)
+uv = PackedVector2Array(368, 356, 366, 355, 362, 351)
+
+[node name="socket_front_paw_front_0_2" type="Polygon2D" parent="." unique_id=962788002]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-105, 132, -106, 131, -105, 131)
+uv = PackedVector2Array(379, 352, 378, 351, 379, 351)
+
+[node name="socket_front_paw_front_0_20" type="Polygon2D" parent="." unique_id=318703963]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-122, 131, -123, 129, -121, 129)
+uv = PackedVector2Array(362, 351, 361, 349, 363, 349)
+
+[node name="socket_front_paw_front_0_21" type="Polygon2D" parent="." unique_id=458078666]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-120, 127, -119, 122, -118, 121)
+uv = PackedVector2Array(364, 347, 365, 342, 366, 341)
+
+[node name="socket_front_paw_front_0_22" type="Polygon2D" parent="." unique_id=1832456265]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-111, 116, -117, 119, -116, 117, -111.04169, 115.58331)
+uv = PackedVector2Array(373, 336, 367, 339, 368, 337, 372.9583, 335.5833)
+
+[node name="socket_front_paw_front_0_23" type="Polygon2D" parent="." unique_id=12582841]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-103, 134, -103, 135, -105, 132)
+uv = PackedVector2Array(381, 354, 381, 355, 379, 352)
+
+[node name="socket_front_paw_front_0_24" type="Polygon2D" parent="." unique_id=1617092408]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-116, 137, -116, 136, -103, 135)
+uv = PackedVector2Array(368, 357, 368, 356, 381, 355)
+
+[node name="socket_front_paw_front_0_25" type="Polygon2D" parent="." unique_id=876154646]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-116, 136, -122, 131, -121, 129)
+uv = PackedVector2Array(368, 356, 362, 351, 363, 349)
+
+[node name="socket_front_paw_front_0_26" type="Polygon2D" parent="." unique_id=369223586]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-120, 127, -118, 121, -117, 119)
+uv = PackedVector2Array(364, 347, 366, 341, 367, 339)
+
+[node name="socket_front_paw_front_0_27" type="Polygon2D" parent="." unique_id=149731902]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-105, 132, -103, 135, -106, 131)
+uv = PackedVector2Array(379, 352, 381, 355, 378, 351)
+
+[node name="socket_front_paw_front_0_28" type="Polygon2D" parent="." unique_id=1449342864]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-103, 135, -116, 136, -121, 129)
+uv = PackedVector2Array(381, 355, 368, 356, 363, 349)
+
+[node name="socket_front_paw_front_0_29" type="Polygon2D" parent="." unique_id=1911047018]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-111, 116, -110.50827, 116.645386, -120, 127, -117, 119)
+uv = PackedVector2Array(373, 336, 373.49173, 336.6454, 364, 347, 367, 339)
+
+[node name="socket_front_paw_front_0_3" type="Polygon2D" parent="." unique_id=1967824204]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-103, 133, -103, 134, -105, 132)
+uv = PackedVector2Array(381, 353, 381, 354, 379, 352)
+
+[node name="socket_front_paw_front_0_30" type="Polygon2D" parent="." unique_id=450630104]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-106, 131, -103, 135, -121, 129)
+uv = PackedVector2Array(378, 351, 381, 355, 363, 349)
+
+[node name="socket_front_paw_front_0_31" type="Polygon2D" parent="." unique_id=373693427]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-110.46219, 116.70587, -121, 129, -120, 127, -110.50827, 116.645386)
+uv = PackedVector2Array(373.5378, 336.70587, 363, 349, 364, 347, 373.49173, 336.6454)
+
+[node name="socket_front_paw_front_0_32" type="Polygon2D" parent="." unique_id=514419001]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-106, 131, -121, 129, -106, 128)
+uv = PackedVector2Array(378, 351, 363, 349, 378, 348)
+
+[node name="socket_front_paw_front_0_33" type="Polygon2D" parent="." unique_id=1173000597]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-106.816376, 121.49103, -121, 129, -110.46219, 116.70587)
+uv = PackedVector2Array(377.18362, 341.49103, 363, 349, 373.5378, 336.70587)
+
+[node name="socket_front_paw_front_0_34" type="Polygon2D" parent="." unique_id=19662876]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-104.97647, 123.90588, -106, 128, -121, 129, -106.816376, 121.49103)
+uv = PackedVector2Array(379.02353, 343.90588, 378, 348, 363, 349, 377.18362, 341.49103)
+
+[node name="socket_front_paw_front_0_4" type="Polygon2D" parent="." unique_id=572830435]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-102, 135, -103, 134, -102, 134)
+uv = PackedVector2Array(382, 355, 381, 354, 382, 354)
+
+[node name="socket_front_paw_front_0_5" type="Polygon2D" parent="." unique_id=218599311]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-103, 136, -105, 136, -103, 135)
+uv = PackedVector2Array(381, 356, 379, 356, 381, 355)
+
+[node name="socket_front_paw_front_0_6" type="Polygon2D" parent="." unique_id=335856146]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-105, 137, -116, 137, -105, 136)
+uv = PackedVector2Array(379, 357, 368, 357, 379, 356)
+
+[node name="socket_front_paw_front_0_7" type="Polygon2D" parent="." unique_id=191345003]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-116, 136, -118, 136, -118, 135)
+uv = PackedVector2Array(368, 356, 366, 356, 366, 355)
+
+[node name="socket_front_paw_front_0_8" type="Polygon2D" parent="." unique_id=1017131878]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-118, 135, -122, 133, -122, 131)
+uv = PackedVector2Array(366, 355, 362, 353, 362, 351)
+
+[node name="socket_front_paw_front_0_9" type="Polygon2D" parent="." unique_id=171577147]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(-122, 131, -123, 131, -123, 129)
+uv = PackedVector2Array(362, 351, 361, 351, 361, 349)
+
+[node name="socket_right_body_0" type="Polygon2D" parent="." unique_id=199526537]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(80, 79, 78, 79, 78, 80, 76, 80, 76, 81, 75, 81, 75, 82, 74, 82, 74, 83, 73, 83, 73, 84, 72, 84, 72, 85, 70, 86, 70, 87, 73, 87, 73, 86, 80, 86, 80, 87, 83, 87, 83, 88, 86, 88, 86, 89, 88, 89, 88, 91, 90, 91, 90, 95, 91, 95, 91, 97, 92, 97, 92, 98, 93, 98, 93, 100, 94, 100, 94, 103, 95, 103, 95, 106, 93, 106, 93, 108, 92, 108, 92, 109, 90, 109, 90, 111, 88, 111, 88, 112, 86, 113, 86, 115, 93, 115, 93, 114, 95, 114, 95, 113, 97, 113, 97, 112, 98, 112, 98, 111, 99, 111, 99, 110, 100, 110, 100, 109, 101, 109, 102, 107, 103, 107, 104, 103, 105, 103, 105, 90, 104, 90, 104, 88, 103, 88, 103, 86, 101, 85, 101, 84, 99, 84, 99, 83, 98, 83, 98, 84, 94, 84, 94, 85, 93, 85, 93, 84, 89, 83, 89, 82, 86, 82, 86, 81, 84, 81, 84, 79, 80, 78)
+uv = PackedVector2Array(564, 299, 562, 299, 562, 300, 560, 300, 560, 301, 559, 301, 559, 302, 558, 302, 558, 303, 557, 303, 557, 304, 556, 304, 556, 305, 554, 306, 554, 307, 557, 307, 557, 306, 564, 306, 564, 307, 567, 307, 567, 308, 570, 308, 570, 309, 572, 309, 572, 311, 574, 311, 574, 315, 575, 315, 575, 317, 576, 317, 576, 318, 577, 318, 577, 320, 578, 320, 578, 323, 579, 323, 579, 326, 577, 326, 577, 328, 576, 328, 576, 329, 574, 329, 574, 331, 572, 331, 572, 332, 570, 333, 570, 335, 577, 335, 577, 334, 579, 334, 579, 333, 581, 333, 581, 332, 582, 332, 582, 331, 583, 331, 583, 330, 584, 330, 584, 329, 585, 329, 586, 327, 587, 327, 588, 323, 589, 323, 589, 310, 588, 310, 588, 308, 587, 308, 587, 306, 585, 305, 585, 304, 583, 304, 583, 303, 582, 303, 582, 304, 578, 304, 578, 305, 577, 305, 577, 304, 573, 303, 573, 302, 570, 302, 570, 301, 568, 301, 568, 299, 564, 298)
+
+[node name="socket_right_paw_right_0" type="Polygon2D" parent="." unique_id=1539265334]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(80, 79, 78, 79, 78, 80, 76, 80, 76, 81, 75, 81, 75, 82, 74, 82, 74, 83, 73, 83, 73, 84, 72, 84, 72, 85, 70, 86, 70, 87, 73, 87, 73, 86, 80, 86, 80, 87, 83, 87, 83, 88, 86, 88, 86, 89, 88, 89, 88, 91, 90, 91, 90, 95, 91, 95, 91, 97, 92, 97, 92, 98, 93, 98, 93, 100, 94, 100, 94, 103, 95, 103, 95, 106, 93, 106, 93, 108, 92, 108, 92, 109, 90, 109, 90, 111, 88, 111, 88, 112, 86, 113, 86, 115, 93, 115, 93, 114, 95, 114, 95, 113, 97, 113, 97, 112, 98, 112, 98, 111, 99, 111, 99, 110, 100, 110, 100, 109, 101, 109, 102, 107, 103, 107, 104, 103, 105, 103, 105, 90, 104, 90, 104, 88, 103, 88, 103, 86, 101, 85, 101, 84, 99, 84, 99, 83, 98, 83, 98, 84, 94, 84, 94, 85, 93, 85, 93, 84, 89, 83, 89, 82, 86, 82, 86, 81, 84, 81, 84, 79, 80, 78)
+uv = PackedVector2Array(564, 299, 562, 299, 562, 300, 560, 300, 560, 301, 559, 301, 559, 302, 558, 302, 558, 303, 557, 303, 557, 304, 556, 304, 556, 305, 554, 306, 554, 307, 557, 307, 557, 306, 564, 306, 564, 307, 567, 307, 567, 308, 570, 308, 570, 309, 572, 309, 572, 311, 574, 311, 574, 315, 575, 315, 575, 317, 576, 317, 576, 318, 577, 318, 577, 320, 578, 320, 578, 323, 579, 323, 579, 326, 577, 326, 577, 328, 576, 328, 576, 329, 574, 329, 574, 331, 572, 331, 572, 332, 570, 333, 570, 335, 577, 335, 577, 334, 579, 334, 579, 333, 581, 333, 581, 332, 582, 332, 582, 331, 583, 331, 583, 330, 584, 330, 584, 329, 585, 329, 586, 327, 587, 327, 588, 323, 589, 323, 589, 310, 588, 310, 588, 308, 587, 308, 587, 306, 585, 305, 585, 304, 583, 304, 583, 303, 582, 303, 582, 304, 578, 304, 578, 305, 577, 305, 577, 304, 573, 303, 573, 302, 570, 302, 570, 301, 568, 301, 568, 299, 564, 298)
+
+[node name="socket_tail_body_0" type="Polygon2D" parent="." unique_id=585206836]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(104, 14, 103, 14, 103, 16, 102, 16, 102, 18, 101, 18, 101, 19, 100, 19, 100, 20, 98, 21, 98, 22, 97, 22, 97, 23, 95, 23, 95, 22, 94, 22, 94, 23, 93, 23, 93, 34, 94, 34, 94, 36, 95, 36, 95, 38, 96, 38, 97, 40, 98, 40, 98, 38, 100, 38, 100, 37, 101, 37, 101, 36, 102, 36, 102, 35, 103, 35, 104, 33, 105, 33, 105, 31, 106, 31, 106, 29, 107, 29, 107, 28, 108, 28, 108, 26, 109, 26, 109, 24, 110, 24, 111, 20, 112, 20, 112, 17, 113, 17, 113, 13, 114, 13, 114, 12, 104, 12)
+uv = PackedVector2Array(588, 234, 587, 234, 587, 236, 586, 236, 586, 238, 585, 238, 585, 239, 584, 239, 584, 240, 582, 241, 582, 242, 581, 242, 581, 243, 579, 243, 579, 242, 578, 242, 578, 243, 577, 243, 577, 254, 578, 254, 578, 256, 579, 256, 579, 258, 580, 258, 581, 260, 582, 260, 582, 258, 584, 258, 584, 257, 585, 257, 585, 256, 586, 256, 586, 255, 587, 255, 588, 253, 589, 253, 589, 251, 590, 251, 590, 249, 591, 249, 591, 248, 592, 248, 592, 246, 593, 246, 593, 244, 594, 244, 595, 240, 596, 240, 596, 237, 597, 237, 597, 233, 598, 233, 598, 232, 588, 232)
+
+[node name="socket_tail_tail_0" type="Polygon2D" parent="." unique_id=184893288]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(104, 14, 103, 14, 103, 16, 102, 16, 102, 18, 101, 18, 101, 19, 100, 19, 100, 20, 98, 21, 98, 22, 97, 22, 97, 23, 95, 23, 95, 22, 94, 22, 94, 23, 93, 23, 93, 34, 94, 34, 94, 36, 95, 36, 95, 38, 96, 38, 97, 40, 98, 40, 98, 38, 100, 38, 100, 37, 101, 37, 101, 36, 102, 36, 102, 35, 103, 35, 104, 33, 105, 33, 105, 31, 106, 31, 106, 29, 107, 29, 107, 28, 108, 28, 108, 26, 109, 26, 109, 24, 110, 24, 111, 20, 112, 20, 112, 17, 113, 17, 113, 13, 114, 13, 114, 12, 104, 12)
+uv = PackedVector2Array(588, 234, 587, 234, 587, 236, 586, 236, 586, 238, 585, 238, 585, 239, 584, 239, 584, 240, 582, 241, 582, 242, 581, 242, 581, 243, 579, 243, 579, 242, 578, 242, 578, 243, 577, 243, 577, 254, 578, 254, 578, 256, 579, 256, 579, 258, 580, 258, 581, 260, 582, 260, 582, 258, 584, 258, 584, 257, 585, 257, 585, 256, 586, 256, 586, 255, 587, 255, 588, 253, 589, 253, 589, 251, 590, 251, 590, 249, 591, 249, 591, 248, 592, 248, 592, 246, 593, 246, 593, 244, 594, 244, 595, 240, 596, 240, 596, 237, 597, 237, 597, 233, 598, 233, 598, 232, 588, 232)
+
+[node name="tail" type="Polygon2D" parent="." unique_id=676755647]
+texture = ExtResource("2_25lrk")
+polygon = PackedVector2Array(154, 52, 110, 52, 102, 27, 114, -11, 103, -35, 80, -52, 38, -60, 5, -74, -6, -100, -6, -210, 154, -210)
+uv = PackedVector2Array(638, 272, 594, 272, 586, 247, 598, 209, 587, 185, 564, 168, 522, 160, 489, 146, 478, 120, 478, 10, 638, 10)
+
+[node name="Effects" type="Node2D" parent="." unique_id=1401407292]
+texture_filter = 4
+script = ExtResource("3_2xkdi")

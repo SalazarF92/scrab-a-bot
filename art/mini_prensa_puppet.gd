@@ -1,346 +1,169 @@
 class_name MiniPrensaPuppet
 extends RefCounted
-## Rig mecânico 2D articulado da Mini-Prensa 500 (Boss do Setor 1).
-## Implementa o padrão de 10 passos de animação modular rígida:
-## 1. Peças isoladas e ordenadas rigidamente (chassi, mandíbula superior, pistões, núcleo, engrenagem, chaminé e pés)
-## 2. Posições e ângulos calculados estritamente pelo playhead (linha do tempo absoluta)
-## 3. Rotações e deslocamentos rígidos com Transform2D em torno dos pivôs (dobradiça traseira, montagens dos pistões)
-## 4. Sem deformações volumétricas elásticas de chapas de aço nem cross-fade borrado de transparência
-## 5. Z-order correto: sombra -> shockwaves/poeira -> pés -> chassi -> núcleo de fornalha -> mandíbula superior -> pistões -> chaminé -> vapor
-
+## Independent rigid pieces. Animation changes only translation and rotation.
+const Eyes = preload("res://art/boss_eyes.gd")
+const PressureFlame = preload("res://art/press_flame.gd")
 enum Action { WALK, ATTACK, POWER, IDLE }
+const ATLAS_PATH := "res://assets/art/mini_prensa_rigid_atlas.png"
+const WALK_DURATION := 1.2
+const ATTACK_DURATION := 1.7
+const POWER_DURATION := 2.6
+const IMPACT_TIME := .88
+const PARTS_PATH := "res://assets/art/mini_prensa_rigid_parts.json"
+static var _parts: Dictionary = {}
+static func parts() -> Dictionary:
+	if _parts.is_empty():
+		_parts = JSON.parse_string(FileAccess.get_file_as_string(PARTS_PATH))
+	return _parts
 
-const ATLAS_PATH := "res://assets/art/mini_prensa_pieces.png"
+static func polygon(key: String) -> PackedVector2Array:
+	var def: Dictionary = parts()[key]
+	var pivot := Vector2(def.pivot[0], def.pivot[1])
+	var out := PackedVector2Array()
+	for xy in def.points:
+		out.append((Vector2(xy[0], xy[1]) - pivot) * float(def.fit))
+	return out
 
-# Regiões no atlas mini_prensa_pieces.png:
-const RECT_HEAD := Rect2(0, 0, 320, 240)
-const RECT_CHASSIS := Rect2(330, 0, 320, 240)
-const RECT_CORE := Rect2(660, 0, 160, 140)
-const RECT_GEAR := Rect2(830, 0, 70, 70)
-const RECT_FOOT_L := Rect2(0, 250, 110, 85)
-const RECT_FOOT_R := Rect2(120, 250, 110, 85)
-const RECT_CHIMNEY := Rect2(240, 250, 120, 60)
-const RECT_PISTON_SLEEVE := Rect2(370, 250, 40, 90)
-const RECT_PISTON_ROD := Rect2(420, 250, 24, 100)
+static func uvs(key: String, normalized: bool = true) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for xy in parts()[key].points:
+		out.append(Vector2(xy[0], xy[1]) / (1254.0 if normalized else 1.0))
+	return out
 
-# Duração dos ciclos em segundos:
-const WALK_DURATION := 0.75
-const ATTACK_DURATION := 1.70
-const POWER_DURATION := 2.60
+static func _curve(t: float, keys: Array) -> float:
+	for i in range(1, keys.size()):
+		if t <= keys[i].x:
+			var a: Vector2 = keys[i - 1]
+			var b: Vector2 = keys[i]
+			return lerpf(a.y, b.y, smoothstep(0, 1, (t - a.x) / (b.x - a.x)))
+	return keys.back().y
 
-
-## Calcula analiticamente todas as poses das peças para o tempo playhead:
 static func compute_pose(action: Action, playhead: float) -> Dictionary:
-	var pose := {
-		"body_offset": Vector2.ZERO,
-		"body_tilt": 0.0,
-		"head_angle": 0.0,
-		"head_extra_offset": Vector2.ZERO,
-		"foot_l_offset": Vector2.ZERO,
-		"foot_r_offset": Vector2.ZERO,
-		"foot_l_rot": 0.0,
-		"foot_r_rot": 0.0,
-		"core_glow": 0.0,
-		"gear_rot": 0.0,
-		"chimney_offset": Vector2.ZERO,
-		"shake_request": 0.0,
-		"footstep": -1,
-		"impact_event": false,
-		"steam_intensity": 0.0,
-	}
-
+	var p := {"body_offset": Vector2.ZERO, "body_tilt": 0.0, "jaw": 0.0,
+		"foot_l_offset": Vector2.ZERO, "foot_r_offset": Vector2.ZERO, "foot_l_rot": 0.0, "foot_r_rot": 0.0,
+		"core_glow": 0.0, "blast": 0.0, "hatch_open": 0.0, "impact": 0.0, "time": playhead, "action": action}
 	match action:
 		Action.WALK:
-			_compute_walk(playhead, pose)
+			var phase := fposmod(playhead, WALK_DURATION) / WALK_DURATION
+			var s := sin(phase * TAU)
+			p.body_offset = Vector2(s * 3, -s * s * 5)
+			p.body_tilt = s * .018
+			p.jaw = -2.0 * (1.0 - cos(phase * TAU * 2))
+			p.foot_l_offset = _step(phase)
+			p.foot_r_offset = _step(fposmod(phase + .5, 1))
+			p.foot_l_rot = -.07 * pow(maxf(0, sin(phase * TAU)), 2)
+			p.foot_r_rot = .07 * pow(maxf(0, -sin(phase * TAU)), 2)
 		Action.ATTACK:
-			_compute_attack(playhead, pose)
+			var t := fposmod(playhead, ATTACK_DURATION)
+			p.jaw = _curve(t, [Vector2(0, 0), Vector2(.70, -36), Vector2(.76, -36), Vector2(.88, 56), Vector2(.98, 46), Vector2(1.22, -6), Vector2(1.7, 0)])
+			p.body_offset.y = _curve(t, [Vector2(0, 0), Vector2(.70, 7), Vector2(.76, 7), Vector2(.88, 16), Vector2(.98, 12), Vector2(1.22, -3), Vector2(1.7, 0)])
+			p.body_tilt = _curve(t, [Vector2(0, 0), Vector2(.7, -.025), Vector2(.88, .025), Vector2(1.22, -.008), Vector2(1.7, 0)])
+			p.core_glow = _curve(t, [Vector2(0, 0), Vector2(.7, .6), Vector2(.88, 1), Vector2(1.2, 0), Vector2(1.7, 0)])
+			p.impact = clampf((t - IMPACT_TIME) / .48, 0, 1)
 		Action.POWER:
-			_compute_power(playhead, pose)
+			var t := fposmod(playhead, POWER_DURATION)
+			p.jaw = _curve(t, [Vector2(0, 0), Vector2(.72, -28), Vector2(1.05, -32), Vector2(1.85, -32), Vector2(2.6, 0)])
+			p.core_glow = _curve(t, [Vector2(0, 0), Vector2(.7, 1), Vector2(1, 1.5), Vector2(1.8, 1.2), Vector2(2.6, 0)])
+			p.hatch_open = _curve(t, [Vector2(0, 0), Vector2(.22, 0), Vector2(.74, 1), Vector2(2.24, 1), Vector2(2.6, 0)])
+			p.blast = _curve(t, [Vector2(0, 0), Vector2(.82, 0), Vector2(1.06, 1), Vector2(1.72, 1), Vector2(2.18, 0), Vector2(2.6, 0)])
+			p.body_offset.y = _curve(t, [Vector2(0, 0), Vector2(.8, -4), Vector2(1.08, -15), Vector2(1.8, -10), Vector2(2.6, 0)])
+			p.body_tilt = sin(t * 22) * .006 * p.blast
 		Action.IDLE:
-			_compute_idle(playhead, pose)
+			p.jaw = -1.5 * (1 - cos(playhead * 2.5))
+	Eyes.animate(p, playhead, [WALK_DURATION, ATTACK_DURATION, POWER_DURATION, 3.6][action], IMPACT_TIME)
+	return p
 
-	return pose
+static func _step(phase: float) -> Vector2:
+	if phase < .5:
+		var t := phase * 2
+		return Vector2(lerpf(-7, 7, smoothstep(0, 1, t)), -11 * pow(sin(t * PI), 2))
+	return Vector2(lerpf(7, -7, smoothstep(0, 1, (phase - .5) * 2)), 0)
 
+static func blend_pose(a: Dictionary, b: Dictionary, weight: float) -> Dictionary:
+	var result := b.duplicate()
+	for key in b:
+		if a.has(key):
+			if b[key] is Vector2:
+				result[key] = (a[key] as Vector2).lerp(b[key], weight)
+			elif b[key] is float:
+				result[key] = lerpf(a[key], b[key], weight)
+	return result
 
-static func _compute_walk(playhead: float, p: Dictionary) -> void:
-	var phase := fmod(playhead, WALK_DURATION) / WALK_DURATION
-	var tau_phase := phase * TAU
+static func frames(p: Dictionary, exploded: float = 0.0) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var body := Transform2D(float(p.body_tilt), p.body_offset)
+	var head := body * Transform2D(0, Vector2(0, -115 + float(p.jaw)))
+	var left := Transform2D(float(p.foot_l_rot), Vector2(-100, 142) + (p.foot_l_offset as Vector2))
+	var right := Transform2D(float(p.foot_r_rot), Vector2(100, 155) + (p.foot_r_offset as Vector2))
+	_add(out, "Backplate", "back", body * Transform2D(0, Vector2(-2, -10)), Vector2(0, 0), exploded)
+	var hatch_angle := -2.6 * float(p.hatch_open)
+	var hatch_hinge := Vector2(31, -9.25)
+	_add(out, "CoreHatch", "hatch", body * Transform2D(hatch_angle, hatch_hinge), Vector2(115, -15), exploded)
+	_add(out, "LeftFoot", "foot_l", left, Vector2(-120, 130), exploded)
+	_add(out, "RightFoot", "foot_r", right, Vector2(120, 130), exploded)
+	_add(out, "LeftAnkle", "hinge", body * Transform2D(0, Vector2(-100, 143)), Vector2(-120, 75), exploded)
+	_add(out, "RightAnkle", "hinge", body * Transform2D(0, Vector2(100, 151)), Vector2(120, 75), exploded)
+	# Rods translate with the head. Sleeves rotate at their base; artwork is never stretched.
+	for side in [-1.0, 1.0]:
+		var base := body * Vector2(side * 126, 139)
+		var tip := head * Vector2(side * 126, 10)
+		var angle := (base - tip).angle() - PI * .5
+		var label := "Left" if side < 0 else "Right"
+		_add(out, label + "Rod", "rod", Transform2D(angle, tip), Vector2(side * 160, -50), exploded)
+		_add(out, label + "Sleeve", "sleeve", Transform2D(angle, base), Vector2(side * 210, 60), exploded)
+	_add(out, "LowerJaw", "chassis", body * Transform2D(0, Vector2(0, 112)), Vector2(0, 145), exploded)
+	_add(out, "UpperJaw", "head", head, Vector2(0, -125), exploded)
+	_add(out, "PressureCap", "cap", head * Transform2D(0, Vector2(-10, -102)), Vector2(0, -190), exploded)
+	return out
 
-	# Balanço lateral mecânico e bobbing dos pistões:
-	var sway := sin(tau_phase) * 9.0
-	var bob := -absf(sin(tau_phase)) * 8.0
-	var tilt := -sin(tau_phase) * 0.035
+static func _add(out: Array[Dictionary], name: String, part: String, xf: Transform2D, offset: Vector2, exploded: float) -> void:
+	xf.origin += offset * exploded
+	out.append({"name": name, "part": part, "transform": xf})
 
-	p["body_offset"] = Vector2(sway, bob)
-	p["body_tilt"] = tilt
-
-	# Mandíbula oscila suavemente com compressão pneumática (respiração de máquina):
-	p["head_angle"] = -absf(sin(tau_phase * 2.0)) * 0.05
-	p["gear_rot"] = playhead * 1.5
-
-	# Passada mecânica dos pés/esteiras:
-	# Fase 0.0 a 0.5: Pé esquerdo avança no ar e pousa; pé direito recua apoiado no chão
-	# Fase 0.5 a 1.0: Pé direito avança no ar e pousa; pé esquerdo recua apoiado no chão
-	if phase < 0.5:
-		var p_sub := phase / 0.5
-		var stride_x := lerpf(-22.0, 22.0, p_sub)
-		var lift_y := -sin(p_sub * PI) * 14.0
-		var foot_pitch := sin(p_sub * PI) * 0.12
-		p["foot_l_offset"] = Vector2(stride_x, lift_y)
-		p["foot_l_rot"] = -foot_pitch
-		p["foot_r_offset"] = Vector2(lerpf(22.0, -22.0, p_sub), 0.0)
-		p["foot_r_rot"] = 0.0
-		if p_sub > 0.88 and p_sub < 0.95:
-			p["footstep"] = 0
-	else:
-		var p_sub := (phase - 0.5) / 0.5
-		var stride_x := lerpf(-22.0, 22.0, p_sub)
-		var lift_y := -sin(p_sub * PI) * 14.0
-		var foot_pitch := sin(p_sub * PI) * 0.12
-		p["foot_r_offset"] = Vector2(stride_x, lift_y)
-		p["foot_r_rot"] = foot_pitch
-		p["foot_l_offset"] = Vector2(lerpf(22.0, -22.0, p_sub), 0.0)
-		p["foot_l_rot"] = 0.0
-		if p_sub > 0.88 and p_sub < 0.95:
-			p["footstep"] = 1
-
-	# Vibração da tampa da chaminé:
-	p["chimney_offset"] = Vector2(0.0, -sin(tau_phase * 2.0) * 3.0)
-
-
-static func _compute_attack(playhead: float, p: Dictionary) -> void:
-	var cycle := fmod(playhead, ATTACK_DURATION)
-
-	# FASE 1: Antecipação / Levantamento Hidráulico (0.00s a 0.70s)
-	if cycle < 0.70:
-		var prog := cycle / 0.70
-		var ease_p := smoothstep(0.0, 1.0, prog)
-		var squat := 14.0 * ease_p
-		var shudder := sin(playhead * 55.0) * 1.5 * prog
-		p["body_offset"] = Vector2(shudder, squat)
-		p["body_tilt"] = -0.04 * ease_p
-
-		# Mandíbula abre amplamente para trás em torno da dobradiça traseira:
-		p["head_angle"] = lerpf(0.0, -0.45, ease_p)
-		p["core_glow"] = ease_p * 0.75
-		p["gear_rot"] = playhead * 4.0
-		p["chimney_offset"] = Vector2(0, -6.0 * ease_p)
-
-	# FASE 2: O Golpe Hidráulico / Descida Acelerada (0.70s a 0.88s)
-	elif cycle < 0.88:
-		var prog := (cycle - 0.70) / 0.18
-		var cubic := prog * prog * prog # Aceleração cúbica violenta (p^3)
-		var squat := lerpf(14.0, 32.0, cubic)
-		p["body_offset"] = Vector2(0.0, squat)
-		p["body_tilt"] = lerpf(-0.04, 0.02, prog)
-
-		# Mandíbula bate com velocidade esmagadora:
-		p["head_angle"] = lerpf(-0.45, 0.04, cubic)
-		p["core_glow"] = (1.0 - prog) * 0.75
-		p["gear_rot"] = playhead * 8.0
-
-		if prog >= 0.92:
-			p["impact_event"] = true
-			p["shake_request"] = 18.0
-
-	# FASE 3: Impacto, Esmagamento e Rebote Amortecido (0.88s a 1.30s)
-	elif cycle < 1.30:
-		var prog := (cycle - 0.88) / 0.42
-		# Mola com amortecimento exponencial e oscilação cosenoidal:
-		var spring := exp(-7.5 * prog) * cos(17.0 * prog)
-		p["body_offset"] = Vector2(0.0, 24.0 * spring)
-		p["body_tilt"] = 0.03 * spring
-		p["head_angle"] = 0.05 * spring
-		p["chimney_offset"] = Vector2(0.0, -12.0 * spring)
-
-	# FASE 4: Recuperação e Retorno ao Neutro (1.30s a ATTACK_DURATION)
-	else:
-		var prog := (cycle - 1.30) / (ATTACK_DURATION - 1.30)
-		var ease_p := smoothstep(0.0, 1.0, prog)
-		p["body_offset"] = Vector2.ZERO
-		p["body_tilt"] = 0.0
-		p["head_angle"] = 0.0
-		p["core_glow"] = 0.0
-		p["chimney_offset"] = Vector2.ZERO
-
-
-static func _compute_power(playhead: float, p: Dictionary) -> void:
-	var cycle := fmod(playhead, POWER_DURATION)
-
-	# FASE 1: Destravamento das Travas & Abertura da Fornalha (0.00s a 0.50s)
-	if cycle < 0.50:
-		var prog := cycle / 0.50
-		var ease_p := smoothstep(0.0, 1.0, prog)
-		p["body_offset"] = Vector2(sin(playhead * 40.0) * 1.5 * ease_p, -6.0 * ease_p)
-		p["head_angle"] = lerpf(0.0, -0.38, ease_p)
-		p["core_glow"] = ease_p * 1.0
-		p["gear_rot"] = playhead * (2.0 + 8.0 * ease_p)
-		p["chimney_offset"] = Vector2(0, -18.0 * ease_p)
-		p["steam_intensity"] = ease_p * 0.4
-
-	# FASE 2: Sobrecarga Térmica Contínua & Jatos de Vapor (0.50s a 2.10s)
-	elif cycle < 2.10:
-		var t_active := cycle - 0.50
-		var pulse := sin(t_active * 12.0)
-		var shiver := Vector2(sin(playhead * 60.0) * 1.8, cos(playhead * 45.0) * 1.2)
-		var float_bob := -8.0 + sin(t_active * 7.0) * 4.0
-		p["body_offset"] = shiver + Vector2(0, float_bob)
-		p["head_angle"] = -0.38 + pulse * 0.04
-		p["core_glow"] = 1.0 + pulse * 0.35 # Brilho intenso pulsante
-		p["gear_rot"] = playhead * 10.0 # Giro veloz em rotação máxima
-		p["chimney_offset"] = Vector2(0, -18.0 + sin(t_active * 20.0) * 4.0)
-		p["steam_intensity"] = 1.0
-
-	# FASE 3: Fechamento das Válvulas e Resfriamento (2.10s a POWER_DURATION)
-	else:
-		var prog := (cycle - 2.10) / (POWER_DURATION - 2.10)
-		var ease_p := smoothstep(0.0, 1.0, prog)
-		p["body_offset"] = Vector2(0, lerpf(-8.0, 0.0, ease_p))
-		p["head_angle"] = lerpf(-0.38, 0.0, ease_p)
-		p["core_glow"] = lerpf(1.0, 0.0, ease_p)
-		p["gear_rot"] = playhead * lerpf(10.0, 1.0, ease_p)
-		p["chimney_offset"] = Vector2(0, lerpf(-18.0, 0.0, ease_p))
-		p["steam_intensity"] = lerpf(1.0, 0.0, ease_p)
-
-
-static func _compute_idle(playhead: float, p: Dictionary) -> void:
-	var breath := sin(playhead * 3.0)
-	p["body_offset"] = Vector2(0, breath * 2.5)
-	p["head_angle"] = -absf(breath) * 0.02
-	p["chimney_offset"] = Vector2(0, -breath * 1.5)
-	p["gear_rot"] = playhead * 0.5
-
-
-## Renderiza o puppet modular completo com sobreposição de camadas estrita:
-static func draw_puppet(canvas: CanvasItem, tex: Texture2D, center: Vector2, scale_factor: float, pose: Dictionary, tint: Color = Color.WHITE) -> void:
-	if tex == null:
+static func draw_puppet(canvas: CanvasItem, tex: Texture2D, center: Vector2, scale_factor: float, pose: Dictionary, tint: Color = Color.WHITE, exploded: float = 0.0) -> void:
+	if tex == null or pose.is_empty():
 		return
-
-	var body_pos: Vector2 = center + (pose.get("body_offset", Vector2.ZERO) as Vector2) * scale_factor
-	var body_tilt: float = float(pose.get("body_tilt", 0.0))
-	var head_angle: float = float(pose.get("head_angle", 0.0))
-	var head_extra: Vector2 = (pose.get("head_extra_offset", Vector2.ZERO) as Vector2) * scale_factor
-	var foot_l_off: Vector2 = (pose.get("foot_l_offset", Vector2.ZERO) as Vector2) * scale_factor
-	var foot_r_off: Vector2 = (pose.get("foot_r_offset", Vector2.ZERO) as Vector2) * scale_factor
-	var foot_l_rot: float = float(pose.get("foot_l_rot", 0.0))
-	var foot_r_rot: float = float(pose.get("foot_r_rot", 0.0))
-	var core_glow: float = float(pose.get("core_glow", 0.0))
-	var gear_rot: float = float(pose.get("gear_rot", 0.0))
-	var chimney_off: Vector2 = (pose.get("chimney_offset", Vector2.ZERO) as Vector2) * scale_factor
-
-	# Matriz do chassi inferior:
-	var chassis_xform := Transform2D(body_tilt, Vector2.ONE * scale_factor, 0.0, body_pos)
-
-	# Pivô da dobradiça traseira onde a mandíbula superior gira:
-	# Localizado na quina inferior traseira do chassi (x=-75, y=10)
-	var hinge_local := Vector2(-75.0, 10.0)
-	var hinge_world: Vector2 = chassis_xform * hinge_local
-
-	# Matriz da mandíbula superior (rotacionada estritamente em torno da dobradiça):
-	var head_rot := body_tilt + head_angle
-	var head_xform := Transform2D(head_rot, Vector2.ONE * scale_factor, 0.0, hinge_world)
-	# No sprite da cabeça, a dobradiça fica no canto inferior esquerdo: Vector2(-75, 198) relativo ao centro
-	var head_center_rel_hinge := Vector2(75.0, -198.0) + head_extra
-
-	# Pontos de ancoragem dos pistões hidráulicos (calculados rigidamente):
-	var p_base_l: Vector2 = chassis_xform * Vector2(-114.0, 15.0)
-	var p_base_r: Vector2 = chassis_xform * Vector2(106.0, 18.0)
-	var p_head_l: Vector2 = head_xform * (head_center_rel_hinge + Vector2(-114.0, 148.0))
-	var p_head_r: Vector2 = head_xform * (head_center_rel_hinge + Vector2(98.0, 152.0))
-
-	# =========================================================================
-	# CAMADA 1: Pés / Esteiras de Apoio
-	# =========================================================================
-	# Pé esquerdo:
-	var pos_foot_l: Vector2 = (chassis_xform * Vector2(-95.0, 75.0)) + foot_l_off
-	var xf_foot_l := Transform2D(body_tilt + foot_l_rot, Vector2.ONE * scale_factor, 0.0, pos_foot_l)
-	canvas.draw_set_transform_matrix(xf_foot_l)
-	canvas.draw_texture_rect_region(tex, Rect2(-55, -42, 110, 85), RECT_FOOT_L, tint)
-
-	# Pé direito:
-	var pos_foot_r: Vector2 = (chassis_xform * Vector2(95.0, 75.0)) + foot_r_off
-	var xf_foot_r := Transform2D(body_tilt + foot_r_rot, Vector2.ONE * scale_factor, 0.0, pos_foot_r)
-	canvas.draw_set_transform_matrix(xf_foot_r)
-	canvas.draw_texture_rect_region(tex, Rect2(-55, -42, 110, 85), RECT_FOOT_R, tint)
-
-	# =========================================================================
-	# CAMADA 2: Cavidade Traseira e Núcleo da Fornalha (Interior da Boca)
-	# =========================================================================
-	# O núcleo fica no interior entre as mandíbulas:
-	var core_pos: Vector2 = chassis_xform * Vector2(6.0, -45.0)
-	var xf_core := Transform2D(body_tilt, Vector2.ONE * scale_factor, 0.0, core_pos)
-	canvas.draw_set_transform_matrix(xf_core)
-
-	# Se a boca estiver abrindo ou houver fogo:
-	if core_glow > 0.01:
-		var pulse_scale := 1.0 + core_glow * 0.12
-		canvas.draw_set_transform_matrix(Transform2D(body_tilt, Vector2.ONE * (scale_factor * pulse_scale), 0.0, core_pos))
-		var core_col := Color(1.0 + core_glow * 0.5, 0.9 + core_glow * 0.4, 0.7 + core_glow * 0.3, 1.0)
-		canvas.draw_texture_rect_region(tex, Rect2(-80, -70, 160, 140), RECT_CORE, core_col * tint)
-
-		# Engrenagem interna em rotação real:
-		var gear_pos: Vector2 = core_pos + Vector2(10.0, 8.0) * scale_factor
-		var xf_gear := Transform2D(gear_rot, Vector2.ONE * scale_factor, 0.0, gear_pos)
-		canvas.draw_set_transform_matrix(xf_gear)
-		canvas.draw_texture_rect_region(tex, Rect2(-35, -35, 70, 70), RECT_GEAR, tint)
-	else:
-		# Fundo escuro de metal ferrugem
-		canvas.draw_texture_rect_region(tex, Rect2(-80, -70, 160, 140), RECT_CORE, Color(0.25, 0.2, 0.18, 1.0) * tint)
-
-	# =========================================================================
-	# CAMADA 3: Chassi Inferior (Mandíbula Inferior, Dentes e Caixa de Britagem)
-	# =========================================================================
-	canvas.draw_set_transform_matrix(chassis_xform)
-	canvas.draw_texture_rect_region(tex, Rect2(-160, -120, 320, 240), RECT_CHASSIS, tint)
-
-	# =========================================================================
-	# CAMADA 4: Mandíbula Superior (Cabeça, Olhos, Faixa de Risco e Dentes Superiores)
-	# =========================================================================
-	canvas.draw_set_transform_matrix(head_xform)
-	var head_rect := Rect2(head_center_rel_hinge.x - 160.0, head_center_rel_hinge.y - 120.0, 320.0, 240.0)
-	canvas.draw_texture_rect_region(tex, head_rect, RECT_HEAD, tint)
-
-	# =========================================================================
-	# CAMADA 5: Tampa da Chaminé (Topo da Cabeça)
-	# =========================================================================
-	var chimney_world: Vector2 = (head_xform * (head_center_rel_hinge + Vector2(0.0, -118.0))) + chimney_off
-	var xf_chimney := Transform2D(head_rot, Vector2.ONE * scale_factor, 0.0, chimney_world)
-	canvas.draw_set_transform_matrix(xf_chimney)
-	canvas.draw_texture_rect_region(tex, Rect2(-60, -30, 120, 60), RECT_CHIMNEY, tint)
-
-	# =========================================================================
-	# CAMADA 6: Pistões Hidráulicos Articulados (Conectam Base à Mandíbula)
-	# =========================================================================
-	_draw_piston(canvas, tex, p_base_l, p_head_l, scale_factor, tint)
-	_draw_piston(canvas, tex, p_base_r, p_head_r, scale_factor, tint)
-
-	# Restaura matriz limpa:
+	PressureFlame.hide_all(canvas)
+	var root := Transform2D(0, Vector2.ONE * scale_factor, 0, center)
+	for item in frames(pose, exploded):
+		if item.name == "CoreHatch" and exploded < .01:
+			canvas.draw_set_transform_matrix(root)
+			draw_core_port(canvas, pose, tint)
+		canvas.draw_set_transform_matrix(root * (item.transform as Transform2D))
+		canvas.draw_polygon(polygon(item.part), PackedColorArray([tint]), uvs(item.part), tex)
+	canvas.draw_set_transform_matrix(root)
+	if exploded < .01:
+		Eyes.draw_press(canvas, pose, root, tint)
+		_draw_energy(canvas, pose, tint, root)
 	canvas.draw_set_transform_matrix(Transform2D.IDENTITY)
+	var impact: float = pose.impact
+	if impact > 0 and impact < 1 and exploded < .01:
+		canvas.draw_set_transform(center + Vector2(0, 223) * scale_factor, 0, Vector2(scale_factor, scale_factor * .23))
+		canvas.draw_arc(Vector2.ZERO, 40 + impact * 230, 0, TAU, 80, Color(1, .68, .2, (1 - impact) * .8) * tint, 5 * (1 - impact), true)
+		canvas.draw_set_transform_matrix(Transform2D.IDENTITY)
 
+static func core_origin(pose: Dictionary) -> Vector2:
+	return Transform2D(float(pose.body_tilt), pose.body_offset) * Vector2(-6.5, -9.25)
 
-## Desenha um pistão telescópico rígido perfeitamente conectado entre dois pontos:
-static func _draw_piston(canvas: CanvasItem, tex: Texture2D, p_base: Vector2, p_head: Vector2, scale_factor: float, tint: Color) -> void:
-	var delta := p_head - p_base
-	var dist := delta.length()
-	if dist < 1.0:
+static func draw_core_port(canvas: CanvasItem, pose: Dictionary, tint: Color = Color.WHITE) -> void:
+	var origin := core_origin(pose)
+	var heat := float(pose.core_glow) * float(pose.hatch_open)
+	canvas.draw_circle(origin, 38.5, Color("#211811") * tint)
+	canvas.draw_circle(origin, 35.0, Color("#080607") * tint)
+	canvas.draw_arc(origin, 35.0, 0, TAU, 64, Color(.8, .25, .04, heat * .55) * tint, 3.0, true)
+	for ring in range(5, 0, -1):
+		canvas.draw_circle(origin, ring * 5.7, Color(1, .2 + ring * .035, .015, heat * .09) * tint)
+
+static func _draw_energy(canvas: CanvasItem, pose: Dictionary, tint: Color, root: Transform2D = Transform2D.IDENTITY) -> void:
+	PressureFlame.hide_all(canvas)
+	var blast: float = float(pose.blast) * float(pose.hatch_open)
+	if blast <= .001:
 		return
-	var angle := delta.angle() - PI * 0.5 # Rotação alinhada ao eixo Y
-
-	# Haste interna de aço cromado (vai da ponta do cilindro até a cabeça):
-	var rod_xform := Transform2D(angle, Vector2.ONE * scale_factor, 0.0, p_base)
-	canvas.draw_set_transform_matrix(rod_xform)
-	var rod_len := dist / scale_factor
-	var rod_rect := Rect2(-8, 0, 16, rod_len)
-	# Desenha a haste com brilho metálico cromado:
-	canvas.draw_rect(rod_rect, Color("#3A4048") * tint)
-	canvas.draw_rect(Rect2(-6, 0, 12, rod_len), Color("#D2D8DF") * tint)
-	canvas.draw_rect(Rect2(-2, 0, 4, rod_len), Color("#FFFFFF") * tint)
-
-	# Luva cilíndrica laranja (comprimento fixo saindo da base):
-	var sleeve_len := minf(55.0, rod_len * 0.65)
-	var sleeve_rect := Rect2(-15, 0, 30, sleeve_len)
-	canvas.draw_rect(sleeve_rect.grow(1.5), Color("#1B120E") * tint)
-	canvas.draw_rect(sleeve_rect, Color("#D35400") * tint)
-	# Tampa de vedação e parafusos da luva:
-	canvas.draw_rect(Rect2(-17, sleeve_len - 6, 34, 6), Color("#2C1D16") * tint)
-	canvas.draw_rect(Rect2(-16, sleeve_len - 5, 32, 4), Color("#E67E22") * tint)
+	var origin := core_origin(pose)
+	PressureFlame.sync(canvas, pose, origin, root)
+	# Fewer embers, emitted from the recessed throat and carried by the flow.
+	for i in range(24):
+		var age := fposmod(float(pose.time) * 1.3 + float(i) * .173, 1)
+		var side := sin(float(i) * 5.1)
+		var at := origin + Vector2(side * age * age * 74, 10 + age * 320)
+		canvas.draw_line(at, at + Vector2(side * 2, 4 + age * 7), Color(1, .62 + age*.3, .16, sin(age * PI) * blast * .65) * tint, 1.2, true)

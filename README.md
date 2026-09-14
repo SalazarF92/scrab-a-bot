@@ -8,10 +8,16 @@ Implementação do marco **Protótipo** do GDD (seção 7.5):
 O formato atual é o **poço vertical**, registrado em `GDD_ADENDOS.md`, seção F. O robô anda
 na linha de defesa, atira para cima, rebate de volta o que cai e perde o que passa.
 
-O protótipo agora tem sprites raster originais, montagem visual por peça, cenário de
-sucata com paralaxe, sombras e deformação a 12 poses/s. A direção visual usa Earthworm
-Jim como referência, com eletrônicos grotescos e contornos de desenho animado. O áudio
-continua sintetizado; animação tradicional quadro a quadro ainda é trabalho de produção.
+O protótipo tem sprites raster originais e cenário de sucata com paralaxe e sombras.
+A direção visual usa Earthworm Jim como referência, com eletrônicos grotescos e
+contornos de desenho animado. O áudio continua sintetizado.
+
+O padrão atual para mobs e bosses está em
+[Método de construção de mobs](docs/METODO_CONSTRUCAO_MOBS.md), com instruções para
+agentes em [AGENTS.md](AGENTS.md): assets próprios por personagem, peças articuladas
+com encaixes completos, boca e olhos estruturados, animação interpolada e VFX
+vinculados ao emissor. O método antigo de deformação a 12 poses/s é legado;
+a conversão do bestiário acontece por personagem.
 
 ![Jogo com as artes integradas](docs/visual/gameplay.png)
 

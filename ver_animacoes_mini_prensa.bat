@@ -12,11 +12,11 @@ echo     2. ATAQUE - Carimbo Hidraulico com impacto e tremor
 echo     3. PODER  - Nucleo Exposto jorrando vapor e chamas
 echo.
 echo   Controles na janela:
-echo     [Espaco] Pausar / Retomar loop automatico
+echo     [Espaco] Pausar / Retomar a animacao
 echo     [1] Travar no ciclo de Andar
 echo     [2] Travar no ciclo de Ataque
 echo     [3] Travar no ciclo de Poder Especial
-echo     [4] Exibir grade completa com os 9 frames
+echo     [4] Exibir os tres movimentos lado a lado
 echo     [ESC] Fechar visualizador
 echo.
 echo Abrindo janela do Godot...

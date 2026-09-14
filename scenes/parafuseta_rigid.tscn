@@ -1,0 +1,2022 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://art/parafuseta_rigid.gd" id="1_0wsid"]
+[ext_resource type="Texture2D" path="res://assets/art/enemies_atlas.png" id="2_i7fhf"]
+[ext_resource type="Script" path="res://art/parafuseta_rigid_fx.gd" id="3_ogedj"]
+
+[node name="ParafusetaRigid" type="Node2D" unique_id=1926253217]
+script = ExtResource("1_0wsid")
+
+[node name="arm_l" type="Polygon2D" parent="." unique_id=999784537]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-45, 60, -61, 80, -66, 92, -78, 101, -87, 82, -103, 70, -155, 70, -155, 32, -69, 24)
+uv = PackedVector2Array(110, 260, 94, 280, 89, 292, 77, 301, 68, 282, 52, 270, 0, 270, 0, 232, 86, 224)
+
+[node name="arm_r_0" type="Polygon2D" parent="." unique_id=579911813]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(155, 85, 70, 64, 155, 64)
+uv = PackedVector2Array(310, 285, 225, 264, 310, 264)
+
+[node name="arm_r_1" type="Polygon2D" parent="." unique_id=1070388844]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(76, 115, 47, 122, 92, 85)
+uv = PackedVector2Array(231, 315, 202, 322, 247, 285)
+
+[node name="arm_r_2" type="Polygon2D" parent="." unique_id=1995484866]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(47, 122, 26, 93, 20.300873, 76.37756, 20.4487, 76.34473)
+uv = PackedVector2Array(202, 322, 181, 293, 175.30087, 276.37756, 175.4487, 276.34473)
+
+[node name="arm_r_3" type="Polygon2D" parent="." unique_id=1634173741]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(70, 64, 36, 72, 47.90341, 61.632507)
+uv = PackedVector2Array(225, 264, 191, 272, 202.90341, 261.6325)
+
+[node name="arm_r_4" type="Polygon2D" parent="." unique_id=1903657970]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(155, 85, 92, 85, 70, 64)
+uv = PackedVector2Array(310, 285, 247, 285, 225, 264)
+
+[node name="arm_r_5" type="Polygon2D" parent="." unique_id=1890369463]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(92, 85, 47, 122, 20.4487, 76.34473, 22.2005, 75.955444)
+uv = PackedVector2Array(247, 285, 202, 322, 175.4487, 276.34473, 177.2005, 275.95544)
+
+[node name="arm_r_6" type="Polygon2D" parent="." unique_id=1516934894]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(92, 85, 36, 72, 70, 64)
+uv = PackedVector2Array(247, 285, 191, 272, 225, 264)
+
+[node name="arm_r_7" type="Polygon2D" parent="." unique_id=1866702130]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(92, 85, 22.2005, 75.955444, 31, 74, 32.629623, 72.77777, 36, 72)
+uv = PackedVector2Array(247, 285, 177.2005, 275.95544, 186, 274, 187.62962, 272.77777, 191, 272)
+
+[node name="body_0_0" type="Polygon2D" parent="." unique_id=1605181464]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(9, -18, 27.352936, -5, 27.122452, -5, -39, -50)
+uv = PackedVector2Array(164, 182, 182.35294, 195, 182.12245, 195, 116, 150)
+
+[node name="body_0_1" type="Polygon2D" parent="." unique_id=1455607202]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-11.84906, 26.09433, -12.588242, 30.529419, -17, 22)
+uv = PackedVector2Array(143.15094, 226.09433, 142.41176, 230.52942, 138, 222)
+
+[node name="body_0_10" type="Polygon2D" parent="." unique_id=1677177019]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-1.8695679, 67.82608, 10, 78, 26, 93, -3.3972626, 66.78082)
+uv = PackedVector2Array(153.13043, 267.82608, 165, 278, 181, 293, 151.60274, 266.78082)
+
+[node name="body_0_11" type="Polygon2D" parent="." unique_id=1271123284]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-6.5232544, 63.83722, -6.4063263, 64.097046, -11, 60)
+uv = PackedVector2Array(148.47675, 263.83722, 148.59367, 264.09705, 144, 260)
+
+[node name="body_0_12" type="Polygon2D" parent="." unique_id=167020671]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(47, 122, 41, 124, 26, 93)
+uv = PackedVector2Array(202, 322, 196, 324, 181, 293)
+
+[node name="body_0_13" type="Polygon2D" parent="." unique_id=1218518101]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(41, 124, -28, 190, -29, 117)
+uv = PackedVector2Array(196, 324, 127, 390, 126, 317)
+
+[node name="body_0_14" type="Polygon2D" parent="." unique_id=1461741597]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-43, 107, -59, 109, -61, 80)
+uv = PackedVector2Array(112, 307, 96, 309, 94, 280)
+
+[node name="body_0_15" type="Polygon2D" parent="." unique_id=222102545]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(19.77246, -4.4476013, 1, 4, -2.7662354, 7.7662354, -69, 24, -155, -50)
+uv = PackedVector2Array(174.77246, 195.5524, 156, 204, 152.23376, 207.76624, 86, 224, 0, 150)
+
+[node name="body_0_16" type="Polygon2D" parent="." unique_id=1604018163]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-11.080353, 21.482025, -17, 22, -10.682312, 19.093857)
+uv = PackedVector2Array(143.91965, 221.48203, 138, 222, 144.31769, 219.09386)
+
+[node name="body_0_17" type="Polygon2D" parent="." unique_id=2143284853]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-6.4063263, 64.097046, -6, 65, -3.3972626, 66.78082, 26, 93, 41, 124, -11, 60)
+uv = PackedVector2Array(148.59367, 264.09705, 149, 265, 151.60274, 266.78082, 181, 293, 196, 324, 144, 260)
+
+[node name="body_0_18" type="Polygon2D" parent="." unique_id=468413597]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(41, 124, -29, 117, -43, 107)
+uv = PackedVector2Array(196, 324, 126, 317, 112, 307)
+
+[node name="body_0_19" type="Polygon2D" parent="." unique_id=2007899711]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-43, 107, -61, 80, -45, 60)
+uv = PackedVector2Array(112, 307, 94, 280, 110, 260)
+
+[node name="body_0_2" type="Polygon2D" parent="." unique_id=1145489808]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(26, 93, 10, 78, 12.243362, 77.4823, 13, 78, 20.300873, 76.37756)
+uv = PackedVector2Array(181, 293, 165, 278, 167.24336, 277.4823, 168, 278, 175.30087, 276.37756)
+
+[node name="body_0_20" type="Polygon2D" parent="." unique_id=1924380669]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-10, 15, -10.682312, 19.093857, -17, 22, -69, 24, -2.7662354, 7.7662354)
+uv = PackedVector2Array(145, 215, 144.31769, 219.09386, 138, 222, 86, 224, 152.23376, 207.76624)
+
+[node name="body_0_21" type="Polygon2D" parent="." unique_id=1538166120]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(41, 124, -43, 107, -11, 60)
+uv = PackedVector2Array(196, 324, 112, 307, 144, 260)
+
+[node name="body_0_22" type="Polygon2D" parent="." unique_id=1369154310]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-45, 60, -69, 24, -17, 22)
+uv = PackedVector2Array(110, 260, 86, 224, 138, 222)
+
+[node name="body_0_23" type="Polygon2D" parent="." unique_id=1595138441]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-14.16217, 39.97296, -15, 45, -12.486481, 50.58557, -11, 60, -43, 107, -17, 22)
+uv = PackedVector2Array(140.83783, 239.97296, 140, 245, 142.51352, 250.58557, 144, 260, 112, 307, 138, 222)
+
+[node name="body_0_24" type="Polygon2D" parent="." unique_id=688095156]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-43, 107, -45, 60, -17, 22)
+uv = PackedVector2Array(112, 307, 110, 260, 138, 222)
+
+[node name="body_0_3" type="Polygon2D" parent="." unique_id=2071287383]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(41, 124, 47, 122, 76, 115)
+uv = PackedVector2Array(196, 324, 202, 322, 231, 315)
+
+[node name="body_0_4" type="Polygon2D" parent="." unique_id=1271279458]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(41, 190, -28, 190, 41, 124)
+uv = PackedVector2Array(196, 390, 127, 390, 196, 324)
+
+[node name="body_0_5" type="Polygon2D" parent="." unique_id=652196161]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-28, 190, -30, 135, -29, 117)
+uv = PackedVector2Array(127, 390, 125, 335, 126, 317)
+
+[node name="body_0_6" type="Polygon2D" parent="." unique_id=247356272]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-59, 109, -61, 136, -61, 80)
+uv = PackedVector2Array(96, 309, 94, 336, 94, 280)
+
+[node name="body_0_7" type="Polygon2D" parent="." unique_id=882663820]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-69, 24, -155, 32, -155, -50)
+uv = PackedVector2Array(86, 224, 0, 232, 0, 150)
+
+[node name="body_0_8" type="Polygon2D" parent="." unique_id=78867172]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(27.122452, -5, 21, -5, 19.77246, -4.4476013, -155, -50, -39, -50)
+uv = PackedVector2Array(182.12245, 195, 176, 195, 174.77246, 195.5524, 0, 150, 116, 150)
+
+[node name="body_0_9" type="Polygon2D" parent="." unique_id=1101913099]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-11.84906, 26.09433, -17, 22, -11.080353, 21.482025)
+uv = PackedVector2Array(143.15094, 226.09433, 138, 222, 143.91965, 221.48203)
+
+[node name="body_1_0" type="Polygon2D" parent="." unique_id=733875545]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(155, 64, 70, 64, 155, 7)
+uv = PackedVector2Array(310, 264, 225, 264, 310, 207)
+
+[node name="body_1_1" type="Polygon2D" parent="." unique_id=1202183805]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(70, 64, 47.90341, 61.632507, 50.46663, 59.400024, 51, 59, 51.107056, 58.842224, 67, 45)
+uv = PackedVector2Array(225, 264, 202.90341, 261.6325, 205.46663, 259.40002, 206, 259, 206.10706, 258.84222, 222, 245)
+
+[node name="body_1_2" type="Polygon2D" parent="." unique_id=468739561]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(80, 15, 67, 45, 76.789795, 14.124481)
+uv = PackedVector2Array(235, 215, 222, 245, 231.7898, 214.12448)
+
+[node name="body_1_3" type="Polygon2D" parent="." unique_id=2069756942]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(70, 64, 102, 15, 155, 7)
+uv = PackedVector2Array(225, 264, 257, 215, 310, 207)
+
+[node name="body_1_4" type="Polygon2D" parent="." unique_id=987815442]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(70, 64, 67, 45, 80, 15)
+uv = PackedVector2Array(225, 264, 222, 245, 235, 215)
+
+[node name="body_1_5" type="Polygon2D" parent="." unique_id=1512877547]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(70, 64, 80, 15, 102, 15)
+uv = PackedVector2Array(225, 264, 235, 215, 257, 215)
+
+[node name="foot" type="Polygon2D" parent="." unique_id=1581670663]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-29, 117, -30, 135, -28, 190, -61, 190, -61, 136, -59, 109, -43, 107)
+uv = PackedVector2Array(126, 317, 125, 335, 127, 390, 94, 390, 94, 336, 96, 309, 112, 307)
+
+[node name="head_0" type="Polygon2D" parent="." unique_id=74017987]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(155, 7, 102, 15, 155, -200)
+uv = PackedVector2Array(310, 207, 257, 215, 310, 0)
+
+[node name="head_1" type="Polygon2D" parent="." unique_id=691690680]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(102, 15, 80, 15, 75.26277, 13.708023, 75.95065, 11.447815)
+uv = PackedVector2Array(257, 215, 235, 215, 230.26277, 213.70802, 230.95065, 211.44781)
+
+[node name="head_2" type="Polygon2D" parent="." unique_id=1218117319]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(32.59259, -5, 27.352936, -5, 9, -18)
+uv = PackedVector2Array(187.59259, 195, 182.35294, 195, 164, 182)
+
+[node name="head_3" type="Polygon2D" parent="." unique_id=1879173140]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-39, -50, -155, -50, -155, -200)
+uv = PackedVector2Array(116, 150, 0, 150, 0, 0)
+
+[node name="head_4" type="Polygon2D" parent="." unique_id=1838149695]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(102, 15, -155, -200, 155, -200)
+uv = PackedVector2Array(257, 215, 0, 0, 310, 0)
+
+[node name="head_5" type="Polygon2D" parent="." unique_id=969334459]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(102, 15, 75.95065, 11.447815, 77, 8, 72.265305, 4.4489746)
+uv = PackedVector2Array(257, 215, 230.95065, 211.44781, 232, 208, 227.2653, 204.44897)
+
+[node name="head_6" type="Polygon2D" parent="." unique_id=1718870956]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(47.532715, -4.327118, 44, -5, 32.59259, -5, 9, -18)
+uv = PackedVector2Array(202.53271, 195.67288, 199, 195, 187.59259, 195, 164, 182)
+
+[node name="head_7" type="Polygon2D" parent="." unique_id=1447679652]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(9, -18, -39, -50, -155, -200)
+uv = PackedVector2Array(164, 182, 116, 150, 0, 0)
+
+[node name="head_8" type="Polygon2D" parent="." unique_id=1485487379]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(102, 15, 72.265305, 4.4489746, 65, -1, 47.532715, -4.327118, 9, -18, -155, -200)
+uv = PackedVector2Array(257, 215, 227.2653, 204.44897, 220, 199, 202.53271, 195.67288, 164, 182, 0, 0)
+
+[node name="jaw_0" type="Polygon2D" parent="." unique_id=498300365]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(76.789795, 14.124481, 67, 45, 67.31419, 34.958023, 70, 31, 75.26277, 13.708023)
+uv = PackedVector2Array(231.7898, 214.12448, 222, 245, 222.3142, 234.95802, 225, 231, 230.26277, 213.70802)
+
+[node name="jaw_1" type="Polygon2D" parent="." unique_id=994872506]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(12.243362, 77.4823, 10, 78, 11.625, 77.059204)
+uv = PackedVector2Array(167.24336, 277.4823, 165, 278, 166.625, 277.0592)
+
+[node name="jaw_10" type="Polygon2D" parent="." unique_id=1413970864]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-12.588242, 30.529419, -12.665131, 30.990814, -17, 22)
+uv = PackedVector2Array(142.41176, 230.52942, 142.33487, 230.99081, 138, 222)
+
+[node name="jaw_11" type="Polygon2D" parent="." unique_id=610454628]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(11.124207, 76.71655, 10, 78, 11.118164, 76.7124)
+uv = PackedVector2Array(166.1242, 276.71655, 165, 278, 166.11816, 276.7124)
+
+[node name="jaw_12" type="Polygon2D" parent="." unique_id=757425906]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(10.741669, 76.454834, 10, 78, 8.689072, 75.050415)
+uv = PackedVector2Array(165.74167, 276.45483, 165, 278, 163.68907, 275.0504)
+
+[node name="jaw_13" type="Polygon2D" parent="." unique_id=1225966513]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(11.118164, 76.7124, 10, 78, 10.741669, 76.454834)
+uv = PackedVector2Array(166.11816, 276.7124, 165, 278, 165.74167, 276.45483)
+
+[node name="jaw_2" type="Polygon2D" parent="." unique_id=1056473099]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(36, 72, 32.629623, 72.77777, 50.46666, 59.399994)
+uv = PackedVector2Array(191, 272, 187.62962, 272.77777, 205.46666, 259.4)
+
+[node name="jaw_3" type="Polygon2D" parent="." unique_id=1814111869]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(51.10704, 58.842255, 56.294113, 51.198135, 67, 45)
+uv = PackedVector2Array(206.10704, 258.84225, 211.29411, 251.19814, 222, 245)
+
+[node name="jaw_4" type="Polygon2D" parent="." unique_id=755098927]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(8.523132, 74.93689, 10, 78, -1.8695679, 67.82608)
+uv = PackedVector2Array(163.52313, 274.9369, 165, 278, 153.13043, 267.82608)
+
+[node name="jaw_5" type="Polygon2D" parent="." unique_id=1163358187]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-6.5232544, 63.83722, -11, 60, -12.486481, 50.58557)
+uv = PackedVector2Array(148.47675, 263.83722, 144, 260, 142.51352, 250.58557)
+
+[node name="jaw_6" type="Polygon2D" parent="." unique_id=1725772588]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-12.665131, 30.990814, -14.16217, 39.97296, -17, 22)
+uv = PackedVector2Array(142.33487, 230.99081, 140.83783, 239.97296, 138, 222)
+
+[node name="jaw_7" type="Polygon2D" parent="." unique_id=21539129]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(11.625, 77.059204, 10, 78, 11.124207, 76.71655)
+uv = PackedVector2Array(166.625, 277.0592, 165, 278, 166.1242, 276.71655)
+
+[node name="jaw_8" type="Polygon2D" parent="." unique_id=870296232]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(67, 45, 56.294113, 51.198135, 67.31419, 34.958023)
+uv = PackedVector2Array(222, 245, 211.29411, 251.19814, 222.3142, 234.95802)
+
+[node name="jaw_9" type="Polygon2D" parent="." unique_id=1608934783]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(8.689072, 75.050415, 10, 78, 8.523132, 74.93689)
+uv = PackedVector2Array(163.68907, 275.0504, 165, 278, 163.52313, 274.9369)
+
+[node name="leg_l" type="Polygon2D" parent="." unique_id=797168308]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-87, 82, -78, 101, -66, 92, -61, 80, -61, 190, -155, 190, -155, 70, -103, 70)
+uv = PackedVector2Array(68, 282, 77, 301, 89, 292, 94, 280, 94, 390, 0, 390, 0, 270, 52, 270)
+
+[node name="leg_r" type="Polygon2D" parent="." unique_id=1118758395]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(155, 190, 41, 190, 41, 124, 76, 115, 92, 85, 155, 85)
+uv = PackedVector2Array(310, 390, 196, 390, 196, 324, 231, 315, 247, 285, 310, 285)
+
+[node name="socket_foot_body_0" type="Polygon2D" parent="." unique_id=992532691]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-35, 109, -37, 109, -37, 110, -40, 110, -40, 111, -43, 111, -43, 112, -45, 112, -45, 113, -47, 113, -48, 117, -49, 117, -50, 125, -51, 125, -51, 128, -50, 128, -50, 129, -48, 129, -48, 130, -46, 130, -46, 131, -38, 131, -38, 129, -37, 129, -37, 128, -36, 128, -36, 127, -35, 127, -34, 125, -30, 125, -30, 123, -29, 123, -29, 114, -30, 114, -30, 112, -31, 112, -31, 110, -33, 109, -33, 108, -35, 108)
+uv = PackedVector2Array(120, 309, 118, 309, 118, 310, 115, 310, 115, 311, 112, 311, 112, 312, 110, 312, 110, 313, 108, 313, 107, 317, 106, 317, 105, 325, 104, 325, 104, 328, 105, 328, 105, 329, 107, 329, 107, 330, 109, 330, 109, 331, 117, 331, 117, 329, 118, 329, 118, 328, 119, 328, 119, 327, 120, 327, 121, 325, 125, 325, 125, 323, 126, 323, 126, 314, 125, 314, 125, 312, 124, 312, 124, 310, 122, 309, 122, 308, 120, 308)
+
+[node name="socket_foot_foot_0" type="Polygon2D" parent="." unique_id=1776395603]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-35, 109, -37, 109, -37, 110, -40, 110, -40, 111, -43, 111, -43, 112, -45, 112, -45, 113, -47, 113, -48, 117, -49, 117, -50, 125, -51, 125, -51, 128, -50, 128, -50, 129, -48, 129, -48, 130, -46, 130, -46, 131, -38, 131, -38, 129, -37, 129, -37, 128, -36, 128, -36, 127, -35, 127, -34, 125, -30, 125, -30, 123, -29, 123, -29, 114, -30, 114, -30, 112, -31, 112, -31, 110, -33, 109, -33, 108, -35, 108)
+uv = PackedVector2Array(120, 309, 118, 309, 118, 310, 115, 310, 115, 311, 112, 311, 112, 312, 110, 312, 110, 313, 108, 313, 107, 317, 106, 317, 105, 325, 104, 325, 104, 328, 105, 328, 105, 329, 107, 329, 107, 330, 109, 330, 109, 331, 117, 331, 117, 329, 118, 329, 118, 328, 119, 328, 119, 327, 120, 327, 121, 325, 125, 325, 125, 323, 126, 323, 126, 314, 125, 314, 125, 312, 124, 312, 124, 310, 122, 309, 122, 308, 120, 308)
+
+[node name="socket_knee_l_arm_l_0" type="Polygon2D" parent="." unique_id=13292047]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-82, 79, -84, 79, -84, 83, -85, 83, -85, 86, -87, 86, -87, 88, -92, 88, -92, 99, -91, 99, -91, 101, -90, 101, -90, 103, -88, 103, -88, 104, -84, 104, -84, 105, -80, 105, -80, 106, -74, 106, -74, 105, -72, 105, -72, 104, -70, 104, -70, 103, -69, 103, -69, 101, -68, 101, -68, 95, -67, 95, -67, 91, -66, 91, -66, 86, -67, 86, -67, 83, -68, 83, -68, 82, -69, 82, -69, 81, -70, 81, -70, 80, -72, 79, -72, 78, -82, 78)
+uv = PackedVector2Array(73, 279, 71, 279, 71, 283, 70, 283, 70, 286, 68, 286, 68, 288, 63, 288, 63, 299, 64, 299, 64, 301, 65, 301, 65, 303, 67, 303, 67, 304, 71, 304, 71, 305, 75, 305, 75, 306, 81, 306, 81, 305, 83, 305, 83, 304, 85, 304, 85, 303, 86, 303, 86, 301, 87, 301, 87, 295, 88, 295, 88, 291, 89, 291, 89, 286, 88, 286, 88, 283, 87, 283, 87, 282, 86, 282, 86, 281, 85, 281, 85, 280, 83, 279, 83, 278, 73, 278)
+
+[node name="socket_knee_l_leg_l_0" type="Polygon2D" parent="." unique_id=1038984819]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-82, 79, -84, 79, -84, 83, -85, 83, -85, 86, -87, 86, -87, 88, -92, 88, -92, 99, -91, 99, -91, 101, -90, 101, -90, 103, -88, 103, -88, 104, -84, 104, -84, 105, -80, 105, -80, 106, -74, 106, -74, 105, -72, 105, -72, 104, -70, 104, -70, 103, -69, 103, -69, 101, -68, 101, -68, 95, -67, 95, -67, 91, -66, 91, -66, 86, -67, 86, -67, 83, -68, 83, -68, 82, -69, 82, -69, 81, -70, 81, -70, 80, -72, 79, -72, 78, -82, 78)
+uv = PackedVector2Array(73, 279, 71, 279, 71, 283, 70, 283, 70, 286, 68, 286, 68, 288, 63, 288, 63, 299, 64, 299, 64, 301, 65, 301, 65, 303, 67, 303, 67, 304, 71, 304, 71, 305, 75, 305, 75, 306, 81, 306, 81, 305, 83, 305, 83, 304, 85, 304, 85, 303, 86, 303, 86, 301, 87, 301, 87, 295, 88, 295, 88, 291, 89, 291, 89, 286, 88, 286, 88, 283, 87, 283, 87, 282, 86, 282, 86, 281, 85, 281, 85, 280, 83, 279, 83, 278, 73, 278)
+
+[node name="socket_knee_r_arm_r_0" type="Polygon2D" parent="." unique_id=1383589541]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(87, 76, 85, 76, 85, 77, 83, 77, 83, 78, 82, 78, 81, 80, 79, 80, 79, 81, 77, 81, 77, 91, 78, 91, 78, 93, 79, 93, 79, 95, 80, 95, 80, 96, 81, 96, 81, 97, 83, 98, 83, 99, 86, 99, 86, 100, 88, 100, 88, 101, 98, 101, 98, 100, 100, 100, 100, 99, 102, 99, 102, 98, 103, 98, 103, 97, 104, 97, 105, 95, 106, 95, 106, 91, 105, 91, 105, 90, 104, 90, 104, 87, 103, 87, 103, 84, 102, 84, 102, 82, 101, 82, 101, 80, 100, 80, 100, 79, 98, 78, 98, 77, 96, 77, 96, 76, 92, 76, 92, 75, 87, 75)
+uv = PackedVector2Array(242, 276, 240, 276, 240, 277, 238, 277, 238, 278, 237, 278, 236, 280, 234, 280, 234, 281, 232, 281, 232, 291, 233, 291, 233, 293, 234, 293, 234, 295, 235, 295, 235, 296, 236, 296, 236, 297, 238, 298, 238, 299, 241, 299, 241, 300, 243, 300, 243, 301, 253, 301, 253, 300, 255, 300, 255, 299, 257, 299, 257, 298, 258, 298, 258, 297, 259, 297, 260, 295, 261, 295, 261, 291, 260, 291, 260, 290, 259, 290, 259, 287, 258, 287, 258, 284, 257, 284, 257, 282, 256, 282, 256, 280, 255, 280, 255, 279, 253, 278, 253, 277, 251, 277, 251, 276, 247, 276, 247, 275, 242, 275)
+
+[node name="socket_knee_r_leg_r_0" type="Polygon2D" parent="." unique_id=1794133055]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(87, 76, 85, 76, 85, 77, 83, 77, 83, 78, 82, 78, 81, 80, 79, 80, 79, 81, 77, 81, 77, 91, 78, 91, 78, 93, 79, 93, 79, 95, 80, 95, 80, 96, 81, 96, 81, 97, 83, 98, 83, 99, 86, 99, 86, 100, 88, 100, 88, 101, 98, 101, 98, 100, 100, 100, 100, 99, 102, 99, 102, 98, 103, 98, 103, 97, 104, 97, 105, 95, 106, 95, 106, 91, 105, 91, 105, 90, 104, 90, 104, 87, 103, 87, 103, 84, 102, 84, 102, 82, 101, 82, 101, 80, 100, 80, 100, 79, 98, 78, 98, 77, 96, 77, 96, 76, 92, 76, 92, 75, 87, 75)
+uv = PackedVector2Array(242, 276, 240, 276, 240, 277, 238, 277, 238, 278, 237, 278, 236, 280, 234, 280, 234, 281, 232, 281, 232, 291, 233, 291, 233, 293, 234, 293, 234, 295, 235, 295, 235, 296, 236, 296, 236, 297, 238, 298, 238, 299, 241, 299, 241, 300, 243, 300, 243, 301, 253, 301, 253, 300, 255, 300, 255, 299, 257, 299, 257, 298, 258, 298, 258, 297, 259, 297, 260, 295, 261, 295, 261, 291, 260, 291, 260, 290, 259, 290, 259, 287, 258, 287, 258, 284, 257, 284, 257, 282, 256, 282, 256, 280, 255, 280, 255, 279, 253, 278, 253, 277, 251, 277, 251, 276, 247, 276, 247, 275, 242, 275)
+
+[node name="socket_neck_body_0_0" type="Polygon2D" parent="." unique_id=1962949315]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-5, -66, -5, -67, 14, -67)
+uv = PackedVector2Array(150, 134, 150, 133, 169, 133)
+
+[node name="socket_neck_body_0_1" type="Polygon2D" parent="." unique_id=120094889]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(18, -65, 14, -66, 18, -66)
+uv = PackedVector2Array(173, 135, 169, 134, 173, 134)
+
+[node name="socket_neck_body_0_10" type="Polygon2D" parent="." unique_id=2088455736]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(36, -54, 35, -55, 36, -55)
+uv = PackedVector2Array(191, 146, 190, 145, 191, 145)
+
+[node name="socket_neck_body_0_100" type="Polygon2D" parent="." unique_id=2001624009]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-26, -51, -22, -58, -18, -61)
+uv = PackedVector2Array(129, 149, 133, 142, 137, 139)
+
+[node name="socket_neck_body_0_101" type="Polygon2D" parent="." unique_id=1540972227]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-16, -62, -14, -63, -9, -65)
+uv = PackedVector2Array(139, 138, 141, 137, 146, 135)
+
+[node name="socket_neck_body_0_102" type="Polygon2D" parent="." unique_id=331978135]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(23, -63, -9, -65, 14, -66)
+uv = PackedVector2Array(178, 137, 146, 135, 169, 134)
+
+[node name="socket_neck_body_0_103" type="Polygon2D" parent="." unique_id=15741322]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(31, -58, 35, -55, 23, -63)
+uv = PackedVector2Array(186, 142, 190, 145, 178, 137)
+
+[node name="socket_neck_body_0_104" type="Polygon2D" parent="." unique_id=1508333229]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(36, -54, 40, -49, 35, -55)
+uv = PackedVector2Array(191, 146, 195, 151, 190, 145)
+
+[node name="socket_neck_body_0_105" type="Polygon2D" parent="." unique_id=779168633]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(44, -43, 47, -36, 40, -49)
+uv = PackedVector2Array(199, 157, 202, 164, 195, 151)
+
+[node name="socket_neck_body_0_106" type="Polygon2D" parent="." unique_id=1083496683]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(48, -13, 45.020233, -4.805664, 44.26033, -4.950409, 47, -36)
+uv = PackedVector2Array(203, 187, 200.02023, 195.19434, 199.26033, 195.04959, 202, 164)
+
+[node name="socket_neck_body_0_107" type="Polygon2D" parent="." unique_id=1151861806]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-10.536087, 18.216492, -10.684204, 19.105255, -14, 18)
+uv = PackedVector2Array(144.46391, 218.21649, 144.3158, 219.10526, 141, 218)
+
+[node name="socket_neck_body_0_108" type="Polygon2D" parent="." unique_id=649783516]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-14, 18, -16, 17, -22, 13)
+uv = PackedVector2Array(141, 218, 139, 217, 133, 213)
+
+[node name="socket_neck_body_0_109" type="Polygon2D" parent="." unique_id=812740366]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-22, 13, -26, 10, -28, 8)
+uv = PackedVector2Array(133, 213, 129, 210, 127, 208)
+
+[node name="socket_neck_body_0_11" type="Polygon2D" parent="." unique_id=636068856]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(37, -53, 36, -54, 37, -54)
+uv = PackedVector2Array(192, 147, 191, 146, 192, 146)
+
+[node name="socket_neck_body_0_110" type="Polygon2D" parent="." unique_id=717443266]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-28, 8, -31, 4, -35, -2)
+uv = PackedVector2Array(127, 208, 124, 204, 120, 198)
+
+[node name="socket_neck_body_0_111" type="Polygon2D" parent="." unique_id=138928778]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-35, -2, -38, -9, -39, -32)
+uv = PackedVector2Array(120, 198, 117, 191, 116, 168)
+
+[node name="socket_neck_body_0_112" type="Polygon2D" parent="." unique_id=1151831343]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-33, -38, -33, -42, -28, -49)
+uv = PackedVector2Array(122, 162, 122, 158, 127, 151)
+
+[node name="socket_neck_body_0_113" type="Polygon2D" parent="." unique_id=1281576141]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-26, -51, -18, -61, -16, -62)
+uv = PackedVector2Array(129, 149, 137, 139, 139, 138)
+
+[node name="socket_neck_body_0_114" type="Polygon2D" parent="." unique_id=376431900]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(23, -63, -16, -62, -9, -65)
+uv = PackedVector2Array(178, 137, 139, 138, 146, 135)
+
+[node name="socket_neck_body_0_115" type="Polygon2D" parent="." unique_id=931648873]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(35, -55, 40, -49, 23, -63)
+uv = PackedVector2Array(190, 145, 195, 151, 178, 137)
+
+[node name="socket_neck_body_0_116" type="Polygon2D" parent="." unique_id=159974411]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(47, -36, 44.26033, -4.950409, 44, -5, 43.74469, -5, 40, -49)
+uv = PackedVector2Array(202, 164, 199.26033, 195.04959, 199, 195, 198.74469, 195, 195, 151)
+
+[node name="socket_neck_body_0_117" type="Polygon2D" parent="." unique_id=1455697577]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-10.536087, 18.216492, -14, 18, -10.43396, 17.60376)
+uv = PackedVector2Array(144.46391, 218.21649, 141, 218, 144.56604, 217.60376)
+
+[node name="socket_neck_body_0_118" type="Polygon2D" parent="." unique_id=1710137342]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-14, 18, -22, 13, -28, 8)
+uv = PackedVector2Array(141, 218, 133, 213, 127, 208)
+
+[node name="socket_neck_body_0_119" type="Polygon2D" parent="." unique_id=139718672]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-28, 8, -35, -2, -39, -32)
+uv = PackedVector2Array(127, 208, 120, 198, 116, 168)
+
+[node name="socket_neck_body_0_12" type="Polygon2D" parent="." unique_id=1392179819]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(39, -52, 39, -51, 37, -53)
+uv = PackedVector2Array(194, 148, 194, 149, 192, 147)
+
+[node name="socket_neck_body_0_120" type="Polygon2D" parent="." unique_id=1305687917]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-33, -38, -28, -49, -26, -51)
+uv = PackedVector2Array(122, 162, 127, 151, 129, 149)
+
+[node name="socket_neck_body_0_121" type="Polygon2D" parent="." unique_id=81037932]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-26, -51, -16, -62, 23, -63)
+uv = PackedVector2Array(129, 149, 139, 138, 178, 137)
+
+[node name="socket_neck_body_0_122" type="Polygon2D" parent="." unique_id=988517396]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(40, -49, 43.74469, -5, 42.967224, -5, 23, -63)
+uv = PackedVector2Array(195, 151, 198.74469, 195, 197.96722, 195, 178, 137)
+
+[node name="socket_neck_body_0_123" type="Polygon2D" parent="." unique_id=69550208]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-10.43396, 17.60376, -14, 18, -10.286591, 16.719513)
+uv = PackedVector2Array(144.56604, 217.60376, 141, 218, 144.71341, 216.71951)
+
+[node name="socket_neck_body_0_124" type="Polygon2D" parent="." unique_id=251324412]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-14, 18, -28, 8, -39, -32)
+uv = PackedVector2Array(141, 218, 127, 208, 116, 168)
+
+[node name="socket_neck_body_0_125" type="Polygon2D" parent="." unique_id=1435896705]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-33, -38, -26, -51, 23, -63)
+uv = PackedVector2Array(122, 162, 129, 149, 178, 137)
+
+[node name="socket_neck_body_0_126" type="Polygon2D" parent="." unique_id=2120485887]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(42.967224, -5, 21, -5, 1, 4, -10, 15, -10.286591, 16.719513, -14, 18, 23, -63)
+uv = PackedVector2Array(197.96722, 195, 176, 195, 156, 204, 145, 215, 144.71341, 216.71951, 141, 218, 178, 137)
+
+[node name="socket_neck_body_0_127" type="Polygon2D" parent="." unique_id=470815642]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-14, 18, -39, -32, -36, -35)
+uv = PackedVector2Array(141, 218, 116, 168, 119, 165)
+
+[node name="socket_neck_body_0_128" type="Polygon2D" parent="." unique_id=1165880508]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-34, -37, -33, -38, 23, -63)
+uv = PackedVector2Array(121, 163, 122, 162, 178, 137)
+
+[node name="socket_neck_body_0_129" type="Polygon2D" parent="." unique_id=1969385940]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-14, 18, -36, -35, 23, -63)
+uv = PackedVector2Array(141, 218, 119, 165, 178, 137)
+
+[node name="socket_neck_body_0_13" type="Polygon2D" parent="." unique_id=1538805666]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(40, -49, 39, -51, 40, -51)
+uv = PackedVector2Array(195, 151, 194, 149, 195, 149)
+
+[node name="socket_neck_body_0_130" type="Polygon2D" parent="." unique_id=76079860]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-36, -35, -34, -37, 23, -63)
+uv = PackedVector2Array(119, 165, 121, 163, 178, 137)
+
+[node name="socket_neck_body_0_14" type="Polygon2D" parent="." unique_id=1583381514]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(42, -48, 42, -47, 40, -49)
+uv = PackedVector2Array(197, 152, 197, 153, 195, 151)
+
+[node name="socket_neck_body_0_15" type="Polygon2D" parent="." unique_id=66408948]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(43, -45, 42, -47, 43, -47)
+uv = PackedVector2Array(198, 155, 197, 153, 198, 153)
+
+[node name="socket_neck_body_0_16" type="Polygon2D" parent="." unique_id=406966317]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(44, -43, 43, -45, 44, -45)
+uv = PackedVector2Array(199, 157, 198, 155, 199, 155)
+
+[node name="socket_neck_body_0_17" type="Polygon2D" parent="." unique_id=1174901415]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(45, -41, 44, -43, 45, -43)
+uv = PackedVector2Array(200, 159, 199, 157, 200, 157)
+
+[node name="socket_neck_body_0_18" type="Polygon2D" parent="." unique_id=1626115786]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(46, -39, 45, -41, 46, -41)
+uv = PackedVector2Array(201, 161, 200, 159, 201, 159)
+
+[node name="socket_neck_body_0_19" type="Polygon2D" parent="." unique_id=1364837260]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(47, -36, 46, -39, 47, -39)
+uv = PackedVector2Array(202, 164, 201, 161, 202, 161)
+
+[node name="socket_neck_body_0_2" type="Polygon2D" parent="." unique_id=1997976355]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(21, -64, 18, -65, 21, -65)
+uv = PackedVector2Array(176, 136, 173, 135, 176, 135)
+
+[node name="socket_neck_body_0_20" type="Polygon2D" parent="." unique_id=1264691562]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(48, -32, 47, -36, 48, -36)
+uv = PackedVector2Array(203, 168, 202, 164, 203, 164)
+
+[node name="socket_neck_body_0_21" type="Polygon2D" parent="." unique_id=512251578]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(49, -13, 48, -32, 49, -32)
+uv = PackedVector2Array(204, 187, 203, 168, 204, 168)
+
+[node name="socket_neck_body_0_22" type="Polygon2D" parent="." unique_id=680834367]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(48, -9, 47, -9, 48, -13)
+uv = PackedVector2Array(203, 191, 202, 191, 203, 187)
+
+[node name="socket_neck_body_0_23" type="Polygon2D" parent="." unique_id=1975893190]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(47, -6, 46, -6, 47, -9)
+uv = PackedVector2Array(202, 194, 201, 194, 202, 191)
+
+[node name="socket_neck_body_0_24" type="Polygon2D" parent="." unique_id=2093459583]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(45.67044, -4.6818237, 45.369568, -4.7391357, 46, -6)
+uv = PackedVector2Array(200.67044, 195.31818, 200.36957, 195.26086, 201, 194)
+
+[node name="socket_neck_body_0_25" type="Polygon2D" parent="." unique_id=1353528805]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-10.736847, 19.421051, -10.8333435, 20, -12, 20, -12, 19)
+uv = PackedVector2Array(144.26315, 219.42105, 144.16666, 220, 143, 220, 143, 219)
+
+[node name="socket_neck_body_0_26" type="Polygon2D" parent="." unique_id=326262176]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-12, 19, -14, 19, -14, 18)
+uv = PackedVector2Array(143, 219, 141, 219, 141, 218)
+
+[node name="socket_neck_body_0_27" type="Polygon2D" parent="." unique_id=2038394858]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-14, 18, -16, 18, -16, 17)
+uv = PackedVector2Array(141, 218, 139, 218, 139, 217)
+
+[node name="socket_neck_body_0_28" type="Polygon2D" parent="." unique_id=480062071]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-16, 17, -18, 17, -18, 16)
+uv = PackedVector2Array(139, 217, 137, 217, 137, 216)
+
+[node name="socket_neck_body_0_29" type="Polygon2D" parent="." unique_id=605910943]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-18, 16, -20, 16, -20, 15)
+uv = PackedVector2Array(137, 216, 135, 216, 135, 215)
+
+[node name="socket_neck_body_0_3" type="Polygon2D" parent="." unique_id=2058132029]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(23, -63, 21, -64, 23, -64)
+uv = PackedVector2Array(178, 137, 176, 136, 178, 136)
+
+[node name="socket_neck_body_0_30" type="Polygon2D" parent="." unique_id=675998973]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-20, 15, -22, 14, -22, 13)
+uv = PackedVector2Array(135, 215, 133, 214, 133, 213)
+
+[node name="socket_neck_body_0_31" type="Polygon2D" parent="." unique_id=1107528661]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-22, 13, -24, 13, -24, 12)
+uv = PackedVector2Array(133, 213, 131, 213, 131, 212)
+
+[node name="socket_neck_body_0_32" type="Polygon2D" parent="." unique_id=1880368485]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-24, 12, -25, 12, -25, 11)
+uv = PackedVector2Array(131, 212, 130, 212, 130, 211)
+
+[node name="socket_neck_body_0_33" type="Polygon2D" parent="." unique_id=826822878]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-25, 11, -26, 11, -26, 10)
+uv = PackedVector2Array(130, 211, 129, 211, 129, 210)
+
+[node name="socket_neck_body_0_34" type="Polygon2D" parent="." unique_id=2131146077]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-26, 10, -28, 9, -28, 8)
+uv = PackedVector2Array(129, 210, 127, 209, 127, 208)
+
+[node name="socket_neck_body_0_35" type="Polygon2D" parent="." unique_id=556644142]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-28, 8, -29, 8, -29, 7)
+uv = PackedVector2Array(127, 208, 126, 208, 126, 207)
+
+[node name="socket_neck_body_0_36" type="Polygon2D" parent="." unique_id=1099023087]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-29, 7, -30, 7, -30, 6)
+uv = PackedVector2Array(126, 207, 125, 207, 125, 206)
+
+[node name="socket_neck_body_0_37" type="Polygon2D" parent="." unique_id=679775783]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-30, 6, -31, 6, -31, 4)
+uv = PackedVector2Array(125, 206, 124, 206, 124, 204)
+
+[node name="socket_neck_body_0_38" type="Polygon2D" parent="." unique_id=807813752]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-31, 4, -32, 4, -32, 3)
+uv = PackedVector2Array(124, 204, 123, 204, 123, 203)
+
+[node name="socket_neck_body_0_39" type="Polygon2D" parent="." unique_id=103076039]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-32, 3, -34, 2, -34, 0)
+uv = PackedVector2Array(123, 203, 121, 202, 121, 200)
+
+[node name="socket_neck_body_0_4" type="Polygon2D" parent="." unique_id=537450194]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(27, -62, 27, -61, 23, -63)
+uv = PackedVector2Array(182, 138, 182, 139, 178, 137)
+
+[node name="socket_neck_body_0_40" type="Polygon2D" parent="." unique_id=1343352759]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-34, 0, -35, 0, -35, -2)
+uv = PackedVector2Array(121, 200, 120, 200, 120, 198)
+
+[node name="socket_neck_body_0_41" type="Polygon2D" parent="." unique_id=951126670]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-35, -2, -36, -2, -36, -4)
+uv = PackedVector2Array(120, 198, 119, 198, 119, 196)
+
+[node name="socket_neck_body_0_42" type="Polygon2D" parent="." unique_id=1234927064]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-36, -4, -37, -4, -37, -6)
+uv = PackedVector2Array(119, 196, 118, 196, 118, 194)
+
+[node name="socket_neck_body_0_43" type="Polygon2D" parent="." unique_id=2121280551]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-37, -6, -38, -6, -38, -9)
+uv = PackedVector2Array(118, 194, 117, 194, 117, 191)
+
+[node name="socket_neck_body_0_44" type="Polygon2D" parent="." unique_id=199817674]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-38, -9, -39, -9, -39, -13)
+uv = PackedVector2Array(117, 191, 116, 191, 116, 187)
+
+[node name="socket_neck_body_0_45" type="Polygon2D" parent="." unique_id=1133211328]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-39, -13, -40, -13, -40, -32)
+uv = PackedVector2Array(116, 187, 115, 187, 115, 168)
+
+[node name="socket_neck_body_0_46" type="Polygon2D" parent="." unique_id=642034028]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-39, -32, -39, -34, -38, -34)
+uv = PackedVector2Array(116, 168, 116, 166, 117, 166)
+
+[node name="socket_neck_body_0_47" type="Polygon2D" parent="." unique_id=114625239]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-38, -34, -38, -35, -36, -35)
+uv = PackedVector2Array(117, 166, 117, 165, 119, 165)
+
+[node name="socket_neck_body_0_48" type="Polygon2D" parent="." unique_id=847589326]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-36, -35, -35, -37, -34, -37)
+uv = PackedVector2Array(119, 165, 120, 163, 121, 163)
+
+[node name="socket_neck_body_0_49" type="Polygon2D" parent="." unique_id=1005569612]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-34, -37, -34, -38, -33, -38)
+uv = PackedVector2Array(121, 163, 121, 162, 122, 162)
+
+[node name="socket_neck_body_0_5" type="Polygon2D" parent="." unique_id=246268769]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(29, -60, 27, -61, 29, -61)
+uv = PackedVector2Array(184, 140, 182, 139, 184, 139)
+
+[node name="socket_neck_body_0_50" type="Polygon2D" parent="." unique_id=2017191040]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-33, -42, -34, -42, -34, -47)
+uv = PackedVector2Array(122, 158, 121, 158, 121, 153)
+
+[node name="socket_neck_body_0_51" type="Polygon2D" parent="." unique_id=1779499030]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-33, -47, -32, -49, -28, -49)
+uv = PackedVector2Array(122, 153, 123, 151, 127, 151)
+
+[node name="socket_neck_body_0_52" type="Polygon2D" parent="." unique_id=178915187]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-28, -49, -28, -51, -26, -51)
+uv = PackedVector2Array(127, 151, 127, 149, 129, 149)
+
+[node name="socket_neck_body_0_53" type="Polygon2D" parent="." unique_id=1658501875]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-26, -51, -26, -56, -24, -57)
+uv = PackedVector2Array(129, 149, 129, 144, 131, 143)
+
+[node name="socket_neck_body_0_54" type="Polygon2D" parent="." unique_id=1642199410]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-24, -57, -24, -58, -22, -58)
+uv = PackedVector2Array(131, 143, 131, 142, 133, 142)
+
+[node name="socket_neck_body_0_55" type="Polygon2D" parent="." unique_id=710953896]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-22, -58, -21, -60, -20, -60)
+uv = PackedVector2Array(133, 142, 134, 140, 135, 140)
+
+[node name="socket_neck_body_0_56" type="Polygon2D" parent="." unique_id=1876694757]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-20, -60, -20, -61, -18, -61)
+uv = PackedVector2Array(135, 140, 135, 139, 137, 139)
+
+[node name="socket_neck_body_0_57" type="Polygon2D" parent="." unique_id=1040518250]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-18, -61, -18, -62, -16, -62)
+uv = PackedVector2Array(137, 139, 137, 138, 139, 138)
+
+[node name="socket_neck_body_0_58" type="Polygon2D" parent="." unique_id=35687100]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-16, -62, -16, -63, -14, -63)
+uv = PackedVector2Array(139, 138, 139, 137, 141, 137)
+
+[node name="socket_neck_body_0_59" type="Polygon2D" parent="." unique_id=1756229178]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-14, -63, -14, -64, -12, -64)
+uv = PackedVector2Array(141, 137, 141, 136, 143, 136)
+
+[node name="socket_neck_body_0_6" type="Polygon2D" parent="." unique_id=308551179]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(31, -59, 31, -58, 29, -60)
+uv = PackedVector2Array(186, 141, 186, 142, 184, 140)
+
+[node name="socket_neck_body_0_60" type="Polygon2D" parent="." unique_id=1681020497]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-12, -64, -12, -65, -9, -65)
+uv = PackedVector2Array(143, 136, 143, 135, 146, 135)
+
+[node name="socket_neck_body_0_61" type="Polygon2D" parent="." unique_id=1698259753]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-9, -65, -9, -66, -5, -66)
+uv = PackedVector2Array(146, 135, 146, 134, 150, 134)
+
+[node name="socket_neck_body_0_62" type="Polygon2D" parent="." unique_id=1349197868]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(14, -66, -5, -66, 14, -67)
+uv = PackedVector2Array(169, 134, 150, 134, 169, 133)
+
+[node name="socket_neck_body_0_63" type="Polygon2D" parent="." unique_id=73066154]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(18, -65, 21, -64, 14, -66)
+uv = PackedVector2Array(173, 135, 176, 136, 169, 134)
+
+[node name="socket_neck_body_0_64" type="Polygon2D" parent="." unique_id=727433835]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(29, -60, 31, -58, 27, -61)
+uv = PackedVector2Array(184, 140, 186, 142, 182, 139)
+
+[node name="socket_neck_body_0_65" type="Polygon2D" parent="." unique_id=1219497061]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(33, -57, 34, -56, 31, -58)
+uv = PackedVector2Array(188, 143, 189, 144, 186, 142)
+
+[node name="socket_neck_body_0_66" type="Polygon2D" parent="." unique_id=1167922086]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(39, -51, 40, -49, 37, -53)
+uv = PackedVector2Array(194, 149, 195, 151, 192, 147)
+
+[node name="socket_neck_body_0_67" type="Polygon2D" parent="." unique_id=1983722799]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(42, -47, 43, -45, 40, -49)
+uv = PackedVector2Array(197, 153, 198, 155, 195, 151)
+
+[node name="socket_neck_body_0_68" type="Polygon2D" parent="." unique_id=987527126]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(46, -39, 47, -36, 45, -41)
+uv = PackedVector2Array(201, 161, 202, 164, 200, 159)
+
+[node name="socket_neck_body_0_69" type="Polygon2D" parent="." unique_id=1229475568]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(48, -32, 49, -13, 47, -36)
+uv = PackedVector2Array(203, 168, 204, 187, 202, 164)
+
+[node name="socket_neck_body_0_7" type="Polygon2D" parent="." unique_id=339937854]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(33, -57, 31, -58, 33, -58)
+uv = PackedVector2Array(188, 143, 186, 142, 188, 142)
+
+[node name="socket_neck_body_0_70" type="Polygon2D" parent="." unique_id=1410787957]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(47, -9, 46, -6, 48, -13)
+uv = PackedVector2Array(202, 191, 201, 194, 203, 187)
+
+[node name="socket_neck_body_0_71" type="Polygon2D" parent="." unique_id=811997102]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-10.72728, 19.363632, -10.736847, 19.421051, -12, 19)
+uv = PackedVector2Array(144.27272, 219.36363, 144.26315, 219.42105, 143, 219)
+
+[node name="socket_neck_body_0_72" type="Polygon2D" parent="." unique_id=149467314]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-18, 16, -20, 15, -22, 13)
+uv = PackedVector2Array(137, 216, 135, 215, 133, 213)
+
+[node name="socket_neck_body_0_73" type="Polygon2D" parent="." unique_id=566659423]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-22, 13, -24, 12, -25, 11)
+uv = PackedVector2Array(133, 213, 131, 212, 130, 211)
+
+[node name="socket_neck_body_0_74" type="Polygon2D" parent="." unique_id=421900305]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-29, 7, -30, 6, -31, 4)
+uv = PackedVector2Array(126, 207, 125, 206, 124, 204)
+
+[node name="socket_neck_body_0_75" type="Polygon2D" parent="." unique_id=806635873]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-31, 4, -32, 3, -34, 0)
+uv = PackedVector2Array(124, 204, 123, 203, 121, 200)
+
+[node name="socket_neck_body_0_76" type="Polygon2D" parent="." unique_id=2078286805]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-36, -4, -37, -6, -38, -9)
+uv = PackedVector2Array(119, 196, 118, 194, 117, 191)
+
+[node name="socket_neck_body_0_77" type="Polygon2D" parent="." unique_id=1495952311]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-38, -9, -39, -13, -40, -32)
+uv = PackedVector2Array(117, 191, 116, 187, 115, 168)
+
+[node name="socket_neck_body_0_78" type="Polygon2D" parent="." unique_id=1155091986]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-39, -32, -38, -34, -36, -35)
+uv = PackedVector2Array(116, 168, 117, 166, 119, 165)
+
+[node name="socket_neck_body_0_79" type="Polygon2D" parent="." unique_id=69037612]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-33, -42, -34, -47, -33, -47)
+uv = PackedVector2Array(122, 158, 121, 153, 122, 153)
+
+[node name="socket_neck_body_0_8" type="Polygon2D" parent="." unique_id=1665707202]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(34, -56, 33, -57, 34, -57)
+uv = PackedVector2Array(189, 144, 188, 143, 189, 143)
+
+[node name="socket_neck_body_0_80" type="Polygon2D" parent="." unique_id=1851930424]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-26, -51, -24, -57, -22, -58)
+uv = PackedVector2Array(129, 149, 131, 143, 133, 142)
+
+[node name="socket_neck_body_0_81" type="Polygon2D" parent="." unique_id=1258409476]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-22, -58, -20, -60, -18, -61)
+uv = PackedVector2Array(133, 142, 135, 140, 137, 139)
+
+[node name="socket_neck_body_0_82" type="Polygon2D" parent="." unique_id=1263704193]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-14, -63, -12, -64, -9, -65)
+uv = PackedVector2Array(141, 137, 143, 136, 146, 135)
+
+[node name="socket_neck_body_0_83" type="Polygon2D" parent="." unique_id=1571472156]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-9, -65, -5, -66, 14, -66)
+uv = PackedVector2Array(146, 135, 150, 134, 169, 134)
+
+[node name="socket_neck_body_0_84" type="Polygon2D" parent="." unique_id=113389479]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(21, -64, 23, -63, 14, -66)
+uv = PackedVector2Array(176, 136, 178, 137, 169, 134)
+
+[node name="socket_neck_body_0_85" type="Polygon2D" parent="." unique_id=542355739]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(27, -61, 31, -58, 23, -63)
+uv = PackedVector2Array(182, 139, 186, 142, 178, 137)
+
+[node name="socket_neck_body_0_86" type="Polygon2D" parent="." unique_id=2012513445]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(34, -56, 35, -55, 31, -58)
+uv = PackedVector2Array(189, 144, 190, 145, 186, 142)
+
+[node name="socket_neck_body_0_87" type="Polygon2D" parent="." unique_id=136992559]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(37, -53, 40, -49, 36, -54)
+uv = PackedVector2Array(192, 147, 195, 151, 191, 146)
+
+[node name="socket_neck_body_0_88" type="Polygon2D" parent="." unique_id=1507861008]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(43, -45, 44, -43, 40, -49)
+uv = PackedVector2Array(198, 155, 199, 157, 195, 151)
+
+[node name="socket_neck_body_0_89" type="Polygon2D" parent="." unique_id=1315065820]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(45, -41, 47, -36, 44, -43)
+uv = PackedVector2Array(200, 159, 202, 164, 199, 157)
+
+[node name="socket_neck_body_0_9" type="Polygon2D" parent="." unique_id=1593111863]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(35, -55, 34, -56, 35, -56)
+uv = PackedVector2Array(190, 145, 189, 144, 190, 144)
+
+[node name="socket_neck_body_0_90" type="Polygon2D" parent="." unique_id=1907601911]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(49, -13, 48, -13, 47, -36)
+uv = PackedVector2Array(204, 187, 203, 187, 202, 164)
+
+[node name="socket_neck_body_0_91" type="Polygon2D" parent="." unique_id=1908172695]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(46, -6, 45.369568, -4.7391357, 45.020233, -4.805664, 48, -13)
+uv = PackedVector2Array(201, 194, 200.36957, 195.26086, 200.02023, 195.19434, 203, 187)
+
+[node name="socket_neck_body_0_92" type="Polygon2D" parent="." unique_id=1242211419]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-10.684204, 19.105255, -10.72728, 19.363632, -12, 19, -14, 18)
+uv = PackedVector2Array(144.3158, 219.10526, 144.27272, 219.36363, 143, 219, 141, 218)
+
+[node name="socket_neck_body_0_93" type="Polygon2D" parent="." unique_id=1872062831]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-16, 17, -18, 16, -22, 13)
+uv = PackedVector2Array(139, 217, 137, 216, 133, 213)
+
+[node name="socket_neck_body_0_94" type="Polygon2D" parent="." unique_id=402649295]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-22, 13, -25, 11, -26, 10)
+uv = PackedVector2Array(133, 213, 130, 211, 129, 210)
+
+[node name="socket_neck_body_0_95" type="Polygon2D" parent="." unique_id=748672574]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-28, 8, -29, 7, -31, 4)
+uv = PackedVector2Array(127, 208, 126, 207, 124, 204)
+
+[node name="socket_neck_body_0_96" type="Polygon2D" parent="." unique_id=1309653441]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-31, 4, -34, 0, -35, -2)
+uv = PackedVector2Array(124, 204, 121, 200, 120, 198)
+
+[node name="socket_neck_body_0_97" type="Polygon2D" parent="." unique_id=2010322253]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-35, -2, -36, -4, -38, -9)
+uv = PackedVector2Array(120, 198, 119, 196, 117, 191)
+
+[node name="socket_neck_body_0_98" type="Polygon2D" parent="." unique_id=1359398156]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-38, -9, -40, -32, -39, -32)
+uv = PackedVector2Array(117, 191, 115, 168, 116, 168)
+
+[node name="socket_neck_body_0_99" type="Polygon2D" parent="." unique_id=369156070]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-33, -42, -33, -47, -28, -49)
+uv = PackedVector2Array(122, 158, 122, 153, 127, 151)
+
+[node name="socket_neck_head_0_0" type="Polygon2D" parent="." unique_id=385737278]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-5, -66, -5, -67, 14, -67)
+uv = PackedVector2Array(150, 134, 150, 133, 169, 133)
+
+[node name="socket_neck_head_0_1" type="Polygon2D" parent="." unique_id=1905510245]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(18, -65, 14, -66, 18, -66)
+uv = PackedVector2Array(173, 135, 169, 134, 173, 134)
+
+[node name="socket_neck_head_0_10" type="Polygon2D" parent="." unique_id=1291660664]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(36, -54, 35, -55, 36, -55)
+uv = PackedVector2Array(191, 146, 190, 145, 191, 145)
+
+[node name="socket_neck_head_0_100" type="Polygon2D" parent="." unique_id=1434983472]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-26, -51, -22, -58, -18, -61)
+uv = PackedVector2Array(129, 149, 133, 142, 137, 139)
+
+[node name="socket_neck_head_0_101" type="Polygon2D" parent="." unique_id=1222190208]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-16, -62, -14, -63, -9, -65)
+uv = PackedVector2Array(139, 138, 141, 137, 146, 135)
+
+[node name="socket_neck_head_0_102" type="Polygon2D" parent="." unique_id=758052390]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(23, -63, -9, -65, 14, -66)
+uv = PackedVector2Array(178, 137, 146, 135, 169, 134)
+
+[node name="socket_neck_head_0_103" type="Polygon2D" parent="." unique_id=173472934]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(31, -58, 35, -55, 23, -63)
+uv = PackedVector2Array(186, 142, 190, 145, 178, 137)
+
+[node name="socket_neck_head_0_104" type="Polygon2D" parent="." unique_id=2138273908]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(36, -54, 40, -49, 35, -55)
+uv = PackedVector2Array(191, 146, 195, 151, 190, 145)
+
+[node name="socket_neck_head_0_105" type="Polygon2D" parent="." unique_id=744813598]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(44, -43, 47, -36, 40, -49)
+uv = PackedVector2Array(199, 157, 202, 164, 195, 151)
+
+[node name="socket_neck_head_0_106" type="Polygon2D" parent="." unique_id=1792684689]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(48, -13, 45.020233, -4.805664, 44.26033, -4.950409, 47, -36)
+uv = PackedVector2Array(203, 187, 200.02023, 195.19434, 199.26033, 195.04959, 202, 164)
+
+[node name="socket_neck_head_0_107" type="Polygon2D" parent="." unique_id=1354161352]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-10.536087, 18.216492, -10.684204, 19.105255, -14, 18)
+uv = PackedVector2Array(144.46391, 218.21649, 144.3158, 219.10526, 141, 218)
+
+[node name="socket_neck_head_0_108" type="Polygon2D" parent="." unique_id=349200215]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-14, 18, -16, 17, -22, 13)
+uv = PackedVector2Array(141, 218, 139, 217, 133, 213)
+
+[node name="socket_neck_head_0_109" type="Polygon2D" parent="." unique_id=344417572]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-22, 13, -26, 10, -28, 8)
+uv = PackedVector2Array(133, 213, 129, 210, 127, 208)
+
+[node name="socket_neck_head_0_11" type="Polygon2D" parent="." unique_id=1317034735]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(37, -53, 36, -54, 37, -54)
+uv = PackedVector2Array(192, 147, 191, 146, 192, 146)
+
+[node name="socket_neck_head_0_110" type="Polygon2D" parent="." unique_id=844890870]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-28, 8, -31, 4, -35, -2)
+uv = PackedVector2Array(127, 208, 124, 204, 120, 198)
+
+[node name="socket_neck_head_0_111" type="Polygon2D" parent="." unique_id=1765811039]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-35, -2, -38, -9, -39, -32)
+uv = PackedVector2Array(120, 198, 117, 191, 116, 168)
+
+[node name="socket_neck_head_0_112" type="Polygon2D" parent="." unique_id=1018795757]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-33, -38, -33, -42, -28, -49)
+uv = PackedVector2Array(122, 162, 122, 158, 127, 151)
+
+[node name="socket_neck_head_0_113" type="Polygon2D" parent="." unique_id=1265965810]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-26, -51, -18, -61, -16, -62)
+uv = PackedVector2Array(129, 149, 137, 139, 139, 138)
+
+[node name="socket_neck_head_0_114" type="Polygon2D" parent="." unique_id=1171874434]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(23, -63, -16, -62, -9, -65)
+uv = PackedVector2Array(178, 137, 139, 138, 146, 135)
+
+[node name="socket_neck_head_0_115" type="Polygon2D" parent="." unique_id=1412253693]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(35, -55, 40, -49, 23, -63)
+uv = PackedVector2Array(190, 145, 195, 151, 178, 137)
+
+[node name="socket_neck_head_0_116" type="Polygon2D" parent="." unique_id=898893795]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(47, -36, 44.26033, -4.950409, 44, -5, 43.74469, -5, 40, -49)
+uv = PackedVector2Array(202, 164, 199.26033, 195.04959, 199, 195, 198.74469, 195, 195, 151)
+
+[node name="socket_neck_head_0_117" type="Polygon2D" parent="." unique_id=2157961]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-10.536087, 18.216492, -14, 18, -10.43396, 17.60376)
+uv = PackedVector2Array(144.46391, 218.21649, 141, 218, 144.56604, 217.60376)
+
+[node name="socket_neck_head_0_118" type="Polygon2D" parent="." unique_id=795820665]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-14, 18, -22, 13, -28, 8)
+uv = PackedVector2Array(141, 218, 133, 213, 127, 208)
+
+[node name="socket_neck_head_0_119" type="Polygon2D" parent="." unique_id=1245294824]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-28, 8, -35, -2, -39, -32)
+uv = PackedVector2Array(127, 208, 120, 198, 116, 168)
+
+[node name="socket_neck_head_0_12" type="Polygon2D" parent="." unique_id=2146673779]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(39, -52, 39, -51, 37, -53)
+uv = PackedVector2Array(194, 148, 194, 149, 192, 147)
+
+[node name="socket_neck_head_0_120" type="Polygon2D" parent="." unique_id=2073385475]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-33, -38, -28, -49, -26, -51)
+uv = PackedVector2Array(122, 162, 127, 151, 129, 149)
+
+[node name="socket_neck_head_0_121" type="Polygon2D" parent="." unique_id=2012043311]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-26, -51, -16, -62, 23, -63)
+uv = PackedVector2Array(129, 149, 139, 138, 178, 137)
+
+[node name="socket_neck_head_0_122" type="Polygon2D" parent="." unique_id=818606818]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(40, -49, 43.74469, -5, 42.967224, -5, 23, -63)
+uv = PackedVector2Array(195, 151, 198.74469, 195, 197.96722, 195, 178, 137)
+
+[node name="socket_neck_head_0_123" type="Polygon2D" parent="." unique_id=1149844785]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-10.43396, 17.60376, -14, 18, -10.286591, 16.719513)
+uv = PackedVector2Array(144.56604, 217.60376, 141, 218, 144.71341, 216.71951)
+
+[node name="socket_neck_head_0_124" type="Polygon2D" parent="." unique_id=1199486285]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-14, 18, -28, 8, -39, -32)
+uv = PackedVector2Array(141, 218, 127, 208, 116, 168)
+
+[node name="socket_neck_head_0_125" type="Polygon2D" parent="." unique_id=1400340557]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-33, -38, -26, -51, 23, -63)
+uv = PackedVector2Array(122, 162, 129, 149, 178, 137)
+
+[node name="socket_neck_head_0_126" type="Polygon2D" parent="." unique_id=804303929]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(42.967224, -5, 21, -5, 1, 4, -10, 15, -10.286591, 16.719513, -14, 18, 23, -63)
+uv = PackedVector2Array(197.96722, 195, 176, 195, 156, 204, 145, 215, 144.71341, 216.71951, 141, 218, 178, 137)
+
+[node name="socket_neck_head_0_127" type="Polygon2D" parent="." unique_id=1769763746]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-14, 18, -39, -32, -36, -35)
+uv = PackedVector2Array(141, 218, 116, 168, 119, 165)
+
+[node name="socket_neck_head_0_128" type="Polygon2D" parent="." unique_id=539533898]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-34, -37, -33, -38, 23, -63)
+uv = PackedVector2Array(121, 163, 122, 162, 178, 137)
+
+[node name="socket_neck_head_0_129" type="Polygon2D" parent="." unique_id=504777916]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-14, 18, -36, -35, 23, -63)
+uv = PackedVector2Array(141, 218, 119, 165, 178, 137)
+
+[node name="socket_neck_head_0_13" type="Polygon2D" parent="." unique_id=1835019606]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(40, -49, 39, -51, 40, -51)
+uv = PackedVector2Array(195, 151, 194, 149, 195, 149)
+
+[node name="socket_neck_head_0_130" type="Polygon2D" parent="." unique_id=1800279533]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-36, -35, -34, -37, 23, -63)
+uv = PackedVector2Array(119, 165, 121, 163, 178, 137)
+
+[node name="socket_neck_head_0_14" type="Polygon2D" parent="." unique_id=2006436686]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(42, -48, 42, -47, 40, -49)
+uv = PackedVector2Array(197, 152, 197, 153, 195, 151)
+
+[node name="socket_neck_head_0_15" type="Polygon2D" parent="." unique_id=466560510]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(43, -45, 42, -47, 43, -47)
+uv = PackedVector2Array(198, 155, 197, 153, 198, 153)
+
+[node name="socket_neck_head_0_16" type="Polygon2D" parent="." unique_id=1097522327]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(44, -43, 43, -45, 44, -45)
+uv = PackedVector2Array(199, 157, 198, 155, 199, 155)
+
+[node name="socket_neck_head_0_17" type="Polygon2D" parent="." unique_id=904731815]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(45, -41, 44, -43, 45, -43)
+uv = PackedVector2Array(200, 159, 199, 157, 200, 157)
+
+[node name="socket_neck_head_0_18" type="Polygon2D" parent="." unique_id=407903034]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(46, -39, 45, -41, 46, -41)
+uv = PackedVector2Array(201, 161, 200, 159, 201, 159)
+
+[node name="socket_neck_head_0_19" type="Polygon2D" parent="." unique_id=1631531234]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(47, -36, 46, -39, 47, -39)
+uv = PackedVector2Array(202, 164, 201, 161, 202, 161)
+
+[node name="socket_neck_head_0_2" type="Polygon2D" parent="." unique_id=2084393594]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(21, -64, 18, -65, 21, -65)
+uv = PackedVector2Array(176, 136, 173, 135, 176, 135)
+
+[node name="socket_neck_head_0_20" type="Polygon2D" parent="." unique_id=191537118]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(48, -32, 47, -36, 48, -36)
+uv = PackedVector2Array(203, 168, 202, 164, 203, 164)
+
+[node name="socket_neck_head_0_21" type="Polygon2D" parent="." unique_id=67065189]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(49, -13, 48, -32, 49, -32)
+uv = PackedVector2Array(204, 187, 203, 168, 204, 168)
+
+[node name="socket_neck_head_0_22" type="Polygon2D" parent="." unique_id=640208228]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(48, -9, 47, -9, 48, -13)
+uv = PackedVector2Array(203, 191, 202, 191, 203, 187)
+
+[node name="socket_neck_head_0_23" type="Polygon2D" parent="." unique_id=334021411]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(47, -6, 46, -6, 47, -9)
+uv = PackedVector2Array(202, 194, 201, 194, 202, 191)
+
+[node name="socket_neck_head_0_24" type="Polygon2D" parent="." unique_id=61774769]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(45.67044, -4.6818237, 45.369568, -4.7391357, 46, -6)
+uv = PackedVector2Array(200.67044, 195.31818, 200.36957, 195.26086, 201, 194)
+
+[node name="socket_neck_head_0_25" type="Polygon2D" parent="." unique_id=791716488]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-10.736847, 19.421051, -10.8333435, 20, -12, 20, -12, 19)
+uv = PackedVector2Array(144.26315, 219.42105, 144.16666, 220, 143, 220, 143, 219)
+
+[node name="socket_neck_head_0_26" type="Polygon2D" parent="." unique_id=219028325]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-12, 19, -14, 19, -14, 18)
+uv = PackedVector2Array(143, 219, 141, 219, 141, 218)
+
+[node name="socket_neck_head_0_27" type="Polygon2D" parent="." unique_id=1888114873]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-14, 18, -16, 18, -16, 17)
+uv = PackedVector2Array(141, 218, 139, 218, 139, 217)
+
+[node name="socket_neck_head_0_28" type="Polygon2D" parent="." unique_id=385950067]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-16, 17, -18, 17, -18, 16)
+uv = PackedVector2Array(139, 217, 137, 217, 137, 216)
+
+[node name="socket_neck_head_0_29" type="Polygon2D" parent="." unique_id=1113963988]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-18, 16, -20, 16, -20, 15)
+uv = PackedVector2Array(137, 216, 135, 216, 135, 215)
+
+[node name="socket_neck_head_0_3" type="Polygon2D" parent="." unique_id=2100567544]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(23, -63, 21, -64, 23, -64)
+uv = PackedVector2Array(178, 137, 176, 136, 178, 136)
+
+[node name="socket_neck_head_0_30" type="Polygon2D" parent="." unique_id=424207887]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-20, 15, -22, 14, -22, 13)
+uv = PackedVector2Array(135, 215, 133, 214, 133, 213)
+
+[node name="socket_neck_head_0_31" type="Polygon2D" parent="." unique_id=930328385]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-22, 13, -24, 13, -24, 12)
+uv = PackedVector2Array(133, 213, 131, 213, 131, 212)
+
+[node name="socket_neck_head_0_32" type="Polygon2D" parent="." unique_id=1064619704]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-24, 12, -25, 12, -25, 11)
+uv = PackedVector2Array(131, 212, 130, 212, 130, 211)
+
+[node name="socket_neck_head_0_33" type="Polygon2D" parent="." unique_id=2028977640]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-25, 11, -26, 11, -26, 10)
+uv = PackedVector2Array(130, 211, 129, 211, 129, 210)
+
+[node name="socket_neck_head_0_34" type="Polygon2D" parent="." unique_id=1697597990]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-26, 10, -28, 9, -28, 8)
+uv = PackedVector2Array(129, 210, 127, 209, 127, 208)
+
+[node name="socket_neck_head_0_35" type="Polygon2D" parent="." unique_id=1302229710]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-28, 8, -29, 8, -29, 7)
+uv = PackedVector2Array(127, 208, 126, 208, 126, 207)
+
+[node name="socket_neck_head_0_36" type="Polygon2D" parent="." unique_id=591237862]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-29, 7, -30, 7, -30, 6)
+uv = PackedVector2Array(126, 207, 125, 207, 125, 206)
+
+[node name="socket_neck_head_0_37" type="Polygon2D" parent="." unique_id=827574965]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-30, 6, -31, 6, -31, 4)
+uv = PackedVector2Array(125, 206, 124, 206, 124, 204)
+
+[node name="socket_neck_head_0_38" type="Polygon2D" parent="." unique_id=255768493]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-31, 4, -32, 4, -32, 3)
+uv = PackedVector2Array(124, 204, 123, 204, 123, 203)
+
+[node name="socket_neck_head_0_39" type="Polygon2D" parent="." unique_id=607832668]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-32, 3, -34, 2, -34, 0)
+uv = PackedVector2Array(123, 203, 121, 202, 121, 200)
+
+[node name="socket_neck_head_0_4" type="Polygon2D" parent="." unique_id=1567137862]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(27, -62, 27, -61, 23, -63)
+uv = PackedVector2Array(182, 138, 182, 139, 178, 137)
+
+[node name="socket_neck_head_0_40" type="Polygon2D" parent="." unique_id=1208346419]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-34, 0, -35, 0, -35, -2)
+uv = PackedVector2Array(121, 200, 120, 200, 120, 198)
+
+[node name="socket_neck_head_0_41" type="Polygon2D" parent="." unique_id=1630821972]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-35, -2, -36, -2, -36, -4)
+uv = PackedVector2Array(120, 198, 119, 198, 119, 196)
+
+[node name="socket_neck_head_0_42" type="Polygon2D" parent="." unique_id=1507310217]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-36, -4, -37, -4, -37, -6)
+uv = PackedVector2Array(119, 196, 118, 196, 118, 194)
+
+[node name="socket_neck_head_0_43" type="Polygon2D" parent="." unique_id=2101979376]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-37, -6, -38, -6, -38, -9)
+uv = PackedVector2Array(118, 194, 117, 194, 117, 191)
+
+[node name="socket_neck_head_0_44" type="Polygon2D" parent="." unique_id=2141402251]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-38, -9, -39, -9, -39, -13)
+uv = PackedVector2Array(117, 191, 116, 191, 116, 187)
+
+[node name="socket_neck_head_0_45" type="Polygon2D" parent="." unique_id=1557399263]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-39, -13, -40, -13, -40, -32)
+uv = PackedVector2Array(116, 187, 115, 187, 115, 168)
+
+[node name="socket_neck_head_0_46" type="Polygon2D" parent="." unique_id=2107569375]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-39, -32, -39, -34, -38, -34)
+uv = PackedVector2Array(116, 168, 116, 166, 117, 166)
+
+[node name="socket_neck_head_0_47" type="Polygon2D" parent="." unique_id=1597623412]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-38, -34, -38, -35, -36, -35)
+uv = PackedVector2Array(117, 166, 117, 165, 119, 165)
+
+[node name="socket_neck_head_0_48" type="Polygon2D" parent="." unique_id=1566489266]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-36, -35, -35, -37, -34, -37)
+uv = PackedVector2Array(119, 165, 120, 163, 121, 163)
+
+[node name="socket_neck_head_0_49" type="Polygon2D" parent="." unique_id=1996403260]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-34, -37, -34, -38, -33, -38)
+uv = PackedVector2Array(121, 163, 121, 162, 122, 162)
+
+[node name="socket_neck_head_0_5" type="Polygon2D" parent="." unique_id=1182622765]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(29, -60, 27, -61, 29, -61)
+uv = PackedVector2Array(184, 140, 182, 139, 184, 139)
+
+[node name="socket_neck_head_0_50" type="Polygon2D" parent="." unique_id=514288274]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-33, -42, -34, -42, -34, -47)
+uv = PackedVector2Array(122, 158, 121, 158, 121, 153)
+
+[node name="socket_neck_head_0_51" type="Polygon2D" parent="." unique_id=434928026]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-33, -47, -32, -49, -28, -49)
+uv = PackedVector2Array(122, 153, 123, 151, 127, 151)
+
+[node name="socket_neck_head_0_52" type="Polygon2D" parent="." unique_id=618583734]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-28, -49, -28, -51, -26, -51)
+uv = PackedVector2Array(127, 151, 127, 149, 129, 149)
+
+[node name="socket_neck_head_0_53" type="Polygon2D" parent="." unique_id=252899217]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-26, -51, -26, -56, -24, -57)
+uv = PackedVector2Array(129, 149, 129, 144, 131, 143)
+
+[node name="socket_neck_head_0_54" type="Polygon2D" parent="." unique_id=1047176428]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-24, -57, -24, -58, -22, -58)
+uv = PackedVector2Array(131, 143, 131, 142, 133, 142)
+
+[node name="socket_neck_head_0_55" type="Polygon2D" parent="." unique_id=846767881]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-22, -58, -21, -60, -20, -60)
+uv = PackedVector2Array(133, 142, 134, 140, 135, 140)
+
+[node name="socket_neck_head_0_56" type="Polygon2D" parent="." unique_id=199717225]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-20, -60, -20, -61, -18, -61)
+uv = PackedVector2Array(135, 140, 135, 139, 137, 139)
+
+[node name="socket_neck_head_0_57" type="Polygon2D" parent="." unique_id=2023085963]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-18, -61, -18, -62, -16, -62)
+uv = PackedVector2Array(137, 139, 137, 138, 139, 138)
+
+[node name="socket_neck_head_0_58" type="Polygon2D" parent="." unique_id=1083258023]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-16, -62, -16, -63, -14, -63)
+uv = PackedVector2Array(139, 138, 139, 137, 141, 137)
+
+[node name="socket_neck_head_0_59" type="Polygon2D" parent="." unique_id=1671479915]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-14, -63, -14, -64, -12, -64)
+uv = PackedVector2Array(141, 137, 141, 136, 143, 136)
+
+[node name="socket_neck_head_0_6" type="Polygon2D" parent="." unique_id=1819079211]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(31, -59, 31, -58, 29, -60)
+uv = PackedVector2Array(186, 141, 186, 142, 184, 140)
+
+[node name="socket_neck_head_0_60" type="Polygon2D" parent="." unique_id=1528620426]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-12, -64, -12, -65, -9, -65)
+uv = PackedVector2Array(143, 136, 143, 135, 146, 135)
+
+[node name="socket_neck_head_0_61" type="Polygon2D" parent="." unique_id=826719705]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-9, -65, -9, -66, -5, -66)
+uv = PackedVector2Array(146, 135, 146, 134, 150, 134)
+
+[node name="socket_neck_head_0_62" type="Polygon2D" parent="." unique_id=2041300181]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(14, -66, -5, -66, 14, -67)
+uv = PackedVector2Array(169, 134, 150, 134, 169, 133)
+
+[node name="socket_neck_head_0_63" type="Polygon2D" parent="." unique_id=328444734]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(18, -65, 21, -64, 14, -66)
+uv = PackedVector2Array(173, 135, 176, 136, 169, 134)
+
+[node name="socket_neck_head_0_64" type="Polygon2D" parent="." unique_id=1291445819]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(29, -60, 31, -58, 27, -61)
+uv = PackedVector2Array(184, 140, 186, 142, 182, 139)
+
+[node name="socket_neck_head_0_65" type="Polygon2D" parent="." unique_id=1949939111]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(33, -57, 34, -56, 31, -58)
+uv = PackedVector2Array(188, 143, 189, 144, 186, 142)
+
+[node name="socket_neck_head_0_66" type="Polygon2D" parent="." unique_id=1321678287]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(39, -51, 40, -49, 37, -53)
+uv = PackedVector2Array(194, 149, 195, 151, 192, 147)
+
+[node name="socket_neck_head_0_67" type="Polygon2D" parent="." unique_id=1168679479]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(42, -47, 43, -45, 40, -49)
+uv = PackedVector2Array(197, 153, 198, 155, 195, 151)
+
+[node name="socket_neck_head_0_68" type="Polygon2D" parent="." unique_id=204728380]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(46, -39, 47, -36, 45, -41)
+uv = PackedVector2Array(201, 161, 202, 164, 200, 159)
+
+[node name="socket_neck_head_0_69" type="Polygon2D" parent="." unique_id=415814573]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(48, -32, 49, -13, 47, -36)
+uv = PackedVector2Array(203, 168, 204, 187, 202, 164)
+
+[node name="socket_neck_head_0_7" type="Polygon2D" parent="." unique_id=198733620]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(33, -57, 31, -58, 33, -58)
+uv = PackedVector2Array(188, 143, 186, 142, 188, 142)
+
+[node name="socket_neck_head_0_70" type="Polygon2D" parent="." unique_id=1543979167]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(47, -9, 46, -6, 48, -13)
+uv = PackedVector2Array(202, 191, 201, 194, 203, 187)
+
+[node name="socket_neck_head_0_71" type="Polygon2D" parent="." unique_id=1443937189]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-10.72728, 19.363632, -10.736847, 19.421051, -12, 19)
+uv = PackedVector2Array(144.27272, 219.36363, 144.26315, 219.42105, 143, 219)
+
+[node name="socket_neck_head_0_72" type="Polygon2D" parent="." unique_id=1831565985]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-18, 16, -20, 15, -22, 13)
+uv = PackedVector2Array(137, 216, 135, 215, 133, 213)
+
+[node name="socket_neck_head_0_73" type="Polygon2D" parent="." unique_id=2005274517]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-22, 13, -24, 12, -25, 11)
+uv = PackedVector2Array(133, 213, 131, 212, 130, 211)
+
+[node name="socket_neck_head_0_74" type="Polygon2D" parent="." unique_id=739107463]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-29, 7, -30, 6, -31, 4)
+uv = PackedVector2Array(126, 207, 125, 206, 124, 204)
+
+[node name="socket_neck_head_0_75" type="Polygon2D" parent="." unique_id=1570676536]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-31, 4, -32, 3, -34, 0)
+uv = PackedVector2Array(124, 204, 123, 203, 121, 200)
+
+[node name="socket_neck_head_0_76" type="Polygon2D" parent="." unique_id=1050961414]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-36, -4, -37, -6, -38, -9)
+uv = PackedVector2Array(119, 196, 118, 194, 117, 191)
+
+[node name="socket_neck_head_0_77" type="Polygon2D" parent="." unique_id=2059905801]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-38, -9, -39, -13, -40, -32)
+uv = PackedVector2Array(117, 191, 116, 187, 115, 168)
+
+[node name="socket_neck_head_0_78" type="Polygon2D" parent="." unique_id=327808274]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-39, -32, -38, -34, -36, -35)
+uv = PackedVector2Array(116, 168, 117, 166, 119, 165)
+
+[node name="socket_neck_head_0_79" type="Polygon2D" parent="." unique_id=1735965441]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-33, -42, -34, -47, -33, -47)
+uv = PackedVector2Array(122, 158, 121, 153, 122, 153)
+
+[node name="socket_neck_head_0_8" type="Polygon2D" parent="." unique_id=2075980013]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(34, -56, 33, -57, 34, -57)
+uv = PackedVector2Array(189, 144, 188, 143, 189, 143)
+
+[node name="socket_neck_head_0_80" type="Polygon2D" parent="." unique_id=510847116]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-26, -51, -24, -57, -22, -58)
+uv = PackedVector2Array(129, 149, 131, 143, 133, 142)
+
+[node name="socket_neck_head_0_81" type="Polygon2D" parent="." unique_id=1363009382]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-22, -58, -20, -60, -18, -61)
+uv = PackedVector2Array(133, 142, 135, 140, 137, 139)
+
+[node name="socket_neck_head_0_82" type="Polygon2D" parent="." unique_id=705598455]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-14, -63, -12, -64, -9, -65)
+uv = PackedVector2Array(141, 137, 143, 136, 146, 135)
+
+[node name="socket_neck_head_0_83" type="Polygon2D" parent="." unique_id=1171984380]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-9, -65, -5, -66, 14, -66)
+uv = PackedVector2Array(146, 135, 150, 134, 169, 134)
+
+[node name="socket_neck_head_0_84" type="Polygon2D" parent="." unique_id=1896347922]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(21, -64, 23, -63, 14, -66)
+uv = PackedVector2Array(176, 136, 178, 137, 169, 134)
+
+[node name="socket_neck_head_0_85" type="Polygon2D" parent="." unique_id=1801835335]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(27, -61, 31, -58, 23, -63)
+uv = PackedVector2Array(182, 139, 186, 142, 178, 137)
+
+[node name="socket_neck_head_0_86" type="Polygon2D" parent="." unique_id=670063900]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(34, -56, 35, -55, 31, -58)
+uv = PackedVector2Array(189, 144, 190, 145, 186, 142)
+
+[node name="socket_neck_head_0_87" type="Polygon2D" parent="." unique_id=879590162]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(37, -53, 40, -49, 36, -54)
+uv = PackedVector2Array(192, 147, 195, 151, 191, 146)
+
+[node name="socket_neck_head_0_88" type="Polygon2D" parent="." unique_id=1378747825]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(43, -45, 44, -43, 40, -49)
+uv = PackedVector2Array(198, 155, 199, 157, 195, 151)
+
+[node name="socket_neck_head_0_89" type="Polygon2D" parent="." unique_id=1848919960]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(45, -41, 47, -36, 44, -43)
+uv = PackedVector2Array(200, 159, 202, 164, 199, 157)
+
+[node name="socket_neck_head_0_9" type="Polygon2D" parent="." unique_id=1303882828]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(35, -55, 34, -56, 35, -56)
+uv = PackedVector2Array(190, 145, 189, 144, 190, 144)
+
+[node name="socket_neck_head_0_90" type="Polygon2D" parent="." unique_id=1420889335]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(49, -13, 48, -13, 47, -36)
+uv = PackedVector2Array(204, 187, 203, 187, 202, 164)
+
+[node name="socket_neck_head_0_91" type="Polygon2D" parent="." unique_id=1526470968]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(46, -6, 45.369568, -4.7391357, 45.020233, -4.805664, 48, -13)
+uv = PackedVector2Array(201, 194, 200.36957, 195.26086, 200.02023, 195.19434, 203, 187)
+
+[node name="socket_neck_head_0_92" type="Polygon2D" parent="." unique_id=551689869]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-10.684204, 19.105255, -10.72728, 19.363632, -12, 19, -14, 18)
+uv = PackedVector2Array(144.3158, 219.10526, 144.27272, 219.36363, 143, 219, 141, 218)
+
+[node name="socket_neck_head_0_93" type="Polygon2D" parent="." unique_id=1539871293]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-16, 17, -18, 16, -22, 13)
+uv = PackedVector2Array(139, 217, 137, 216, 133, 213)
+
+[node name="socket_neck_head_0_94" type="Polygon2D" parent="." unique_id=449444298]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-22, 13, -25, 11, -26, 10)
+uv = PackedVector2Array(133, 213, 130, 211, 129, 210)
+
+[node name="socket_neck_head_0_95" type="Polygon2D" parent="." unique_id=1922195978]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-28, 8, -29, 7, -31, 4)
+uv = PackedVector2Array(127, 208, 126, 207, 124, 204)
+
+[node name="socket_neck_head_0_96" type="Polygon2D" parent="." unique_id=104755174]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-31, 4, -34, 0, -35, -2)
+uv = PackedVector2Array(124, 204, 121, 200, 120, 198)
+
+[node name="socket_neck_head_0_97" type="Polygon2D" parent="." unique_id=1677724481]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-35, -2, -36, -4, -38, -9)
+uv = PackedVector2Array(120, 198, 119, 196, 117, 191)
+
+[node name="socket_neck_head_0_98" type="Polygon2D" parent="." unique_id=1365144290]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-38, -9, -40, -32, -39, -32)
+uv = PackedVector2Array(117, 191, 115, 168, 116, 168)
+
+[node name="socket_neck_head_0_99" type="Polygon2D" parent="." unique_id=1584142820]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-33, -42, -33, -47, -28, -49)
+uv = PackedVector2Array(122, 158, 122, 153, 127, 151)
+
+[node name="socket_shoulder_l_arm_l_0" type="Polygon2D" parent="." unique_id=450510993]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-51, 24, -50, 24, -50, 26, -52, 26, -52, 28, -54, 28, -54, 29, -56, 29, -56, 30, -58, 30, -58, 31, -59, 31, -59, 32, -61, 33, -61, 34, -64, 34, -64, 35, -66, 35, -66, 36, -68, 36, -68, 37, -70, 37, -70, 43, -69, 43, -69, 45, -68, 45, -68, 47, -67, 47, -67, 48, -66, 48, -66, 49, -64, 50, -64, 51, -60, 52, -60, 53, -52, 53, -52, 52, -47, 52, -47, 51, -45, 51, -45, 50, -44, 50, -44, 49, -43, 49, -42, 47, -41, 47, -41, 45, -40, 45, -40, 43, -39, 43, -39, 32, -40, 32, -40, 30, -41, 30, -41, 28, -42, 28, -42, 27, -44, 26, -44, 25, -45, 25, -45, 24, -49, 23, -49, 22, -51, 22)
+uv = PackedVector2Array(104, 224, 105, 224, 105, 226, 103, 226, 103, 228, 101, 228, 101, 229, 99, 229, 99, 230, 97, 230, 97, 231, 96, 231, 96, 232, 94, 233, 94, 234, 91, 234, 91, 235, 89, 235, 89, 236, 87, 236, 87, 237, 85, 237, 85, 243, 86, 243, 86, 245, 87, 245, 87, 247, 88, 247, 88, 248, 89, 248, 89, 249, 91, 250, 91, 251, 95, 252, 95, 253, 103, 253, 103, 252, 108, 252, 108, 251, 110, 251, 110, 250, 111, 250, 111, 249, 112, 249, 113, 247, 114, 247, 114, 245, 115, 245, 115, 243, 116, 243, 116, 232, 115, 232, 115, 230, 114, 230, 114, 228, 113, 228, 113, 227, 111, 226, 111, 225, 110, 225, 110, 224, 106, 223, 106, 222, 104, 222)
+
+[node name="socket_shoulder_l_body_0" type="Polygon2D" parent="." unique_id=797578783]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(-51, 24, -50, 24, -50, 26, -52, 26, -52, 28, -54, 28, -54, 29, -56, 29, -56, 30, -58, 30, -58, 31, -59, 31, -59, 32, -61, 33, -61, 34, -64, 34, -64, 35, -66, 35, -66, 36, -68, 36, -68, 37, -70, 37, -70, 43, -69, 43, -69, 45, -68, 45, -68, 47, -67, 47, -67, 48, -66, 48, -66, 49, -64, 50, -64, 51, -60, 52, -60, 53, -52, 53, -52, 52, -47, 52, -47, 51, -45, 51, -45, 50, -44, 50, -44, 49, -43, 49, -42, 47, -41, 47, -41, 45, -40, 45, -40, 43, -39, 43, -39, 32, -40, 32, -40, 30, -41, 30, -41, 28, -42, 28, -42, 27, -44, 26, -44, 25, -45, 25, -45, 24, -49, 23, -49, 22, -51, 22)
+uv = PackedVector2Array(104, 224, 105, 224, 105, 226, 103, 226, 103, 228, 101, 228, 101, 229, 99, 229, 99, 230, 97, 230, 97, 231, 96, 231, 96, 232, 94, 233, 94, 234, 91, 234, 91, 235, 89, 235, 89, 236, 87, 236, 87, 237, 85, 237, 85, 243, 86, 243, 86, 245, 87, 245, 87, 247, 88, 247, 88, 248, 89, 248, 89, 249, 91, 250, 91, 251, 95, 252, 95, 253, 103, 253, 103, 252, 108, 252, 108, 251, 110, 251, 110, 250, 111, 250, 111, 249, 112, 249, 113, 247, 114, 247, 114, 245, 115, 245, 115, 243, 116, 243, 116, 232, 115, 232, 115, 230, 114, 230, 114, 228, 113, 228, 113, 227, 111, 226, 111, 225, 110, 225, 110, 224, 106, 223, 106, 222, 104, 222)
+
+[node name="socket_shoulder_r_arm_r_0_0" type="Polygon2D" parent="." unique_id=1591158980]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(41, 69, 41, 70, 39, 68)
+uv = PackedVector2Array(196, 269, 196, 270, 194, 268)
+
+[node name="socket_shoulder_r_arm_r_0_1" type="Polygon2D" parent="." unique_id=1589258044]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(42, 71, 41, 70, 42, 70)
+uv = PackedVector2Array(197, 271, 196, 270, 197, 270)
+
+[node name="socket_shoulder_r_arm_r_0_10" type="Polygon2D" parent="." unique_id=1112385716]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(35, 79, 34, 79, 34, 78)
+uv = PackedVector2Array(190, 279, 189, 279, 189, 278)
+
+[node name="socket_shoulder_r_arm_r_0_11" type="Polygon2D" parent="." unique_id=781882267]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(34, 78, 32, 78, 32, 77)
+uv = PackedVector2Array(189, 278, 187, 278, 187, 277)
+
+[node name="socket_shoulder_r_arm_r_0_12" type="Polygon2D" parent="." unique_id=959346166]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(32, 77, 30, 76, 30, 75)
+uv = PackedVector2Array(187, 277, 185, 276, 185, 275)
+
+[node name="socket_shoulder_r_arm_r_0_13" type="Polygon2D" parent="." unique_id=1445485436]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(30, 75, 28, 75, 28, 74.66666, 28.923065, 74.46155)
+uv = PackedVector2Array(185, 275, 183, 275, 183, 274.66666, 183.92307, 274.46155)
+
+[node name="socket_shoulder_r_arm_r_0_14" type="Polygon2D" parent="." unique_id=1796799704]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(43, 72, 44, 82, 42, 71)
+uv = PackedVector2Array(198, 272, 199, 282, 197, 271)
+
+[node name="socket_shoulder_r_arm_r_0_15" type="Polygon2D" parent="." unique_id=351358238]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(42, 84, 40, 85, 43, 82)
+uv = PackedVector2Array(197, 284, 195, 285, 198, 282)
+
+[node name="socket_shoulder_r_arm_r_0_16" type="Polygon2D" parent="." unique_id=997100318]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(34, 78, 32, 77, 30, 75)
+uv = PackedVector2Array(189, 278, 187, 277, 185, 275)
+
+[node name="socket_shoulder_r_arm_r_0_17" type="Polygon2D" parent="." unique_id=1806858214]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(42, 71, 44, 82, 41, 70)
+uv = PackedVector2Array(197, 271, 199, 282, 196, 270)
+
+[node name="socket_shoulder_r_arm_r_0_18" type="Polygon2D" parent="." unique_id=240659328]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(40, 85, 40, 84, 43, 82)
+uv = PackedVector2Array(195, 285, 195, 284, 198, 282)
+
+[node name="socket_shoulder_r_arm_r_0_19" type="Polygon2D" parent="." unique_id=1791651550]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(30, 75, 28.923065, 74.46155, 29.019989, 74.44)
+uv = PackedVector2Array(185, 275, 183.92307, 274.46155, 184.01999, 274.44)
+
+[node name="socket_shoulder_r_arm_r_0_2" type="Polygon2D" parent="." unique_id=779621923]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(43, 72, 42, 71, 43, 71)
+uv = PackedVector2Array(198, 272, 197, 271, 198, 271)
+
+[node name="socket_shoulder_r_arm_r_0_20" type="Polygon2D" parent="." unique_id=1015340778]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(41, 70, 44, 82, 39, 68)
+uv = PackedVector2Array(196, 270, 199, 282, 194, 268)
+
+[node name="socket_shoulder_r_arm_r_0_21" type="Polygon2D" parent="." unique_id=1259431668]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(40, 84, 39, 83, 43, 82)
+uv = PackedVector2Array(195, 284, 194, 283, 198, 282)
+
+[node name="socket_shoulder_r_arm_r_0_22" type="Polygon2D" parent="." unique_id=1199007848]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(30, 75, 29.019989, 74.44, 29.08197, 74.42621)
+uv = PackedVector2Array(185, 275, 184.01999, 274.44, 184.08197, 274.4262)
+
+[node name="socket_shoulder_r_arm_r_0_23" type="Polygon2D" parent="." unique_id=836968329]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(39, 68, 44, 82, 38.538452, 68.34616)
+uv = PackedVector2Array(194, 268, 199, 282, 193.53845, 268.34616)
+
+[node name="socket_shoulder_r_arm_r_0_24" type="Polygon2D" parent="." unique_id=343893747]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(39, 83, 38, 82, 43, 82)
+uv = PackedVector2Array(194, 283, 193, 282, 198, 282)
+
+[node name="socket_shoulder_r_arm_r_0_25" type="Polygon2D" parent="." unique_id=1442074349]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(44, 82, 32.08029, 73.18976, 38.538452, 68.34616)
+uv = PackedVector2Array(199, 282, 187.08029, 273.18976, 193.53845, 268.34616)
+
+[node name="socket_shoulder_r_arm_r_0_26" type="Polygon2D" parent="." unique_id=504626422]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(43, 82, 38, 82, 36, 80)
+uv = PackedVector2Array(198, 282, 193, 282, 191, 280)
+
+[node name="socket_shoulder_r_arm_r_0_27" type="Polygon2D" parent="." unique_id=316382502]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(30, 75, 29.08197, 74.42621, 29.416656, 74.35184)
+uv = PackedVector2Array(185, 275, 184.08197, 274.4262, 184.41666, 274.35184)
+
+[node name="socket_shoulder_r_arm_r_0_28" type="Polygon2D" parent="." unique_id=1455031138]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(44, 82, 43, 82, 31.835815, 73.37314, 32.08029, 73.18976)
+uv = PackedVector2Array(199, 282, 198, 282, 186.83582, 273.37314, 187.08029, 273.18976)
+
+[node name="socket_shoulder_r_arm_r_0_29" type="Polygon2D" parent="." unique_id=1607327177]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(43, 82, 36, 80, 35, 79)
+uv = PackedVector2Array(198, 282, 191, 280, 190, 279)
+
+[node name="socket_shoulder_r_arm_r_0_3" type="Polygon2D" parent="." unique_id=1276233310]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(44, 82, 43, 72, 44, 72)
+uv = PackedVector2Array(199, 282, 198, 272, 199, 272)
+
+[node name="socket_shoulder_r_arm_r_0_30" type="Polygon2D" parent="." unique_id=2143472691]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(34, 78, 30, 75, 29.416656, 74.35184, 30.181824, 74.18182)
+uv = PackedVector2Array(189, 278, 185, 275, 184.41666, 274.35184, 185.18182, 274.18182)
+
+[node name="socket_shoulder_r_arm_r_0_31" type="Polygon2D" parent="." unique_id=1654004955]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(43, 82, 35, 79, 34, 78)
+uv = PackedVector2Array(198, 282, 190, 279, 189, 278)
+
+[node name="socket_shoulder_r_arm_r_0_32" type="Polygon2D" parent="." unique_id=279328509]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(43, 82, 34, 78, 30.181824, 74.18182, 31, 74, 31.835815, 73.37314)
+uv = PackedVector2Array(198, 282, 189, 278, 185.18182, 274.18182, 186, 274, 186.83582, 273.37314)
+
+[node name="socket_shoulder_r_arm_r_0_4" type="Polygon2D" parent="." unique_id=1511631899]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(43, 84, 42, 84, 43, 82)
+uv = PackedVector2Array(198, 284, 197, 284, 198, 282)
+
+[node name="socket_shoulder_r_arm_r_0_5" type="Polygon2D" parent="." unique_id=793098913]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(42, 85, 40, 85, 42, 84)
+uv = PackedVector2Array(197, 285, 195, 285, 197, 284)
+
+[node name="socket_shoulder_r_arm_r_0_6" type="Polygon2D" parent="." unique_id=1132592525]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(40, 84, 39, 84, 39, 83)
+uv = PackedVector2Array(195, 284, 194, 284, 194, 283)
+
+[node name="socket_shoulder_r_arm_r_0_7" type="Polygon2D" parent="." unique_id=854331954]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(39, 83, 38, 83, 38, 82)
+uv = PackedVector2Array(194, 283, 193, 283, 193, 282)
+
+[node name="socket_shoulder_r_arm_r_0_8" type="Polygon2D" parent="." unique_id=1814783939]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(38, 82, 36, 81, 36, 80)
+uv = PackedVector2Array(193, 282, 191, 281, 191, 280)
+
+[node name="socket_shoulder_r_arm_r_0_9" type="Polygon2D" parent="." unique_id=1822751530]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(36, 80, 35, 80, 35, 79)
+uv = PackedVector2Array(191, 280, 190, 280, 190, 279)
+
+[node name="socket_shoulder_r_body_0_0" type="Polygon2D" parent="." unique_id=510155767]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(41, 69, 41, 70, 39, 68)
+uv = PackedVector2Array(196, 269, 196, 270, 194, 268)
+
+[node name="socket_shoulder_r_body_0_1" type="Polygon2D" parent="." unique_id=100213632]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(42, 71, 41, 70, 42, 70)
+uv = PackedVector2Array(197, 271, 196, 270, 197, 270)
+
+[node name="socket_shoulder_r_body_0_10" type="Polygon2D" parent="." unique_id=2119043237]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(35, 79, 34, 79, 34, 78)
+uv = PackedVector2Array(190, 279, 189, 279, 189, 278)
+
+[node name="socket_shoulder_r_body_0_11" type="Polygon2D" parent="." unique_id=1966024105]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(34, 78, 32, 78, 32, 77)
+uv = PackedVector2Array(189, 278, 187, 278, 187, 277)
+
+[node name="socket_shoulder_r_body_0_12" type="Polygon2D" parent="." unique_id=418490138]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(32, 77, 30, 76, 30, 75)
+uv = PackedVector2Array(187, 277, 185, 276, 185, 275)
+
+[node name="socket_shoulder_r_body_0_13" type="Polygon2D" parent="." unique_id=2001291788]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(30, 75, 28, 75, 28, 74.66666, 28.923065, 74.46155)
+uv = PackedVector2Array(185, 275, 183, 275, 183, 274.66666, 183.92307, 274.46155)
+
+[node name="socket_shoulder_r_body_0_14" type="Polygon2D" parent="." unique_id=812386462]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(43, 72, 44, 82, 42, 71)
+uv = PackedVector2Array(198, 272, 199, 282, 197, 271)
+
+[node name="socket_shoulder_r_body_0_15" type="Polygon2D" parent="." unique_id=777541663]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(42, 84, 40, 85, 43, 82)
+uv = PackedVector2Array(197, 284, 195, 285, 198, 282)
+
+[node name="socket_shoulder_r_body_0_16" type="Polygon2D" parent="." unique_id=889739832]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(34, 78, 32, 77, 30, 75)
+uv = PackedVector2Array(189, 278, 187, 277, 185, 275)
+
+[node name="socket_shoulder_r_body_0_17" type="Polygon2D" parent="." unique_id=679445654]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(42, 71, 44, 82, 41, 70)
+uv = PackedVector2Array(197, 271, 199, 282, 196, 270)
+
+[node name="socket_shoulder_r_body_0_18" type="Polygon2D" parent="." unique_id=631276485]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(40, 85, 40, 84, 43, 82)
+uv = PackedVector2Array(195, 285, 195, 284, 198, 282)
+
+[node name="socket_shoulder_r_body_0_19" type="Polygon2D" parent="." unique_id=1471693160]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(30, 75, 28.923065, 74.46155, 29.019989, 74.44)
+uv = PackedVector2Array(185, 275, 183.92307, 274.46155, 184.01999, 274.44)
+
+[node name="socket_shoulder_r_body_0_2" type="Polygon2D" parent="." unique_id=1949340818]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(43, 72, 42, 71, 43, 71)
+uv = PackedVector2Array(198, 272, 197, 271, 198, 271)
+
+[node name="socket_shoulder_r_body_0_20" type="Polygon2D" parent="." unique_id=31246961]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(41, 70, 44, 82, 39, 68)
+uv = PackedVector2Array(196, 270, 199, 282, 194, 268)
+
+[node name="socket_shoulder_r_body_0_21" type="Polygon2D" parent="." unique_id=29175099]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(40, 84, 39, 83, 43, 82)
+uv = PackedVector2Array(195, 284, 194, 283, 198, 282)
+
+[node name="socket_shoulder_r_body_0_22" type="Polygon2D" parent="." unique_id=1319020471]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(30, 75, 29.019989, 74.44, 29.08197, 74.42621)
+uv = PackedVector2Array(185, 275, 184.01999, 274.44, 184.08197, 274.4262)
+
+[node name="socket_shoulder_r_body_0_23" type="Polygon2D" parent="." unique_id=1268299575]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(39, 68, 44, 82, 38.538452, 68.34616)
+uv = PackedVector2Array(194, 268, 199, 282, 193.53845, 268.34616)
+
+[node name="socket_shoulder_r_body_0_24" type="Polygon2D" parent="." unique_id=1111943967]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(39, 83, 38, 82, 43, 82)
+uv = PackedVector2Array(194, 283, 193, 282, 198, 282)
+
+[node name="socket_shoulder_r_body_0_25" type="Polygon2D" parent="." unique_id=902005475]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(44, 82, 32.08029, 73.18976, 38.538452, 68.34616)
+uv = PackedVector2Array(199, 282, 187.08029, 273.18976, 193.53845, 268.34616)
+
+[node name="socket_shoulder_r_body_0_26" type="Polygon2D" parent="." unique_id=1379798448]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(43, 82, 38, 82, 36, 80)
+uv = PackedVector2Array(198, 282, 193, 282, 191, 280)
+
+[node name="socket_shoulder_r_body_0_27" type="Polygon2D" parent="." unique_id=1326785149]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(30, 75, 29.08197, 74.42621, 29.416656, 74.35184)
+uv = PackedVector2Array(185, 275, 184.08197, 274.4262, 184.41666, 274.35184)
+
+[node name="socket_shoulder_r_body_0_28" type="Polygon2D" parent="." unique_id=1883860782]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(44, 82, 43, 82, 31.835815, 73.37314, 32.08029, 73.18976)
+uv = PackedVector2Array(199, 282, 198, 282, 186.83582, 273.37314, 187.08029, 273.18976)
+
+[node name="socket_shoulder_r_body_0_29" type="Polygon2D" parent="." unique_id=1750883158]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(43, 82, 36, 80, 35, 79)
+uv = PackedVector2Array(198, 282, 191, 280, 190, 279)
+
+[node name="socket_shoulder_r_body_0_3" type="Polygon2D" parent="." unique_id=2146513162]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(44, 82, 43, 72, 44, 72)
+uv = PackedVector2Array(199, 282, 198, 272, 199, 272)
+
+[node name="socket_shoulder_r_body_0_30" type="Polygon2D" parent="." unique_id=1255974782]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(34, 78, 30, 75, 29.416656, 74.35184, 30.181824, 74.18182)
+uv = PackedVector2Array(189, 278, 185, 275, 184.41666, 274.35184, 185.18182, 274.18182)
+
+[node name="socket_shoulder_r_body_0_31" type="Polygon2D" parent="." unique_id=501543006]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(43, 82, 35, 79, 34, 78)
+uv = PackedVector2Array(198, 282, 190, 279, 189, 278)
+
+[node name="socket_shoulder_r_body_0_32" type="Polygon2D" parent="." unique_id=443871784]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(43, 82, 34, 78, 30.181824, 74.18182, 31, 74, 31.835815, 73.37314)
+uv = PackedVector2Array(198, 282, 189, 278, 185.18182, 274.18182, 186, 274, 186.83582, 273.37314)
+
+[node name="socket_shoulder_r_body_0_4" type="Polygon2D" parent="." unique_id=1678874993]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(43, 84, 42, 84, 43, 82)
+uv = PackedVector2Array(198, 284, 197, 284, 198, 282)
+
+[node name="socket_shoulder_r_body_0_5" type="Polygon2D" parent="." unique_id=1521750650]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(42, 85, 40, 85, 42, 84)
+uv = PackedVector2Array(197, 285, 195, 285, 197, 284)
+
+[node name="socket_shoulder_r_body_0_6" type="Polygon2D" parent="." unique_id=1703491272]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(40, 84, 39, 84, 39, 83)
+uv = PackedVector2Array(195, 284, 194, 284, 194, 283)
+
+[node name="socket_shoulder_r_body_0_7" type="Polygon2D" parent="." unique_id=1809250613]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(39, 83, 38, 83, 38, 82)
+uv = PackedVector2Array(194, 283, 193, 283, 193, 282)
+
+[node name="socket_shoulder_r_body_0_8" type="Polygon2D" parent="." unique_id=815773222]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(38, 82, 36, 81, 36, 80)
+uv = PackedVector2Array(193, 282, 191, 281, 191, 280)
+
+[node name="socket_shoulder_r_body_0_9" type="Polygon2D" parent="." unique_id=1736252798]
+texture = ExtResource("2_i7fhf")
+polygon = PackedVector2Array(36, 80, 35, 80, 35, 79)
+uv = PackedVector2Array(191, 280, 190, 280, 190, 279)
+
+[node name="Effects" type="Node2D" parent="." unique_id=451029799]
+texture_filter = 4
+script = ExtResource("3_ogedj")
