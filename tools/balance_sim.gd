@@ -14,6 +14,11 @@ extends Node
 ## de uma pessoa. Serve para comparar pecas e versoes entre si, nao para cravar
 ## a dificuldade real.
 ##
+## Uma run sem abate, sem troca de onda e sem dano relevante por STALL_LIMIT
+## segundos de jogo termina como "stalled", e o relatorio registra o que ficou
+## vivo. O relatorio e regravado a cada run, entao uma execucao interrompida
+## ainda deixa os dados das runs concluidas.
+##
 ## Uso:
 ##   Godot --headless --path . --fixed-fps 120 res://tools/balance_sim.tscn ++ --runs=20 --seed=1000 --max-sector=5
 ## Relatorio em user://balance_sim/report.json; um log por run em user://balance_sim/runs/.
@@ -23,6 +28,8 @@ signal finished(report: Dictionary)
 const TEST_SAVE := "user://balance_sim_save.json"
 ## 25 minutos de jogo; uma run normal leva de 10 a 15.
 const RUN_TIME_LIMIT := 1500.0
+const STALL_LIMIT := 120.0
+const STALL_DAMAGE_STEP := 100.0
 ## So persegue projetil que ja esta perto da base.
 const PADDLE_WATCH_Y := 600.0
 const PADDLE_HORIZON := 0.9
@@ -49,6 +56,12 @@ var _pending_result := ""
 var _limit_cleared := 0
 var _done := false
 var _rng := RandomNumberGenerator.new()
+var _last_progress_time := 0.0
+var _progress_kills := 0
+var _progress_wave := ""
+var _progress_damage := 0.0
+var _stall_note := ""
+var _logged_sector := 0
 
 
 func _ready() -> void:
@@ -92,6 +105,14 @@ func _start_next_run() -> void:
 	_frame = 0
 	_bench_done_sector = -1
 	_pending_result = ""
+	_limit_cleared = 0
+	_last_progress_time = 0.0
+	_progress_kills = Telemetry.enemies_killed
+	_progress_wave = ""
+	_progress_damage = Telemetry.total_damage
+	_stall_note = ""
+	_logged_sector = 0
+	print("  run %d/%d: %s | %s | %s | %s | %s" % [_run_index + 1, runs, _loadout.cpu, _loadout.arm_left, _loadout.arm_right, _loadout.head, _loadout.chassis])
 
 
 func _apply_random_loadout() -> void:
@@ -137,12 +158,49 @@ func _physics_process(delta: float) -> void:
 		return
 	_run_time += delta
 	_frame += 1
+	_track_progress()
+	if _run_time - _last_progress_time > STALL_LIMIT:
+		_release_inputs()
+		_pending_result = "stalled"
+		_stall_note = _describe_alive()
+		print("    travou no setor %d, onda %d, apos %.0f s sem progresso: %s" % [
+			proto.director.sector, proto.director.wave_index, STALL_LIMIT, _stall_note])
+		proto._finish_run(false)
+		return
 	if _run_time > RUN_TIME_LIMIT:
 		_release_inputs()
 		_pending_result = "timeout"
 		proto._finish_run(false)
 		return
 	_pilot()
+
+
+## Progresso e abate, troca de onda ou setor, ou dano acumulado relevante.
+func _track_progress() -> void:
+	var director: WaveDirector = proto.director
+	var wave_key := "%d-%d" % [director.sector, director.wave_index]
+	if Telemetry.enemies_killed != _progress_kills or wave_key != _progress_wave \
+			or Telemetry.total_damage - _progress_damage >= STALL_DAMAGE_STEP:
+		_progress_kills = Telemetry.enemies_killed
+		_progress_wave = wave_key
+		_progress_damage = Telemetry.total_damage
+		_last_progress_time = _run_time
+	if director.sector != _logged_sector:
+		_logged_sector = director.sector
+		print("    setor %d aos %.0f s de jogo (%d abates, %.0f HP)" % [director.sector, _run_time, Telemetry.enemies_killed, proto.robot.hp])
+
+
+func _describe_alive() -> String:
+	var parts := PackedStringArray()
+	for n in get_tree().get_nodes_in_group(&"enemies"):
+		var e := n as Enemy
+		if e == null or not e.active:
+			continue
+		parts.append("%s %.0f%% em (%.0f, %.0f)%s" % [e.enemy_name, 100.0 * e.hp / maxf(1.0, e.max_hp),
+			e.global_position.x, e.global_position.y, " espremido" if e._squeezing else ""])
+	if parts.is_empty():
+		parts.append("nenhum inimigo vivo, %d avisos pendentes" % proto.director.pending_spawns())
+	return ", ".join(parts)
 
 
 # --- piloto --------------------------------------------------------------------
@@ -278,12 +336,14 @@ func _shop() -> void:
 	if _bench_done_sector == wb.sector:
 		return
 	_bench_done_sector = wb.sector
+	var robot: Robot = proto.robot
+	print("    bancada depois do setor %d aos %.0f s: %d de sucata, %.0f/%.0f HP" % [
+		wb.sector, _run_time, MetaManager.current_scrap, robot.hp, robot.max_hp])
 	if wb.sector >= max_sector:
 		_pending_result = "limit"
 		_limit_cleared = wb.sector
 		proto._finish_run(false)
 		return
-	var robot: Robot = proto.robot
 	if robot.hp < robot.max_hp * 0.6:
 		wb._try_repair()
 	for i in range(wb._offers.size() - 1, -1, -1):
@@ -316,19 +376,21 @@ func _record_run(result: String) -> void:
 		"dps": snappedf(Telemetry.dps(), 0.1),
 		"paddle_catches": Telemetry.paddle_catches, "lost_floor": Telemetry.projectiles_lost_floor,
 		"breaches": Telemetry.enemies_breached, "killer": proto.robot.last_damage_source,
+		"note": _stall_note,
 	}
 	entry.merge(_loadout)
 	if result == "limit":
 		# Parar na Bancada conta os setores ja limpos, nao uma derrota no setor.
 		entry.sectors_cleared = _limit_cleared
 	results.append(entry)
-	print("  run %d/%d  %-7s setor %d  %6.1f s  abates %4d  quique x%.2f  rebatidas %d / chao %d  %s" % [
+	print("  run %d/%d  %-7s setor %d  %6.1f s  abates %4d  quique x%.2f  rebatidas %d / chao %d%s" % [
 		_run_index + 1, runs, result, entry.sector_reached, entry.game_time, entry.kills, entry.median_bounce,
-		entry.paddle_catches, entry.lost_floor, "%s | %s | %s | %s | %s" % [_loadout.cpu, _loadout.arm_left, _loadout.arm_right, _loadout.head, _loadout.chassis]])
+		entry.paddle_catches, entry.lost_floor, ("  " + str(entry.killer)) if result == "died" else ""])
+	_flush_report(true)
 
 
 static func build_report(rows: Array) -> Dictionary:
-	var report := {"runs": rows.size(), "wins": 0, "mean_sectors_cleared": 0.0, "by": {}, "rows": rows}
+	var report := {"runs": rows.size(), "wins": 0, "mean_sectors_cleared": 0.0, "results": {}, "by": {}, "rows": rows}
 	for group in GROUPS:
 		report.by[group] = {}
 	var cleared := 0.0
@@ -336,6 +398,7 @@ static func build_report(rows: Array) -> Dictionary:
 		var won: bool = row.result == "won"
 		if won:
 			report.wins += 1
+		report.results[row.result] = int(report.results.get(row.result, 0)) + 1
 		cleared += float(row.sectors_cleared)
 		for group in GROUPS:
 			var key := str(row.get(group, "?"))
@@ -360,8 +423,19 @@ static func build_report(rows: Array) -> Dictionary:
 	return report
 
 
+func _flush_report(partial: bool) -> Dictionary:
+	var report := build_report(results)
+	report["partial"] = partial
+	var file := FileAccess.open(report_dir + "/report.json", FileAccess.WRITE)
+	if file != null:
+		file.store_string(JSON.stringify(report, "\t"))
+		file.close()
+	return report
+
+
 func _print_report(report: Dictionary) -> void:
-	print("--- %d runs, %d vitorias, media de %.2f setores limpos ---" % [report.runs, report.wins, report.mean_sectors_cleared])
+	print("--- %d runs, %d vitorias, media de %.2f setores limpos, resultados %s ---" % [
+		report.runs, report.wins, report.mean_sectors_cleared, str(report.results)])
 	for group in GROUPS:
 		print("  [%s]" % group)
 		for key in report.by[group]:
@@ -373,14 +447,9 @@ func _print_report(report: Dictionary) -> void:
 func _finish() -> void:
 	_done = true
 	_release_inputs()
-	var report := build_report(results)
-	var path := report_dir + "/report.json"
-	var file := FileAccess.open(path, FileAccess.WRITE)
-	if file != null:
-		file.store_string(JSON.stringify(report, "\t"))
-		file.close()
+	var report := _flush_report(false)
 	_print_report(report)
-	print("relatorio: ", ProjectSettings.globalize_path(path))
+	print("relatorio: ", ProjectSettings.globalize_path(report_dir + "/report.json"))
 	finished.emit(report)
 	if not quit_when_done:
 		return
