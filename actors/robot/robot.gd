@@ -428,7 +428,8 @@ func _update_aim(delta: float) -> void:
 		ang = clampf(ang, -PI * 0.95, -PI * 0.05)
 	raw = Vector2.from_angle(ang)
 
-	var assist := 0.45 if _using_gamepad else 0.0
+	# GDD 3.2 e GDD_ADENDOS C.3: forca ajustavel nas opcoes, 45% no controle e 0% no mouse.
+	var assist: float = Settings.aim_assist_gamepad if _using_gamepad else Settings.aim_assist_mouse
 	aim_direction = _apply_aim_assist(raw, assist, delta)
 
 

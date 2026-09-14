@@ -41,6 +41,7 @@ Godot_v4.7.2-stable_win64.exe --path .
 | espaço ou shift | dash |
 | Q | habilidade da cabeça (Câmera, Boneca) ou disparo da cabeça que atira (Torradeira) |
 | E | Purga de Calor, que ergue uma parede de vapor no ponto mirado |
+| ESC | pausa: continuar, opções, desistir da run ou sair |
 | G | abrir / fechar a Garagem |
 | B | abrir / fechar a Bancada |
 | F1 | painel de desenvolvimento |
@@ -51,6 +52,13 @@ Godot_v4.7.2-stable_win64.exe --path .
 | 1 / 2 / 3 | trocar braço esquerdo / braço direito / cabeça |
 | F6 | tremor de tela em 0%, para ver a vinheta substituta |
 | R | zerar telemetria |
+
+As teclas B, G, F1 a F6, 1 a 3 e R são atalhos de desenvolvimento. Vêm ligadas só em build de
+depuração e podem ser desligadas nas opções; um executável de lançamento nasce sem elas.
+
+**Na abertura:** o jogo abre no título, com Continuar run quando existe um estado salvo, Jogar,
+Desafio de hoje, Opções e Sair. As opções guardam tremor, hitstop, flashes reduzidos, formas no
+quique, assistência de mira, volume e teclas remapeadas em `user://settings.cfg`.
 
 **Na Garagem:** espaço inicia a run, H inicia o desafio de hoje, C copia a legenda da última
 run, 1 a 5 compram upgrades, A e D ajustam o nível de risco, Z e X escolhem a CPU na prateleira.
@@ -106,6 +114,9 @@ só passa com código 0, a linha `=== TUDO OK ===` e nenhum `SCRIPT ERROR` na sa
 - **`tests/rig_integration.tscn`** verifica os rigs articulados no combate: malhas iguais ao rig peça a
   peça, corte da boca igual à máscara original, reciclagem no pool, golpe de contato, laser do Olhudo
   sincronizado com a habilidade, congelamento no hitstop e custo de uma onda densa.
+- **`tests/front_end.tscn`** verifica título, pausa, opções, remapeamento, atalhos de desenvolvimento
+  desligados, CPU da prateleira na run e o save de estado de run: Bancada e início de setor retomam
+  idênticos, e o golpe fatal apaga o save.
 - **`tests/audio_cleanup.tscn`** verifica liberação dos playbacks, inclusive sons tardios.
 - **`tests/run_completion.tscn`** atravessa os cinco setores com abate assistido: quatro
   bancadas, cinco chefes, vitória, persistência da receita e reinício limpo. Não mede balanceamento.
@@ -164,6 +175,12 @@ nada.
 trauma de câmera com amplitude quadrática, escala musical ascendente de quique com
 limitador de 4 vozes por som e roubo da mais antiga, squash and stretch por evento com pivô
 na base, coice e antecipação de câmera na direção da mira.
+
+**Front-end e save de run (GDD_ADENDOS B.7 e C.3).** Título, pausa com desistência confirmada,
+opções persistentes e remapeamento de teclado. O estado da run é salvo ao abrir a Bancada e ao
+começar cada setor, com o estado de cada fluxo de RNG, e é apagado na morte, na vitória e na
+desistência. Há preset de exportação para Windows e Linux. Os templates de exportação não estão
+instalados nesta máquina, então nenhuma exportação foi validada.
 
 **Rigs articulados no combate.** Parafuseta, Rato Morto e Olhudo usam no poço os rigs construídos
 pelo método de mobs, via `art/creature_rig_view.gd`, com as peças agrupadas em malhas por junta.

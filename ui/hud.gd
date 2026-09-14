@@ -87,7 +87,7 @@ func _draw_shell(vp: Vector2) -> void:
 	draw_string(_font, Vector2(left + 23, 171), "MONTE. RICOCHETEIE. EXPLODA.", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#C5B8AB"))
 	ArtDirector.panel(self, Rect2(left, 228, 350, 242))
 	draw_string(_font, Vector2(left + 22, 266), "MANUAL DA GAMBIARRA", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("#FFD400"))
-	var lines := ["A / D   Mover e rebater", "MOUSE   Mirar para cima", "CLIQUE E / D   Disparar braços", "Q   Disparar cabeça", "ESPAÇO   Dash     E   Purga", "G   Garagem     F1   Diagnóstico"]
+	var lines := manual_lines()
 	for i in lines.size():
 		draw_string(_font, Vector2(left + 22, 305 + i * 26), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("#D6C9A8"))
 	ArtDirector.panel(self, Rect2(left, vp.y - 237, 350, 221), Color("#8CFF1A"))
@@ -210,3 +210,19 @@ func _draw_vignette(vp: Vector2) -> void:
 	draw_rect(Rect2(0, vp.y - thickness, vp.x, thickness), col)
 	draw_rect(Rect2(0, 0, thickness, vp.y), col)
 	draw_rect(Rect2(vp.x - thickness, 0, thickness, vp.y), col)
+
+
+## Manual da tela com as teclas atuais, ja remapeadas. Atalhos de
+## desenvolvimento so aparecem quando estao ligados nas opcoes.
+func manual_lines() -> Array[String]:
+	var lines: Array[String] = [
+		"%s / %s   Mover e rebater" % [GameInput.key_label("move_left"), GameInput.key_label("move_right")],
+		"MOUSE   Mirar para cima",
+		"CLIQUE E / D   Disparar braços",
+		"%s   Cabeça" % GameInput.key_label("head_ability"),
+		"%s   Dash     %s   Purga" % [GameInput.key_label("dash"), GameInput.key_label("heat_purge")],
+		"%s   Pausa e opções" % GameInput.key_label("pause"),
+	]
+	if Settings.dev_shortcuts:
+		lines.append("G   Garagem     F1   Diagnóstico")
+	return lines

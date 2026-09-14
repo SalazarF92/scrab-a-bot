@@ -515,3 +515,47 @@ func reset_save() -> void:
 	_init_default_upgrades()
 	save_game()
 	save_updated.emit()
+
+
+# --- Save de estado de run (GDD_ADENDOS B.7) ---
+
+const RUN_STATE_VERSION := 1
+
+
+## Arquivo do estado de run, ao lado do save de progresso. Deriva de save_path,
+## entao todo teste que isola o save tambem isola o estado de run.
+func run_state_path() -> String:
+	return save_path.get_basename() + "_run_state.json"
+
+
+## Grava o estado da run numa transicao de sala. Nao permite recarregar depois
+## da morte: o arquivo e apagado no golpe fatal, na vitoria e na desistencia.
+func save_run_state(state: Dictionary) -> void:
+	var data := state.duplicate(true)
+	data["version"] = RUN_STATE_VERSION
+	var file := FileAccess.open(run_state_path(), FileAccess.WRITE)
+	if file != null:
+		file.store_string(JSON.stringify(data, "\t"))
+		file.close()
+
+
+func load_run_state() -> Dictionary:
+	if not FileAccess.file_exists(run_state_path()):
+		return {}
+	var parser := JSON.new()
+	if parser.parse(FileAccess.get_file_as_string(run_state_path())) != OK:
+		push_warning("Estado de run ilegivel em %s; ignorado." % run_state_path())
+		return {}
+	var data = parser.data
+	if typeof(data) != TYPE_DICTIONARY or int(data.get("version", 0)) != RUN_STATE_VERSION:
+		return {}
+	return data
+
+
+func has_run_state() -> bool:
+	return not load_run_state().is_empty()
+
+
+func clear_run_state() -> void:
+	if FileAccess.file_exists(run_state_path()):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(run_state_path()))

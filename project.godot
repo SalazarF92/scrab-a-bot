@@ -19,6 +19,7 @@ Sfx="*res://autoload/sfx.gd"
 Vfx="*res://autoload/vfx.gd"
 Telemetry="*res://autoload/telemetry.gd"
 MetaManager="*res://autoload/meta_manager.gd"
+Settings="*res://autoload/settings.gd"
 
 [debug]
 

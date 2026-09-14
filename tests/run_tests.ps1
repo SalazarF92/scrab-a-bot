@@ -29,6 +29,7 @@ $scenes = @(
     @{ Path = "res://tests/boss_combat.tscn"; Extra = @() },
     @{ Path = "res://tests/mob_expansion.tscn"; Extra = @() },
     @{ Path = "res://tests/rig_integration.tscn"; Extra = @() },
+    @{ Path = "res://tests/front_end.tscn"; Extra = @() },
     @{ Path = "res://tests/audio_cleanup.tscn"; Extra = @() },
     @{ Path = "res://tests/smoke.tscn"; Extra = @() },
     @{ Path = "res://tests/gameplay.tscn"; Extra = @("--fixed-fps", "120") },

@@ -150,6 +150,15 @@ func reseed_rng() -> void:
 	_rng.seed = GameRng.stream(GameRng.Stream.COMBAT).seed
 
 
+## Estado do jitter anti-loop, salvo com a run (GDD_ADENDOS B.7).
+func rng_state() -> int:
+	return _rng.state
+
+
+func set_rng_state(value: int) -> void:
+	_rng.state = value
+
+
 func _allocate() -> void:
 	_pos.resize(MAX_PROJECTILES)
 	_prev_pos.resize(MAX_PROJECTILES)

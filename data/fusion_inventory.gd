@@ -36,6 +36,11 @@ func consume(module_id: StringName) -> bool:
 	return true
 
 
+## Copia dos modulos, para o save de run.
+func items() -> Array[StringName]:
+	return _modules.duplicate()
+
+
 func clear() -> void:
 	_modules.clear()
 	capacity = BASE_CAPACITY

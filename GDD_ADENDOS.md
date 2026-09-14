@@ -391,3 +391,27 @@ como documento de visão; as adaptações abaixo descrevem o código atual.
   de 350 ms nem retoma combate. Respeita a opção de flashes reduzidos existente.
 
 Ver `DOCUMENTACAO_IMPLEMENTACAO_ARTES_2026-09-10.md` para evidências e escopo restante.
+
+## H. Implementação de 14/09/2026
+
+Registro da execução do roteiro de auditoria de 14/09. Cada item tem teste automatizado em `tests/`.
+
+- **A.1 resolvido:** um chefe por setor. Sugão 3000 (setor 2) e Formulário 27-B (setor 4) foram
+  redesenhados para o poço. O Sugão puxa robô e projéteis, expõe o filtro HEPA e vira superfície 1,4
+  na fase 3. O Formulário corre o cabeçote pelo trilho, empurra o robô com a esteira de papel e cria
+  bolas de papel de restituição 1,5. As arenas internas do GDD 5.4 e 5.5 ficaram de fora. Todo número
+  de chefe está em `EnemyLibrary.BOSS_PROFILES`.
+- **A.5 aplicado:** TDPs 132, 128 e 128, com o piso de 1,15 vez a build mais barata verificado em
+  teste. O loadout inicial não nasce mais em subvoltagem.
+- **B.7 implementado:** o estado de run é salvo ao abrir a Bancada e ao começar cada setor, com o
+  estado de cada fluxo de RNG. Continuar reproduz a mesma vitrine e a mesma sala. Morte, vitória e
+  desistência apagam o arquivo.
+- **C.2 e C.3 parciais:** tremor e hitstop separados, de 0 a 150%, flashes reduzidos, formas no
+  quique, assistência de mira no controle e no mouse, volume e remapeamento de teclado. Faltam
+  remapeamento de controle, escala de fonte, auto-disparo e o modo Sem Perda de Controle.
+- **5.3 parcial:** elite é um comum promovido, com 6 vezes o HP, aura e restituição 1,00, e 8% de
+  chance por onda a partir do setor 3. Os modificadores próprios de cada elite ainda não existem.
+- **4.3, 4.7.3 e 6.3.2 parciais:** quatro cabeças com habilidade (Câmera, Boneca, Rádio-Relógio e
+  Abajur), dez módulos que servem de receita ou de enxerto e oito CPUs na prateleira, com a condição
+  de desbloqueio visível.
+- **3.4.1:** a troca de fase de chefe pede o hitstop roteirizado de 350 ms, fora do teto de 130 ms.
