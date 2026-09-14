@@ -1,10 +1,17 @@
 extends Node2D
 enum Action { WATCH, ATTACK, POWER }
 const ATLAS := "res://assets/art/olhudo_components.png"
+const CONTOURS_PATH := "res://assets/art/olhudo_contours.json"
 const DURATION := 3.6
 const BASE_JOINT := Vector2(50,100)
 const LOWER_END := Vector2(177,-175)*.24
 const UPPER_END := Vector2(-275,0)*.20
+## Centro da lente no referencial da carcaca: origem do feixe.
+const LENS := Vector2(-90,-71)
+const PIECES := ["cable","base","lower","upper","housing","eye","pupil","lid_top","lid_bottom"]
+## O retangulo do laser cresce com o alcance; o feixe e gerado no shader em
+## unidades do rig, entao nada e esticado.
+const LASER_MIN_EXTENT := 480.0
 @export var action: Action = Action.WATCH
 @export var playing := true
 @export var laser_reach := 235.0
@@ -14,26 +21,43 @@ var pose := {}
 var pieces := {}
 var laser: Polygon2D
 var contours: Dictionary
-func _ready() -> void:
-	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
-	contours = JSON.parse_string(FileAccess.get_file_as_string("res://assets/art/olhudo_contours.json"))
-	for name in ["cable","base","lower","upper","housing","eye","pupil","lid_top","lid_bottom"]:
-		var part := Polygon2D.new(); part.name = name
-		part.texture = load(ATLAS)
+var _laser_extent := LASER_MIN_EXTENT
+## Contornos e geometria estaticos, lidos uma vez para todas as instancias. No
+## combate cada Olhudo do pool monta o proprio rig sem reler o JSON.
+static var _contours_cache: Dictionary = {}
+static var _geometry_cache: Dictionary = {}
+static var _bounds := Rect2()
+static func load_contours() -> Dictionary:
+	if _contours_cache.is_empty():
+		_contours_cache = JSON.parse_string(FileAccess.get_file_as_string(CONTOURS_PATH))
+	return _contours_cache
+static func piece_geometry(name: String) -> Array:
+	if not _geometry_cache.has(name):
 		var vertices := PackedVector2Array(); var uv := PackedVector2Array()
-		for xy in contours[name]:
+		for xy in load_contours()[name]:
 			var source := Vector2(xy[0],xy[1]); uv.append(source)
 			vertices.append(component_point(name,source))
-		part.polygon = vertices; part.uv = uv
+		_geometry_cache[name] = [vertices,uv]
+	return _geometry_cache[name]
+func _ready() -> void:
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	contours = load_contours()
+	for name in PIECES:
+		var part := Polygon2D.new(); part.name = name
+		part.texture = load(ATLAS)
+		var geometry := piece_geometry(name)
+		part.polygon = geometry[0]; part.uv = geometry[1]
 		if name.begins_with("lid_"):
 			var material := ShaderMaterial.new(); material.shader = preload("res://art/olhudo_lid.gdshader")
 			part.material = material
 		add_child(part); pieces[name] = part
 	laser = Polygon2D.new(); laser.name = "Laser"
-	laser.polygon = PackedVector2Array([Vector2(-45,-70),Vector2(480,-70),Vector2(480,70),Vector2(-45,70)])
+	laser.polygon = _laser_polygon(LASER_MIN_EXTENT)
 	var material := ShaderMaterial.new(); material.shader = preload("res://art/olhudo_laser.gdshader")
 	laser.material = material; laser.z_index = 10; add_child(laser)
 	apply_pose(compute_pose(action,playhead))
+static func _laser_polygon(extent: float) -> PackedVector2Array:
+	return PackedVector2Array([Vector2(-45,-70),Vector2(extent,-70),Vector2(extent,70),Vector2(-45,70)])
 static func component_point(name: String,p: Vector2) -> Vector2:
 	match name:
 		"base": return (p-Vector2(400,610))*.42
@@ -75,6 +99,14 @@ static func compute_pose(mode: int,time: float) -> Dictionary:
 		p.charge = curve(t,[Vector2(0,0),Vector2(.6,0),Vector2(1.4,1),Vector2(1.45,0),Vector2(3.6,0)])
 		p.emission = curve(t,[Vector2(0,0),Vector2(1.4,0),Vector2(1.44,1),Vector2(1.95,1),Vector2(2.13,0),Vector2(3.6,0)])
 	return p
+## Transicao continua entre acoes: interpola angulos, olhar e intensidades.
+static func blend_pose(a: Dictionary,b: Dictionary,weight: float) -> Dictionary:
+	var p := b.duplicate()
+	for key in b:
+		if a.has(key):
+			if b[key] is Vector2: p[key] = (a[key] as Vector2).lerp(b[key],weight)
+			elif b[key] is float: p[key] = lerpf(a[key],b[key],weight)
+	return p
 static func transforms(p: Dictionary) -> Dictionary:
 	var lower := Transform2D(p.lower,BASE_JOINT)
 	var upper := lower*Transform2D(p.upper,LOWER_END)
@@ -82,6 +114,17 @@ static func transforms(p: Dictionary) -> Dictionary:
 	return {"base":Transform2D(0,BASE_JOINT),"lower":lower,"upper":upper,"housing":head,"eye":head,"pupil":head*Transform2D(0,p.gaze),"cable":head*Transform2D(.12+p.cable,Vector2(52,-73)),"lid_top":head*Transform2D(0,lid_slide(true,p.blink)),"lid_bottom":head*Transform2D(0,lid_slide(false,p.blink))}
 static func lid_slide(top: bool,blink: float) -> Vector2:
 	return Vector2(0,lerpf(-72.5,35.0,blink) if top else lerpf(65.0,-35.0,blink))
+## Limites do rig montado em repouso, para posicionar o Olhudo no combate.
+static func rest_bounds() -> Rect2:
+	if _bounds.has_area(): return _bounds
+	var frames := transforms(compute_pose(Action.WATCH,0.0))
+	var first := true
+	for name in ["cable","base","lower","upper","housing"]:
+		for v in piece_geometry(name)[0]:
+			var point: Vector2 = frames[name]*v
+			if first: _bounds = Rect2(point,Vector2.ZERO); first = false
+			else: _bounds = _bounds.expand(point)
+	return _bounds
 func apply_pose(p: Dictionary) -> void:
 	pose = p
 	var frames := transforms(p)
@@ -90,12 +133,29 @@ func apply_pose(p: Dictionary) -> void:
 		if name.begins_with("lid_"):
 			var offset := lid_slide(name == "lid_top",p.blink)
 			pieces[name].material.set_shader_parameter("slide",offset)
-	laser.transform = frames.housing*Transform2D(laser_angle,Vector2(-90,-71)+p.gaze)
+	laser.transform = frames.housing*Transform2D(laser_angle,LENS+p.gaze)
 	laser.visible = p.charge > .0001 or p.emission > .0001
 	laser.material.set_shader_parameter("clock",p.time)
 	laser.material.set_shader_parameter("charge",p.charge)
 	laser.material.set_shader_parameter("emission",p.emission)
 	laser.material.set_shader_parameter("reach",laser_reach)
+	var needed := maxf(LASER_MIN_EXTENT,laser_reach+30.0)
+	if absf(needed-_laser_extent) > 8.0:
+		_laser_extent = needed
+		laser.polygon = _laser_polygon(needed)
+## Combate: aponta o feixe para um ponto no referencial do rig (alvo travado
+## ou parede que interceptou o raio) e aplica a pose.
+func apply_pose_aimed(p: Dictionary,local_target: Vector2) -> void:
+	var frames := transforms(p)
+	var housing: Transform2D = frames.housing
+	var lens: Vector2 = housing*(LENS+p.gaze)
+	var offset := local_target-lens
+	laser_reach = maxf(offset.length(),1.0)
+	laser_angle = offset.angle()-housing.get_rotation()
+	apply_pose(p)
+## Posicao da lente no referencial do rig, para o aviso do combate sair dela.
+static func lens_point(p: Dictionary) -> Vector2:
+	return (transforms(p).housing as Transform2D)*(LENS+p.gaze)
 func _process(delta: float) -> void:
 	if playing:
 		playhead += delta; apply_pose(compute_pose(action,playhead))

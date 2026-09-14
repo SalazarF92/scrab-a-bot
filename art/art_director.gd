@@ -1,7 +1,8 @@
 class_name ArtDirector
 extends RefCounted
-## Raster original + composição modular. A animação visual usa poses a 12 Hz;
-## não consome RNG nem altera colisões, mira ou o pool de projéteis.
+## Raster original + composição modular. Não consome RNG nem altera colisões, mira
+## ou o pool de projéteis. Espécies com rig articulado são desenhadas por
+## CreatureRigView; os recortes estáticos restantes ainda balançam a 12 Hz (legado).
 
 const INK := Color("#1A0F14")
 const BONE := Color("#F5F0E1")

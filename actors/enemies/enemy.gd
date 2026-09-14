@@ -93,6 +93,12 @@ var marked: bool = false
 var _stun: float = 0.0
 var _stun_push: Vector2 = Vector2.ZERO
 var _last_hit_bounce: int = 0
+## Tempo desde o ultimo golpe de contato. O rig usa para tocar o golpe.
+var anim_since_contact: float = 99.0
+## Ponto de onde sai o aviso do laser, no referencial do inimigo (lente do rig).
+var emitter_offset: Vector2 = Vector2.ZERO
+## Rig articulado de combate das especies convertidas. Ver CreatureRigView.
+var rig_view: CreatureRigView
 
 var hp: float = 12.0
 var scrap_value: int = 3
@@ -139,6 +145,12 @@ var _boss_sweep_to: float = 0.0
 var _boss_push_dir: float = 1.0
 
 
+func _init() -> void:
+	# Criado junto com o inimigo: o pool pre-aloca, e o combate nao instancia.
+	rig_view = CreatureRigView.new()
+	add_child(rig_view)
+
+
 func _ready() -> void:
 	var shape := CollisionShape2D.new()
 	_shape = CircleShape2D.new()
@@ -164,6 +176,8 @@ func activate(spec: Dictionary, ai_group: int, at: Vector2) -> void:
 	_stun = 0.0
 	_stun_push = Vector2.ZERO
 	_last_hit_bounce = 0
+	anim_since_contact = 99.0
+	emitter_offset = Vector2.ZERO
 	for k in FACTORY:
 		set(k, FACTORY[k])
 	for k in spec:
@@ -220,6 +234,7 @@ func activate(spec: Dictionary, ai_group: int, at: Vector2) -> void:
 		global_position = at
 	else:
 		position = at
+	rig_view.bind(self)
 	queue_redraw()
 
 
@@ -248,6 +263,7 @@ func _physics_process(delta: float) -> void:
 	_escape_time = maxf(0.0, _escape_time - delta)
 	_deform = _deform.lerp(Vector2.ONE, minf(1.0, delta * 10.0))
 	_phase += delta
+	anim_since_contact += delta
 
 	if Engine.get_physics_frames() % AI_GROUPS == _ai_group:
 		_think()
@@ -271,6 +287,8 @@ func _physics_process(delta: float) -> void:
 	else:
 		_update_stuck(delta, global_position.y - y_before)
 	_check_contact()
+	if active and rig_view.visible:
+		rig_view.sync(self, delta)
 	queue_redraw()
 
 
@@ -657,6 +675,7 @@ func _check_contact() -> void:
 		if global_position.distance_to(center) < body_radius + Robot.COLLISION_RADIUS:
 			_player.call("take_damage", contact_damage, global_position, 0, source_text(), false)
 			_contact_cd = CONTACT_COOLDOWN
+			anim_since_contact = 0.0
 			velocity.y = -200.0
 			return
 
@@ -760,8 +779,12 @@ func _draw() -> void:
 		return
 	_draw_boss_telegraph()
 	_mob.draw_warning(self, self)
-	draw_set_transform(Vector2.ZERO, 0.0, _deform)
-	ArtDirector.draw_enemy(self, self)
+	# Especie com rig articulado: o corpo vem do CreatureRigView, sem squash
+	# global da imagem; as juntas fazem o movimento. As demais seguem o recorte.
+	var rigged := rig_view.visible
+	if not rigged:
+		draw_set_transform(Vector2.ZERO, 0.0, _deform)
+		ArtDirector.draw_enemy(self, self)
 	if is_elite:
 		draw_arc(Vector2.ZERO, body_radius + 9, 0, TAU, 30, Color("#7B2FBF"), 4.0)
 	if marked:
@@ -775,7 +798,7 @@ func _draw() -> void:
 		for k in 3:
 			var sp := Vector2.from_angle(_phase * 6.0 + TAU * float(k) / 3.0) * (body_radius * 0.7)
 			draw_circle(sp + Vector2(0, -body_radius - 6.0), 3.0, Color("#FFD400"))
-	if _flash > 0.0:
+	if _flash > 0.0 and not rigged:
 		draw_circle(Vector2.ZERO, body_radius, Color(1.0, 1.0, 1.0, 0.5))
 	if front_damage_mult < 1.0 and not boss_exposed:
 		draw_arc(Vector2.ZERO, body_radius + 4.0, 0.15, PI - 0.15, 20, Color("#FFD400"), 5.0)

@@ -6,7 +6,7 @@ Continuação do GDD, do relatório de 09/09 e de `DOCUMENTACAO_IMPLEMENTACAO_AR
 
 Atualização visual de 13/09: o [Olhudo ganhou assets próprios e rig articulado](docs/OLHUDO_ANIMACOES.md),
 com olho independente, pálpebras mecânicas e laser. A cena reutilizável e as prévias
-estão prontas; esta atualização visual ainda não substitui seu desenho no gameplay.
+estão prontas. Desde 14/09 o rig também é o desenho do Olhudo no combate.
 
 | Monstro | Primeiro setor | Comportamento |
 |---|---:|---|

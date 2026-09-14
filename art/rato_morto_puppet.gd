@@ -10,21 +10,38 @@ const WALK_DURATION := 1.4
 const ATTACK_DURATION := 1.9
 const POWER_DURATION := 3.2
 const IMPACT_TIME := .9
+## Olho e boca montados no corpo; lidos tambem pelo desenho do combate.
+const EYE_PUPIL := Vector2(478,257)
+const EYE_RADIUS := 7.0
+const MOUTH_SPECIES := 1
+static func eye_frame(p: Dictionary) -> Transform2D:
+	return Transform2D(p.body_tilt,p.body_offset)*Transform2D(0,-Vector2(484,220))
 static var _parts: Dictionary = {}
 static func parts() -> Dictionary:
 	if _parts.is_empty():
 		_parts = JSON.parse_string(FileAccess.get_file_as_string(PARTS_PATH))
 	return _parts
+## Geometria estatica: construida uma vez por peca. Antes era refeita do JSON a
+## cada quadro, o que dominava o custo de desenho do rig.
+static var _poly_cache: Dictionary = {}
+static var _uv_cache: Dictionary = {}
 static func polygon(key: String) -> PackedVector2Array:
+	if _poly_cache.has(key):
+		return _poly_cache[key]
 	var def: Dictionary = parts()[key]
 	var out := PackedVector2Array()
 	for xy in def.points:
 		out.append((Vector2(xy[0], xy[1]) - Vector2(def.pivot[0], def.pivot[1])) * float(def.fit))
+	_poly_cache[key] = out
 	return out
 static func uvs(key: String, normalized: bool = true) -> PackedVector2Array:
+	var cache_key := key if normalized else key + "#px"
+	if _uv_cache.has(cache_key):
+		return _uv_cache[cache_key]
 	var out := PackedVector2Array()
 	for xy in parts()[key].points:
 		out.append(Vector2(xy[0], xy[1]) / (1254.0 if normalized else 1.0))
+	_uv_cache[cache_key] = out
 	return out
 static func curve(t: float, keys: Array) -> float:
 	for i in range(1, keys.size()):
@@ -80,9 +97,14 @@ static func blend_pose(a: Dictionary,b: Dictionary,weight: float) -> Dictionary:
 static func joint(angle: float,at: Vector2) -> Transform2D:
 	var pivot := at-Vector2(484,220)
 	return Transform2D(angle,pivot-pivot.rotated(angle))
-static func frames(p: Dictionary,exploded: float = 0) -> Array[Dictionary]:
+## Transformacao de cada grupo de pecas. "__body" vale para as pecas sem junta
+## propria. CreatureRigView desenha pecas consecutivas do mesmo grupo como uma malha.
+static func group_transforms(p: Dictionary) -> Dictionary:
 	var body := Transform2D(p.body_tilt,p.body_offset)
-	var transforms := {"tail":body*joint(p.tail,Vector2(593,248)),"jaw":body*joint(p.jaw,Vector2(475,311)),"paw_front":body*joint(p.front,Vector2(373,342)),"paw_back":body*joint(p.back,Vector2(355,308)),"paw_right":body*joint(p.right,Vector2(570,316))}
+	return {"__body":body,"tail":body*joint(p.tail,Vector2(593,248)),"jaw":body*joint(p.jaw,Vector2(475,311)),"paw_front":body*joint(p.front,Vector2(373,342)),"paw_back":body*joint(p.back,Vector2(355,308)),"paw_right":body*joint(p.right,Vector2(570,316))}
+static func frames(p: Dictionary,exploded: float = 0) -> Array[Dictionary]:
+	var transforms := group_transforms(p)
+	var body: Transform2D = transforms["__body"]
 	var out: Array[Dictionary] = []
 	for key in parts():
 		var xf: Transform2D = transforms.get(parts()[key].get("group",key),body)
@@ -104,8 +126,8 @@ static func draw_puppet(canvas: CanvasItem,tex: Texture2D,center: Vector2,scale_
 	canvas.draw_set_transform_matrix(Transform2D.IDENTITY)
 static func draw_details(canvas: CanvasItem,p: Dictionary,tex: Texture2D,tint: Color = Color.WHITE,root: Transform2D = Transform2D.IDENTITY) -> void:
 	var body := Transform2D(p.body_tilt,p.body_offset)
-	canvas.draw_set_transform_matrix(root*body*Transform2D(0,-Vector2(484,220)))
-	Eyes._eye(canvas,Vector2(478,257),7,p.gaze,tint,tex)
+	canvas.draw_set_transform_matrix(root*eye_frame(p))
+	Eyes._eye(canvas,EYE_PUPIL,EYE_RADIUS,p.gaze,tint,tex)
 	Mouth.draw(canvas,1,p,root,tint)
 	var cable := body*joint(p.tail,Vector2(593,248))
 	Energy.sync(canvas,1,p,root*cable*Transform2D(PI+.2,Vector2(612,120)-Vector2(484,220)))

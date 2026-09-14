@@ -13,16 +13,27 @@ static func parts() -> Dictionary:
 	if _parts.is_empty():
 		_parts = JSON.parse_string(FileAccess.get_file_as_string(PARTS_PATH))
 	return _parts
+## Geometria estatica: construida uma vez por peca. Antes era refeita do JSON a
+## cada quadro, o que dominava o custo de desenho do rig.
+static var _poly_cache: Dictionary = {}
+static var _uv_cache: Dictionary = {}
 static func polygon(key: String) -> PackedVector2Array:
+	if _poly_cache.has(key):
+		return _poly_cache[key]
 	var def: Dictionary = parts()[key]
 	var out := PackedVector2Array()
 	for xy in def.points:
 		out.append((Vector2(xy[0], xy[1]) - Vector2(def.pivot[0], def.pivot[1])) * float(def.fit))
+	_poly_cache[key] = out
 	return out
 static func uvs(key: String, normalized: bool = true) -> PackedVector2Array:
+	var cache_key := key if normalized else key + "#px"
+	if _uv_cache.has(cache_key):
+		return _uv_cache[cache_key]
 	var out := PackedVector2Array()
 	for xy in parts()[key].points:
 		out.append(Vector2(xy[0], xy[1]) / (1254.0 if normalized else 1.0))
+	_uv_cache[cache_key] = out
 	return out
 static func curve(t: float, keys: Array) -> float:
 	for i in range(1, keys.size()):

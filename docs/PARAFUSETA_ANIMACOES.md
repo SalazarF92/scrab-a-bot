@@ -26,3 +26,20 @@ Reconstrução, nesta ordem, com Godot --headless --path . --script:
 
 Validação: tests/creature_mouths.gd verifica abertura, fechamento e rigidez da mandíbula; tests/parafuseta_motion.gd verifica área dos recortes restantes, escala unitária e continuidade; tests/compile_check.tscn verifica a compilação. As prévias são renderizações do Godot.
 Revisão dedicada de VFX: docs/visual/poderes-criaturas-preview.mp4. Visualizador: ver_poderes_criaturas.bat. A integração verifica pausa, retorno ao mesmo instante e limpeza ao trocar de ação; execute tools/export_creature_vfx.ps1 -Mode Verify. Imagens das quatro fases: docs/visual/vfx-carga.png, vfx-pico.png, vfx-cauda.png e vfx-fim.png.
+
+## Integração no combate (14/09)
+
+Desde 14/09 este rig é o desenho da Parafuseta no poço, via `art/creature_rig_view.gd`.
+O desenho imediato do puppet custava 5,2 ms por Parafuseta, inviável para um enxame. No
+combate, as peças consecutivas da mesma junta viram uma malha montada uma vez, e cada quadro
+só troca transformações. Geometria, UVs, pivôs, ordem de desenho e curvas são as do rig.
+
+- Anda enquanto desce, toca o golpe a partir do impacto quando encosta no robô e fica em repouso atordoada.
+- A troca de ação é interpolada em 0,16 s. Hitstop e pausa congelam o rig no mesmo instante.
+- A boca usa as peças de `CreatureMouth`. O corte da cavidade pela mandíbula é o mesmo semiplano, feito em `art/mouth_clip.gdshader`.
+- O jato de plasma não aparece no combate, porque a Parafuseta não tem essa habilidade.
+- O squash global da imagem não se aplica a espécies com rig.
+
+Validação: `tests/rig_integration.tscn` compara as malhas com o rig peça a peça, confere o corte
+da boca contra a máscara original e mede o custo de uma onda densa. Capturas com renderer real:
+`docs/visual/rigs-no-jogo.png` e `rigs-no-jogo-zoom.png`, geradas por `tools/capture_rigs.tscn`.

@@ -118,5 +118,24 @@ quando apenas a cena de demonstração foi atualizada.
 - `scenes/creature_joints_review.tscn` e `docs/visual/juntas-preview.mp4`: revisão
   ampliada de movimento, golpe e poder.
 
+
+## Integração no combate
+
+O desenho imediato de um puppet serve para revisão, não para o combate: medido headless, custava
+5,2 ms por Parafuseta. O caminho de integração é `art/creature_rig_view.gd`. Ele monta, uma vez
+por espécie, uma malha por trecho consecutivo de peças da mesma junta, e cada quadro só atualiza
+transformações. Uma onda de 48 criaturas e 4 Olhudos custou cerca de 3 ms de pose e desenho num
+build de editor. Cortes que o puppet faz por polígono viram shader com a mesma geometria.
+
+Para ligar um personagem novo ao combate:
+
+1. Expor no puppet `group_transforms(p)`, `eye_frame(p)`, `EYE_PUPIL`, `EYE_RADIUS` e
+   `MOUTH_SPECIES`, e usar essas funções no próprio `frames()` e `draw_details()`.
+2. Registrar a espécie em `CreatureRigView.SPECIES_BY_VISUAL` e a célula de referência.
+3. Mapear o estado do combate para as ações do rig, sem alterar regra de dano.
+4. Acrescentar casos em `tests/rig_integration.gd` e capturas com `tools/capture_rigs.tscn`.
+
+Personagens com cena de nós própria, como o Olhudo, são instanciados uma vez por inimigo do pool.
+
 Os arquivos antigos permanecem como histórico. Orientações de deformação global,
 recorte simples sem reconstrução ou animação a 12 poses/s não são o padrão atual.

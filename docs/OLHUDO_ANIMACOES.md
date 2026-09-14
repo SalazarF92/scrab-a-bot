@@ -75,6 +75,15 @@ continuidade dos ciclos, preparação e fechamento das pálpebras.
 `scenes/olhudo_showcase.tscn -- --verify-olhudo` compara capturas em pausa e após
 retornar ao mesmo instante; verifica limpeza do laser ao trocar de ação.
 
-Escopo: assets, rig reutilizável, VFX e demonstração. O desenho antigo no gameplay
-não foi substituído nesta etapa; dano, alcance, obstáculos e lógica do Olhudo da
-expansão permanecem nos arquivos de combate existentes.
+Escopo em 13/09: assets, rig reutilizável, VFX e demonstração.
+
+Integração no combate (14/09): esta cena é o desenho do Olhudo no poço, instanciada uma vez
+por inimigo do pool via `art/creature_rig_view.gd`, com contornos e geometria em cache estático.
+Enquanto espera, o Olhudo vigia. Os 0,8 s de aviso da habilidade tocam a carga de 0,6 a 1,4 s
+do rig, e a emissão começa no instante do golpe do combate. O feixe aponta para o alvo travado
+ou para a parede que interceptou o raio. O retângulo do laser cresce com o alcance, e o shader
+continua em unidades do rig, sem esticar. O Olhudo vira para o lado do robô só fora do golpe,
+com 60 px de folga, e o espelhamento é uma escala constante de apresentação. A linha fina de
+aviso sai da lente. Dano, alcance e obstáculos continuam decididos por `combat/mob_ability.gd`.
+O golpe mecânico não tem uso no combate atual. Validação em `tests/rig_integration.tscn`;
+captura em `docs/visual/rigs-no-jogo.png`.

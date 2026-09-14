@@ -103,6 +103,9 @@ só passa com código 0, a linha `=== TUDO OK ===` e nenhum `SCRIPT ERROR` na sa
   Formulário (cabeçote, esteira, PAPER JAM), promoção de elite e hitstop roteirizado.
 - **`tests/mob_expansion.tscn`** verifica habilidades, divisões, bloqueios, vento, laser,
   explosão, fusão, fabricação e reciclagem dos oito novos monstros.
+- **`tests/rig_integration.tscn`** verifica os rigs articulados no combate: malhas iguais ao rig peça a
+  peça, corte da boca igual à máscara original, reciclagem no pool, golpe de contato, laser do Olhudo
+  sincronizado com a habilidade, congelamento no hitstop e custo de uma onda densa.
 - **`tests/audio_cleanup.tscn`** verifica liberação dos playbacks, inclusive sons tardios.
 - **`tests/run_completion.tscn`** atravessa os cinco setores com abate assistido: quatro
   bancadas, cinco chefes, vitória, persistência da receita e reinício limpo. Não mede balanceamento.
@@ -161,6 +164,11 @@ nada.
 trauma de câmera com amplitude quadrática, escala musical ascendente de quique com
 limitador de 4 vozes por som e roubo da mais antiga, squash and stretch por evento com pivô
 na base, coice e antecipação de câmera na direção da mira.
+
+**Rigs articulados no combate.** Parafuseta, Rato Morto e Olhudo usam no poço os rigs construídos
+pelo método de mobs, via `art/creature_rig_view.gd`, com as peças agrupadas em malhas por junta.
+Mini-Prensa e Frostbyte já usavam seus puppets. Os demais inimigos continuam como recorte estático
+até ganharem assets próprios.
 
 **Modularidade (GDD 4, o pilar 2).** Peça é dado, não código: `PartData` com array de
 `PartBehavior`. A TORRADA TESLA é a Torradeira com um comportamento a mais no array e o

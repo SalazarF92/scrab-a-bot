@@ -10,18 +10,33 @@ static func animate(p: Dictionary, t: float, duration: float, _impact_time: floa
 		target = target.lerp(Vector2(0, .80), sin(phase * PI) * .85)
 	p["gaze"] = target
 
-static func _eye(canvas: CanvasItem, pupil: Vector2, radius: float, gaze: Vector2, tint: Color, texture: Texture2D) -> void:
-	# Small feathered patch covers only the old pupil, preserving the original veins.
+## Small feathered patch covers only the old pupil, preserving the original veins.
+static func eye_patch(canvas: CanvasItem, pupil: Vector2, radius: float, tint: Color) -> void:
 	for i in range(4):
 		canvas.draw_circle(pupil, radius + 2.2 - i * .45, Color(1.0, .94, .86, .35 + i * .18) * tint)
-	var at := pupil + gaze * Vector2(radius * .78, radius * .46)
+
+## Centro da iris deslocada pelo olhar. A iris mantem o tamanho.
+static func iris_center(pupil: Vector2, radius: float, gaze: Vector2) -> Vector2:
+	return pupil + gaze * Vector2(radius * .78, radius * .46)
+
+## Iris centrada na origem, com UVs dos pixels originais da pupila.
+static func iris_geometry(pupil: Vector2, radius: float) -> Array:
 	var iris := PackedVector2Array()
 	var uv := PackedVector2Array()
 	for i in range(40):
 		var offset := Vector2.from_angle(float(i) * TAU / 40.0) * radius
-		iris.append(at + offset)
+		iris.append(offset)
 		uv.append((pupil + offset) / 1254.0)
-	canvas.draw_polygon(iris, PackedColorArray([tint]), uv, texture)
+	return [iris, uv]
+
+static func _eye(canvas: CanvasItem, pupil: Vector2, radius: float, gaze: Vector2, tint: Color, texture: Texture2D) -> void:
+	eye_patch(canvas, pupil, radius, tint)
+	var at := iris_center(pupil, radius, gaze)
+	var geometry := iris_geometry(pupil, radius)
+	var iris := PackedVector2Array()
+	for offset in geometry[0]:
+		iris.append(at + offset)
+	canvas.draw_polygon(iris, PackedColorArray([tint]), geometry[1], texture)
 static func draw_press(canvas: CanvasItem, p: Dictionary, root: Transform2D, tint: Color) -> void:
 	if _press_texture == null:
 		_press_texture = load("res://assets/art/mini_prensa_rigid_atlas.png")

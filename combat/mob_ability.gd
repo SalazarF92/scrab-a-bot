@@ -7,6 +7,9 @@ var warning := 0.0
 var strike := 0.0
 var target := Vector2.ZERO
 var spawned := 0
+## Tempo desde o ultimo golpe executado. O rig do Olhudo sincroniza a emissao
+## do laser com este relogio, sem alterar a regra de dano.
+var since_execute := 99.0
 var merged := false
 var wind_clock := 0.0
 var wind_sound_clock := 0.0
@@ -22,6 +25,7 @@ func reset(owner: Node2D) -> void:
 	strike = 0.0
 	target = Vector2.ZERO
 	spawned = 0
+	since_execute = 99.0
 	merged = false
 	wind_clock = 0.0
 	shot = null
@@ -32,6 +36,7 @@ func tick(owner: Node2D, delta: float) -> void:
 	var player: Node2D = owner._player
 	if player.get("hp") != null and player.hp <= 0.0: return
 	strike = maxf(0.0, strike - delta)
+	since_execute += delta
 	if owner.mob_kind == &"fan":
 		wind_clock += delta
 		wind_sound_clock = maxf(0.0, wind_sound_clock - delta)
@@ -72,6 +77,7 @@ func tick(owner: Node2D, delta: float) -> void:
 
 func _execute(owner: Node2D, player: Node2D) -> void:
 	strike = 0.22
+	since_execute = 0.0
 	timer = 4.2
 	match owner.mob_kind:
 		&"keyboard":
@@ -154,7 +160,11 @@ func draw_warning(canvas: Node2D, owner: Node2D) -> void:
 			canvas.draw_circle(Vector2.ZERO, radius, Color(color, 0.06))
 			canvas.draw_arc(Vector2.ZERO, radius, 0, TAU, 40, Color(color, 0.6), 2.0)
 		&"laser":
-			canvas.draw_line(Vector2.ZERO, endpoint, Color(color, 0.9), 8.0 if strike > 0.0 else 2.0)
+			# O feixe do golpe e o VFX do rig; o aviso continua como linha fina
+			# saindo da lente, e o ponto final marca onde o laser vai bater.
+			var from: Vector2 = owner.get("emitter_offset") if owner.get("emitter_offset") != null else Vector2.ZERO
+			if warning > 0.0:
+				canvas.draw_line(from, endpoint, Color(color, 0.9), 2.0)
 			canvas.draw_circle(endpoint, 7, color)
 		_:
 			canvas.draw_arc(Vector2.ZERO, owner.body_radius + 12, 0, TAU, 24, color, 3.0)
