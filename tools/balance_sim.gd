@@ -4,8 +4,10 @@ extends Node
 ## runs com builds aleatorias e reporta taxa de vitoria por peca".
 ##
 ## Um piloto automatico joga a run sem abate assistido: mira no inimigo mais
-## baixo (por ricochete na parede quando o alvo so morre por quique), segura o
-## braco esquerdo, pulsa o direito e a cabeca, purga com calor alto, corre para
+## baixo e, se o alvo passa 2,5 s sem perder HP, alterna entre tiro direto e
+## ricochete na parede esquerda, na direita e no teto (alvo que so morre por
+## quique ja comeca pela parede). Segura o braco esquerdo, pulsa o direito e a
+## cabeca, purga com calor alto, corre para
 ## rebater o proprio projetil que cai e sai das faixas avisadas dos chefes. Na
 ## Bancada solda com HP baixo, funde duplicatas e evolui pecas. CPU e pecas sao
 ## sorteadas pela semente de cada run, sem upgrades da Garagem e com risco zero.
@@ -205,10 +207,26 @@ func _describe_alive() -> String:
 
 # --- piloto --------------------------------------------------------------------
 
+## Sem perda de HP do alvo por este tempo, o piloto troca o angulo: direto,
+## ricochete na parede esquerda, na direita e no teto. Sem isto um Olhudo
+## parado atras de um obstaculo travava a onda para sempre.
+const AIM_RETRY_TIME := 2.5
+enum AimMode { DIRECT, LEFT_WALL, RIGHT_WALL, CEILING }
+var _aim_mode := AimMode.DIRECT
+var _target_id := 0
+var _target_hp := 0.0
+var _target_clock := 0.0
+var _target_run := -1
+
+
 func _pilot() -> void:
 	var robot: Robot = proto.robot
 	var center := robot.body_center()
-	var target := _pick_target()
+	var enemy := _pick_target_enemy()
+	var target := Vector2.INF
+	if enemy != null:
+		_update_aim_mode(enemy, get_physics_process_delta_time())
+		target = _aim_point(enemy.global_position, _aim_mode)
 
 	var aim := Vector2.UP
 	if target != Vector2.INF:
@@ -220,7 +238,7 @@ func _pilot() -> void:
 
 	var desired_x := _paddle_x(robot)
 	if is_nan(desired_x):
-		desired_x = clampf(target.x, 60.0, 940.0) if target != Vector2.INF else 500.0
+		desired_x = clampf(enemy.global_position.x, 60.0, 940.0) if enemy != null else 500.0
 	desired_x = _avoid_boss_lanes(desired_x, robot)
 	var dx := desired_x - robot.global_position.x
 	_press("move_right", 1.0 if dx > 14.0 else 0.0)
@@ -233,23 +251,56 @@ func _pilot() -> void:
 	_press("dash", 1.0 if _in_boss_lane(robot) and _frame % 20 == 0 else 0.0)
 
 
-## Inimigo mais proximo da base. Alvo que so morre por quique (Fantasma de
-## Disquete) e mirado pelo reflexo na parede lateral mais proxima.
-func _pick_target() -> Vector2:
-	var best := Vector2.INF
+## Inimigo mais proximo da base.
+func _pick_target_enemy() -> Enemy:
+	var best: Enemy = null
 	var best_y := -INF
-	var needs_bounce := false
 	for n in get_tree().get_nodes_in_group(&"enemies"):
 		var e := n as Enemy
 		if e == null or not e.active:
 			continue
 		if e.global_position.y > best_y:
 			best_y = e.global_position.y
-			best = e.global_position
-			needs_bounce = e.min_bounces_to_damage > 0
-	if best != Vector2.INF and needs_bounce:
-		best.x = -best.x if best.x < ArenaGenerator.ARENA_SIZE.x * 0.5 else 2.0 * ArenaGenerator.ARENA_SIZE.x - best.x
+			best = e
 	return best
+
+
+## Troca de angulo quando o alvo para de perder HP. Alvo que so morre por
+## quique (Fantasma de Disquete) ja comeca pelo ricochete na parede.
+func _update_aim_mode(enemy: Enemy, delta: float) -> void:
+	var id := enemy.get_instance_id()
+	var fresh := id != _target_id or _target_run != _run_index or enemy.hp > _target_hp + 0.5
+	if fresh:
+		_target_id = id
+		_target_run = _run_index
+		_target_hp = enemy.hp
+		_target_clock = 0.0
+		_aim_mode = AimMode.LEFT_WALL if enemy.min_bounces_to_damage > 0 else AimMode.DIRECT
+		return
+	if enemy.hp < _target_hp - 0.5:
+		_target_hp = enemy.hp
+		_target_clock = 0.0
+		return
+	_target_clock += delta
+	if _target_clock < AIM_RETRY_TIME:
+		return
+	_target_clock = 0.0
+	_aim_mode = (_aim_mode + 1) % AimMode.size()
+	if enemy.min_bounces_to_damage > 0 and _aim_mode == AimMode.DIRECT:
+		_aim_mode = AimMode.LEFT_WALL
+
+
+## Ponto de mira: o alvo, ou a imagem dele refletida na parede escolhida.
+static func _aim_point(p: Vector2, mode: int) -> Vector2:
+	var width := ArenaGenerator.ARENA_SIZE.x
+	match mode:
+		AimMode.LEFT_WALL:
+			return Vector2(-p.x, p.y)
+		AimMode.RIGHT_WALL:
+			return Vector2(2.0 * width - p.x, p.y)
+		AimMode.CEILING:
+			return Vector2(p.x, -p.y)
+	return p
 
 
 ## Ponto onde o proprio projetil que esta caindo vai cruzar a linha do corpo.
