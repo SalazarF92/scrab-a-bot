@@ -97,6 +97,13 @@ var _spasm_timer: float = 0.0
 var _spasm_lock: float = 0.0
 var _cooldowns: Dictionary = {}
 var _cooldown_full: Dictionary = {}  # duracao total da ultima recarga por slot, para a HUD
+var _external_push: Vector2 = Vector2.ZERO
+
+
+## Empurrao externo em px/s aplicado no proximo quadro de movimento. Chefes
+## usam para succao (Sugao) e esteira de papel (Formulario).
+func apply_push(velocity_px: Vector2) -> void:
+	_external_push += velocity_px
 var _fire_ctx := FireContext.new()
 var _recoil: Vector2 = Vector2.ZERO
 var _hit_flash: float = 0.0
@@ -451,6 +458,10 @@ func _handle_movement(delta: float) -> void:
 	else:
 		velocity.x = move_toward(velocity.x, 0.0, DECELERATION * delta)
 	velocity.x += _recoil.x
+	# Succao e esteira dos chefes. Consumido por quadro; o dash retorna antes
+	# desta linha, entao dar dash contra a succao e a contramedida.
+	velocity.x += _external_push.x
+	_external_push = Vector2.ZERO
 	velocity.y = 0.0
 
 	# Trava o robo na baseline do poco e limita o movimento dentro das paredes.

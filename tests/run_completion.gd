@@ -48,8 +48,8 @@ func _process(delta: float) -> void:
 	if prototype.garage.visible:
 		if not MetaManager.last_run_summary.get("won", false):
 			failures.append("Percurso terminou sem vitoria")
-		if bench_count != 4 or boss_count != 3:
-			failures.append("Esperava 4 bancadas e 3 chefes, recebeu %d/%d" % [bench_count, boss_count])
+		if bench_count != 4 or boss_count != 5:
+			failures.append("Esperava 4 bancadas e 5 chefes, recebeu %d/%d" % [bench_count, boss_count])
 		prototype._begin_run(false, 20260910)
 		for key in EnemyLibrary.EXPANSION_KEYS:
 			if not seen_mobs.has(StringName(key)):

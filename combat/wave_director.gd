@@ -35,7 +35,14 @@ const NEXT_WAVE_SILENCE := 0.6
 const ROOM_CLEAR_DELAY := 1.2
 const BANNER_TIME := 2.5
 
-const BOSS_BY_SECTOR := {1: "mini_prensa", 3: "frostbyte", 5: "fornalha_suprema"}
+## Um chefe por setor (GDD_ADENDOS A.1). Sugao e Formulario foram redesenhados
+## para o poco: ver EnemyLibrary.BOSS_PROFILES.
+const BOSS_BY_SECTOR := {1: "mini_prensa", 2: "sugao_3000", 3: "frostbyte", 4: "formulario_27b", 5: "fornalha_suprema"}
+## GDD 5.3: elites aparecem com 8% de chance por sala a partir do setor 3.
+const ELITE_FROM_SECTOR := 3
+const ELITE_CHANCE := 0.08
+## Bolas de papel do Formulario. O poco e estreito: mais que isto fecha a base.
+const MAX_SPAWNED_OBSTACLES := 6
 ## Setor -> indice da onda de bumpers.
 const BUMPER_WAVE_BY_SECTOR := {2: 2, 4: 2}
 
@@ -52,6 +59,9 @@ const THREAT_COST := {
 	"mini_prensa": 12.0,
 	"frostbyte": 25.0,
 	"fornalha_suprema": 50.0,
+	"sugao_3000": 20.0,
+	"formulario_27b": 35.0,
+	"bolota_de_cabelo": 4.0,
 }
 
 const COMMON_KEYS := ["parafuseta", "rato_morto", "fantasma_disquete", "jato_preto", "vovo_geladeira"]
@@ -81,6 +91,8 @@ var wave_banner_time: float = 0.0
 var _silence: float = 0.0
 var _telegraphs: Array[Dictionary] = []
 var _post_clear: float = 0.0
+## Obstaculos criados por chefe nesta sala (spawn_obstacle).
+var spawned_obstacles: int = 0
 
 
 func _ready() -> void:
@@ -95,6 +107,7 @@ func start_room(p_sector: int) -> void:
 	_silence = 0.0
 	_post_clear = 0.0
 	_telegraphs.clear()
+	spawned_obstacles = 0
 	active = true
 	_spawn_wave()
 
@@ -199,6 +212,14 @@ func _spawn_wave() -> void:
 		counts[key] = counts.get(key, 0) + 1
 		_telegraph(key, _pick_spawn_point(rng), TELEGRAPH_TIME)
 
+	# Elite: um comum promovido, fora do orcamento. O sorteio consome o fluxo
+	# WAVES sempre, para a sequencia nao depender do setor.
+	var elite_roll := rng.randf()
+	if wave_kind == &"normal" and sector >= ELITE_FROM_SECTOR and elite_roll < ELITE_CHANCE:
+		var base_key: String = COMMON_KEYS[rng.randi_range(0, COMMON_KEYS.size() - 1)]
+		_telegraphs.append({"key": base_key, "pos": _pick_spawn_point(rng), "t": 0.0,
+			"time": BOSS_TELEGRAPH_TIME, "spec": EnemyLibrary.elite_spec(base_key, sector)})
+
 	wave_banner_time = BANNER_TIME if wave_kind != &"normal" else 0.0
 	wave_started.emit(wave_index, wave_kind)
 
@@ -223,6 +244,25 @@ func spawn_minions(key: String, at: Vector2, count: int) -> void:
 		p.x = clampf(p.x, 30.0, ArenaGenerator.ARENA_SIZE.x - 30.0)
 		p.y = minf(p.y, ArenaGenerator.BASELINE_Y - 80.0)
 		_telegraph(key, p, MINION_TELEGRAPH_TIME)
+
+
+## Obstaculo criado por um chefe (bola de papel do Formulario). Entra na arena
+## como qualquer outro, e some com a sala. Limitado para nao fechar a base.
+func spawn_obstacle(at: Vector2, size: Vector2, restitution: float, label: String) -> void:
+	if not active or arena == null:
+		return
+	if spawned_obstacles >= MAX_SPAWNED_OBSTACLES:
+		return
+	var o := Obstacle.new()
+	o.size = size
+	o.restitution = restitution
+	o.label = label
+	o.color = Color("#E8E2D0")
+	o.position = Vector2(clampf(at.x, size.x * 0.5 + 40.0, ArenaGenerator.ARENA_SIZE.x - size.x * 0.5 - 40.0),
+		clampf(at.y, 260.0, 760.0))
+	arena.add_child(o)
+	spawned_obstacles += 1
+	CombatFeel.add_trauma(0.2)
 
 
 func spawn_popup_children(parent: Node2D) -> void:

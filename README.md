@@ -97,12 +97,14 @@ só passa com código 0, a linha `=== TUDO OK ===` e nenhum `SCRIPT ERROR` na sa
   isolamento de recursos nos clones.
 - **Testes de rig** (`tests/*_motion.gd`, `creature_mouths.gd`, `creature_joint_contacts.gd`,
   `boss_revision.gd`) verificam rigidez, continuidade, bocas e juntas dos rigs articulados.
-- **`tests/boss_combat.tscn`** verifica blindagem, fases, telegrafia, esquiva e pool dos chefes.
+- **`tests/boss_combat.tscn`** verifica blindagem, fases, telegrafia, esquiva e pool dos chefes,
+  os perfis de dados dos cinco chefes, Sugão (sucção, filtro HEPA, bolas de pelo, fase 3),
+  Formulário (cabeçote, esteira, PAPER JAM), promoção de elite e hitstop roteirizado.
 - **`tests/mob_expansion.tscn`** verifica habilidades, divisões, bloqueios, vento, laser,
   explosão, fusão, fabricação e reciclagem dos oito novos monstros.
 - **`tests/audio_cleanup.tscn`** verifica liberação dos playbacks, inclusive sons tardios.
 - **`tests/run_completion.tscn`** atravessa os cinco setores com abate assistido: quatro
-  bancadas, três chefes, vitória, persistência da receita e reinício limpo. Não mede balanceamento.
+  bancadas, cinco chefes, vitória, persistência da receita e reinício limpo. Não mede balanceamento.
 
 Gameplay e percurso completo usam `--fixed-fps 120`, que comprime minutos de partida em segundos.
 O de fumaça roda em tempo real, porque com a flag o laço principal atropela a thread de

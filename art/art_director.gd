@@ -117,6 +117,9 @@ static func enemy_cell(enemy_name: String) -> int:
 	if "Prensa" in enemy_name: return 6
 	if "FROSTBYTE" in enemy_name: return 7
 	if "Fornalha" in enemy_name: return 8
+	if "SUG" in enemy_name: return 9
+	if "FORMUL" in enemy_name: return 10
+	if "Bolota" in enemy_name: return 11
 	if "Lotada" in enemy_name: return 5
 	if "Geladeira" in enemy_name: return 2
 	if "Disquete" in enemy_name: return 3
