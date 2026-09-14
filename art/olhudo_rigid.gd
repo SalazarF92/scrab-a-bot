@@ -59,6 +59,12 @@ static func compute_pose(mode: int,time: float) -> Dictionary:
 		# for the articulation. Recovery contains an opposing spring rebound.
 		var drive := curve(t,[Vector2(0,0),Vector2(.18,0),Vector2(.62,-.65),Vector2(.74,-.65),Vector2(.85,1.15),Vector2(.94,1.08),Vector2(1.12,.68),Vector2(1.40,-.20),Vector2(1.68,.08),Vector2(2.02,0),Vector2(3.6,0)])
 		p.lower = -.55*drive; p.upper = .90*drive; p.head = -.70*drive
+		# Unfold the support toward the target; counter-rotate the head.
+		# Each link keeps its original length and shared joint position.
+		var extension := smoothstep(0.0,1.15,maxf(drive,0.0))
+		p.lower -= .90*extension
+		p.upper += .40*extension
+		p.head += .50*extension
 		p.cable = curve(t,[Vector2(0,0),Vector2(.74,-.09),Vector2(.88,.25),Vector2(1.10,-.16),Vector2(1.45,.10),Vector2(1.9,0),Vector2(3.6,0)])
 		p.gaze = Vector2(-8,2)
 		p.blink = curve(t,[Vector2(0,0),Vector2(.40,.38),Vector2(.74,.55),Vector2(.81,0),Vector2(1.1,0),Vector2(1.4,.25),Vector2(1.8,0),Vector2(2.8,0),Vector2(2.94,1),Vector2(3.02,1),Vector2(3.18,0),Vector2(3.6,0)])

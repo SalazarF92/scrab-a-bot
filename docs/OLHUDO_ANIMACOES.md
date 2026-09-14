@@ -42,8 +42,8 @@ distintas, com movimento do olhar. Nenhuma peça estica para simular articulaç�
 Três ciclos de 3,6 s: vigilância estacionária, golpe/recuo mecânico e mira/laser.
 
 Revisão do ataque em 14/09: investida mecânica com preparação até 0,62 s,
-retenção até 0,74 s e avanço da lente de mais de 75 pixels do rig em 0,11 s.
-A base permanece fixa. Os dois elos lançam a carcaça à frente, o olho abre no
+retenção até 0,74 s e avanço da lente de aproximadamente 135 pixels do rig em 0,11 s.
+A base permanece fixa. A extensão adicional abre os dois elos e coloca a junta da cabeça 95 pixels à frente da base, compensando a rotação da carcaça para manter o ângulo do golpe. Os dois elos lançam a carcaça à frente, o olho abre no
 ataque e o cabo reage com atraso. O recuo tem contramovimento de mola e acomoda
 o conjunto até 2,02 s. Não há escala animada nem deslocamento artificial da base.
 Revisão ampliada em `scenes/olhudo_attack_review.tscn` e

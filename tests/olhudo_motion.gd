@@ -24,7 +24,10 @@ func _init() -> void:
 	var armed := Rig.transforms(Rig.compute_pose(Rig.Action.ATTACK,.74))
 	var strike := Rig.transforms(Rig.compute_pose(Rig.Action.ATTACK,.85))
 	var lens := Vector2(-90,-71)
-	assert((armed.housing*lens).x-(strike.housing*lens).x > 75,"Attack lacks a forward strike")
+	var advance: float = (armed.housing*lens).x-(strike.housing*lens).x
+	assert(advance > 125,"Attack lacks the extended forward strike")
+	assert(strike.housing.origin.x < strike.base.origin.x-90,"Support joint does not unfold forward")
+	print("Forward lens travel: %.1f px; head mount ahead of base: %.1f px" % [advance,strike.base.origin.x-strike.housing.origin.x])
 	assert((armed.base.origin as Vector2).is_equal_approx(strike.base.origin),"Stationary clamp slides during attack")
 	assert(contours.size() == 9,"Missing reconstructed parts")
 	var lids := []
