@@ -213,6 +213,7 @@ func end_run(sector_reached: int, won: bool = false, extra: Dictionary = {}) -> 
 		"total_copper": copper,
 	}
 	last_run_summary.merge(extra, true)
+	_write_run_log(last_run_summary)
 
 	save_game()
 	save_updated.emit()
@@ -559,3 +560,35 @@ func has_run_state() -> bool:
 func clear_run_state() -> void:
 	if FileAccess.file_exists(run_state_path()):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(run_state_path()))
+
+
+# --- Log de telemetria por run (GDD 7.7) ---
+
+## Pasta do log por run. Vazio: grava em user://telemetry apenas com o save do
+## jogador; um teste com save isolado so grava se definir a pasta.
+var run_log_dir: String = ""
+
+
+func resolved_run_log_dir() -> String:
+	if run_log_dir != "":
+		return run_log_dir
+	return "user://telemetry" if save_path == DEFAULT_SAVE_PATH else ""
+
+
+## Um arquivo por run com resumo, loadout e telemetria completa, para comparar
+## a mediana do quique e as mortes por setor entre versoes.
+func _write_run_log(summary: Dictionary) -> void:
+	var dir := resolved_run_log_dir()
+	if dir == "":
+		return
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(dir))
+	var data := summary.duplicate(true)
+	data["telemetry"] = Telemetry.snapshot()
+	data["median_bounce"] = Telemetry.median_bounce_multiplier()
+	data["ricochet_share"] = Telemetry.ricochet_damage_share()
+	var stamp := Time.get_datetime_string_from_system(true).replace(":", "-")
+	data["date_utc"] = stamp
+	var file := FileAccess.open("%s/%s_%s.json" % [dir, stamp, GameRng.seed_label(run_seed)], FileAccess.WRITE)
+	if file != null:
+		file.store_string(JSON.stringify(data, "\t"))
+		file.close()

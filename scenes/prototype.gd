@@ -252,7 +252,7 @@ func _finish_run(won: bool) -> void:
 	director.stop()
 	var sector := director.sector
 	var caption := RunCaption.build(robot, won, sector, GameRng.run_seed)
-	var summary := MetaManager.end_run(5 if won else sector, won, {"caption": caption})
+	var summary := MetaManager.end_run(5 if won else sector, won, {"caption": caption, "loadout": _loadout_summary()})
 	print("--- %s --- %s" % ["VITORIA DA RUN" if won else "morreu", Telemetry.summary()])
 	print("--- legenda --- ", caption)
 	print("--- resumo --- ", summary)
@@ -514,3 +514,19 @@ func _continue_run() -> void:
 		hud.visible = true
 		_new_room(sector)
 		_refresh_pause()
+
+
+## Loadout no fim da run, para o resumo e o log de telemetria (GDD 7.7:
+## taxa de escolha e de vitoria por peca e por CPU).
+func _loadout_summary() -> Dictionary:
+	var slot_names := {PartData.Slot.ARM_LEFT: "arm_left", PartData.Slot.ARM_RIGHT: "arm_right",
+		PartData.Slot.HEAD: "head", PartData.Slot.CHASSIS: "chassis"}
+	var parts := {}
+	for slot in robot.equipped:
+		var part: PartData = robot.equipped[slot]
+		var grafts := []
+		for g in part.grafts:
+			grafts.append(String(g))
+		parts[slot_names.get(slot, str(slot))] = {"id": String(part.id), "tier": part.fusion_level + 1,
+			"rarity": part.rarity_name(), "grafts": grafts}
+	return {"cpu": String(robot.cpu.id) if robot.cpu != null else "", "parts": parts}

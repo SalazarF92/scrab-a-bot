@@ -33,7 +33,8 @@ $scenes = @(
     @{ Path = "res://tests/audio_cleanup.tscn"; Extra = @() },
     @{ Path = "res://tests/smoke.tscn"; Extra = @() },
     @{ Path = "res://tests/gameplay.tscn"; Extra = @("--fixed-fps", "120") },
-    @{ Path = "res://tests/run_completion.tscn"; Extra = @("--fixed-fps", "120") }
+    @{ Path = "res://tests/run_completion.tscn"; Extra = @("--fixed-fps", "120") },
+    @{ Path = "res://tests/balance_sim_smoke.tscn"; Extra = @("--fixed-fps", "120") }
 )
 
 # Testes de rig e arte: scripts standalone (extends SceneTree), rodados com
