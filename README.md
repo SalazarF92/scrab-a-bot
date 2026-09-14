@@ -21,7 +21,9 @@ a conversão do bestiário acontece por personagem.
 
 ![Jogo com as artes integradas](docs/visual/gameplay.png)
 
-O registro mais recente é [Expansão do bestiário — 11/09](DOCUMENTACAO_EXPANSAO_MOBS_2026-09-11.md):
+O registro mais recente é [Sessão de 14/09](DOCUMENTACAO_2026-09-14.md): auditoria completa e sete etapas
+implementadas, das correções de robustez aos rigs no combate, front-end, save de run e simulador de
+balanceamento. Antes dele, [Expansão do bestiário — 11/09](DOCUMENTACAO_EXPANSAO_MOBS_2026-09-11.md):
 oito novos monstros com habilidades ativas, quatro novos obstáculos, canal alfa transparente
 processado (`assets/art/expansion_atlas_alpha.png`), 10 sintetizadores procedurais de áudio,
 três receitas avançadas de fusão na Bancada e variações visuais completas dos 5 biomas de setor.
@@ -117,6 +119,8 @@ só passa com código 0, a linha `=== TUDO OK ===` e nenhum `SCRIPT ERROR` na sa
 - **`tests/front_end.tscn`** verifica título, pausa, opções, remapeamento, atalhos de desenvolvimento
   desligados, CPU da prateleira na run e o save de estado de run: Bancada e início de setor retomam
   idênticos, e o golpe fatal apaga o save.
+- **`tests/balance_sim_smoke.tscn`** roda o simulador de balanceamento numa run curta: piloto sem abate
+  assistido, Bancada, relatório agregado e log de telemetria por run.
 - **`tests/audio_cleanup.tscn`** verifica liberação dos playbacks, inclusive sons tardios.
 - **`tests/run_completion.tscn`** atravessa os cinco setores com abate assistido: quatro
   bancadas, cinco chefes, vitória, persistência da receita e reinício limpo. Não mede balanceamento.
@@ -137,6 +141,21 @@ Para executar um teste específico: `powershell -ExecutionPolicy Bypass -File te
 O executor também reprova vazamentos de ObjectDB. As capturas com renderer real ficam em
 `docs/visual/`; podem ser regeneradas executando `res://tools/capture_visuals.tscn` com janela.
 Essa cena usa save isolado, gera seis capturas e encerra.
+
+## Simulador de balanceamento
+
+```
+Godot_v4.7.2-stable_win64_console.exe --headless --path . --fixed-fps 120 res://tools/balance_sim.tscn ++ --runs=20 --seed=1000 --max-sector=5
+```
+
+Um piloto automático joga runs completas sem abate assistido, com CPU e peças sorteadas pela
+semente de cada run, sem upgrades da Garagem e com risco zero. O relatório sai em
+`user://balance_sim/report.json`, com vitórias, setores limpos e rebatidas por perda no chão para
+cada CPU, braço, cabeça e chassi. Cada run também grava um log de telemetria. O piloto tem
+habilidade fixa e simples: compara peças e versões entre si, mas não mede a dificuldade que uma
+pessoa sente. Com menos de 10 runs por peça, o relatório não marca nada para revisão.
+
+Toda run jogada com o save real grava um log em `user://telemetry/` (GDD 7.7).
 
 ## Estrutura
 
@@ -218,5 +237,6 @@ e invasões da base.
 
 - `GDD_SCRAP-A-BOT.md` — O GDD v1.0.
 - `GDD_ADENDOS.md` — Lacunas, contradições e riscos do GDD, e na seção F a decisão do formato de poço.
-- `DOCUMENTACAO_2026-09-10.md` — Registro completo da sessão de 10/09: o que mudou, APIs alteradas, decisões, incidentes e pendências. Comece por aqui numa nova sessão.
+- `DOCUMENTACAO_2026-09-14.md` — Auditoria e roteiro de 14/09: sete etapas implementadas, defeitos achados, validação e pendências. Comece por aqui numa nova sessão.
+- `DOCUMENTACAO_2026-09-10.md` — Registro completo da sessão de 10/09: o que mudou, APIs alteradas, decisões, incidentes e pendências.
 - `DOCUMENTACAO_2026-09-09.md` — Relatório técnico de 09/09, anterior às mudanças da seção F.
