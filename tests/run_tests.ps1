@@ -34,7 +34,21 @@ $scenes = @(
     @{ Path = "res://tests/run_completion.tscn"; Extra = @("--fixed-fps", "120") }
 )
 
-if ($Only -and -not ($scenes | Where-Object { $_.Path -like "*/$Only.tscn" })) {
+# Testes de rig e arte: scripts standalone (extends SceneTree), rodados com
+# --script. Mesma regra de aprovacao: codigo 0, "=== TUDO OK ===" e sem erro.
+$scripts = @(
+    "res://tests/mini_prensa_motion.gd",
+    "res://tests/frostbyte_motion.gd",
+    "res://tests/parafuseta_motion.gd",
+    "res://tests/rato_morto_motion.gd",
+    "res://tests/olhudo_motion.gd",
+    "res://tests/creature_mouths.gd",
+    "res://tests/creature_joint_contacts.gd",
+    "res://tests/boss_revision.gd"
+)
+
+$known = ($scenes | ForEach-Object { $_.Path }) + $scripts
+if ($Only -and -not ($known | Where-Object { $_ -like "*/$Only.tscn" -or $_ -like "*/$Only.gd" })) {
     Write-Host "Teste desconhecido: $Only"
     exit 2
 }
@@ -63,6 +77,18 @@ foreach ($scene in $scenes) {
     if (-not $ok) {
         $failed += "$($scene.Path) (saida $code)"
     }
+}
+
+foreach ($script in $scripts) {
+    if ($Only -and $script -notlike "*/$Only.gd") { continue }
+    Write-Host ""
+    Write-Host ">>> $script"
+    $lines = & $Godot --headless --path $project --quit-after 120000 --script $script 2>&1 | ForEach-Object { "$_" }
+    $code = $LASTEXITCODE
+    $text = $lines -join "`n"
+    $lines | Where-Object { $_ -notmatch "^Godot Engine" } | ForEach-Object { Write-Host $_ }
+    $ok = ($code -eq 0) -and ($text -match "=== TUDO OK ===") -and ($text -notmatch "SCRIPT ERROR|ObjectDB.*leaked|Leaked instance:")
+    if (-not $ok) { $failed += "$script (saida $code)" }
 }
 
 Write-Host ""

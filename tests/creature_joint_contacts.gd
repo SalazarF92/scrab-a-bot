@@ -55,5 +55,5 @@ func _init() -> void:
 						quit(1)
 						return
 					checked += 1
-	print("Joint contacts: %d opaque surface probes passed across both rigs and all three cycles" % checked)
+	print("=== TUDO OK === / Joint contacts: %d opaque surface probes passed across both rigs and all three cycles" % checked)
 	quit()

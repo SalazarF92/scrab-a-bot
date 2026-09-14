@@ -130,7 +130,7 @@ static func spec(key: String, sector: int = 1) -> Dictionary:
 	base["visual_id"] = StringName(key)
 	var s := float(sector - 1)
 	base["max_hp"] = base["max_hp"] * pow(HP_PER_SECTOR, s) * MetaManager.get_heat_enemy_hp_mult()
-	base["contact_damage"] = base["contact_damage"] * pow(DAMAGE_PER_SECTOR, s)
+	base["contact_damage"] = base["contact_damage"] * pow(DAMAGE_PER_SECTOR, s) * MetaManager.get_heat_enemy_damage_mult()
 	base["move_speed"] = minf(base["move_speed"] * pow(SPEED_PER_SECTOR, s) * MetaManager.get_heat_enemy_speed_mult(), SPEED_CAP)
 	return base
 

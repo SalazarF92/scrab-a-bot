@@ -168,6 +168,8 @@ func _new_room(sector: int) -> void:
 		for slot in _part_index:
 			robot.equip(_catalog[slot][_part_index[slot]].clone())
 		robot.reset_for_run()
+	else:
+		robot.reset_between_sectors()
 
 	director.arena = arena
 	director.player = robot
@@ -252,8 +254,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		KEY_F1:
 			overlay.visible_panel = not overlay.visible_panel
 		KEY_F2:
-			arena.generate(director.sector)
-			robot.global_position = arena.baseline_spawn()
+			# Regenerar so a arena deixava inimigos e telegrafias da sala antiga
+			# em cima da geometria nova. Reabre a sala inteira.
+			if not _run_over:
+				_new_room(director.sector)
 		KEY_F3:
 			_stress_test()
 		KEY_F4:

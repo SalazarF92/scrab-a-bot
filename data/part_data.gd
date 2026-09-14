@@ -146,13 +146,17 @@ func clone() -> PartData:
 	c.heat_per_shot = heat_per_shot
 	c.fire_rate = fire_rate
 	c.automatic = automatic
-	c.projectile = projectile
+	# Recursos proprios por clone: a peca equipada nunca compartilha estado
+	# com o modelo do catalogo nem com outra copia equipada.
+	c.projectile = projectile.duplicate() if projectile != null else null
 	c.hp = hp
 	c.move_speed = move_speed
 	c.dash_charges = dash_charges
 	c.restitution = restitution
 	c.recipe_only = recipe_only
-	c.behaviors = behaviors.duplicate()
+	c.behaviors = []
+	for b in behaviors:
+		c.behaviors.append(b.duplicate())
 	c.color = color
 	c.silhouette = silhouette
 	c.caption = caption

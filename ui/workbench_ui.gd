@@ -276,14 +276,14 @@ func _try_buy_module(module_id: StringName) -> void:
 	if cost < 0 or robot == null:
 		return
 	if inventory.is_full():
-		_status = "Mochila cheia: funda uma receita ou venda uma bateria para liberar espaco."
+		_status = "Mochila cheia: funda uma receita ou venda um modulo para liberar espaco."
 		return
 	if not MetaManager.spend_scrap(cost):
 		_status = "Falta Sucata para comprar o modulo."
 		Sfx.play("projectile_plop", -4.0)
 		return
 	inventory.add(module_id)
-	_status = "%s guardada. Equipe a Torradeira e pressione F para fundir." % PartLibrary.fusion_module_name(module_id)
+	_status = "%s na mochila. Equipe %s e pressione F para fundir." % [PartLibrary.fusion_module_name(module_id), _recipe_source_name(_recipe_for_module(module_id))]
 	Sfx.play_varied("dash", -6.0)
 	queue_redraw()
 
@@ -298,6 +298,22 @@ func _try_sell_module(module_id: StringName) -> void:
 	queue_redraw()
 
 
+## Nome da peca-fonte de uma receita, para as mensagens nao ficarem presas
+## na Torradeira quando a receita selecionada e outra.
+func _recipe_source_name(recipe: FusionRecipe) -> String:
+	if recipe == null:
+		return "a peca certa"
+	var source := PartLibrary.part_by_id(recipe.source_part_id)
+	return source.display_name if source != null else str(recipe.source_part_id)
+
+
+func _recipe_for_module(module_id: StringName) -> FusionRecipe:
+	for r in _recipes:
+		if r.module_id == module_id:
+			return r
+	return null
+
+
 func recipe_available(index: int) -> bool:
 	if robot == null or index < 0 or index >= _recipes.size():
 		return false
@@ -310,7 +326,9 @@ func recipe_available(index: int) -> bool:
 
 func _try_fuse_recipe(index: int) -> void:
 	if not recipe_available(index):
-		_status = "Receita: Torradeira equipada + 1 Bateria de Carro na mochila."
+		var missing: FusionRecipe = _recipes[index] if index >= 0 and index < _recipes.size() else null
+		if missing != null:
+			_status = "Receita: %s equipada + 1 %s na mochila." % [_recipe_source_name(missing), PartLibrary.fusion_module_name(missing.module_id)]
 		Sfx.play("projectile_plop", -4.0)
 		return
 	var recipe := _recipes[index]

@@ -20,5 +20,5 @@ func _init() -> void:
 		var poly := PackedVector2Array()
 		for xy in contour: poly.append(Vector2(xy[0],xy[1]))
 		assert(not Geometry2D.triangulate_polygon(poly).is_empty())
-	print("Mouths: six textured components, rigid jaw motion, full closure and continuous opening verified")
+	print("=== TUDO OK === / Mouths: six textured components, rigid jaw motion, full closure and continuous opening verified")
 	quit()

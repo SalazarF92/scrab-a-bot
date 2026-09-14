@@ -239,7 +239,9 @@ static func head_parts() -> Array[PartData]:
 	tesla.fire_rate = 1.0 / 3.5
 	tesla.automatic = false
 	tesla.color = Color("#FFD400")
-	tesla.projectile = toaster.projectile
+	# Copia propria: um Resource compartilhado faria qualquer ajuste em tempo
+	# de execucao (velocidade, dano) vazar da Torradeira para a Tesla.
+	tesla.projectile = toaster.projectile.duplicate()
 	var spread5 := BhvSpread.new()
 	spread5.count = 5
 	spread5.angle_deg = 46.0
@@ -345,12 +347,15 @@ static func cpus() -> Array[CpuData]:
 	# combinacao de quatro pecas das tabelas 4.3 a 4.6; a mais barata possivel
 	# custa 101 W. Com 100 W o jogador comeca a primeira run permanentemente em
 	# Subvoltagem, que e uma penalidade, nao uma escolha. Os TDPs abaixo seguem
-	# a regra proposta: no minimo 1,15 vez a build mais barata legal.
+	# a regra proposta: no minimo 1,15 vez a build mais barata legal, calculada
+	# por cheapest_build_watts() e verificada no teste de integracao. Com o
+	# catalogo atual a build mais barata custa 111 W, o piso e 128 W, e o
+	# loadout inicial (117 W) cabe em todas as CPUs.
 	var pentiun := CpuData.new()
 	pentiun.id = &"cpu_pentiun"
 	pentiun.display_name = "Pentiun Ferrugem 100 MHz"
 	pentiun.caption = "um Pentiun enferrujado"
-	pentiun.tdp = 120
+	pentiun.tdp = 132
 	pentiun.heat_capacity = 100.0
 	pentiun.heat_dissipation = 12.0
 	pentiun.damage_mult = 1.10  # "mais 10% de dano geral por ser honesta"
@@ -361,7 +366,7 @@ static func cpus() -> Array[CpuData]:
 	ryzin.id = &"cpu_ryzin"
 	ryzin.display_name = "Ryzin 9 Frito (Overclock)"
 	ryzin.caption = "um Ryzin frito"
-	ryzin.tdp = 116
+	ryzin.tdp = 128
 	ryzin.heat_capacity = 80.0
 	ryzin.heat_dissipation = 7.0
 	ryzin.fire_rate_mult = 1.35
@@ -373,7 +378,7 @@ static func cpus() -> Array[CpuData]:
 	gpu.id = &"cpu_gpu_in_socket"
 	gpu.display_name = "Placa de Video Enfiada no Soquete"
 	gpu.caption = "uma placa de vídeo enfiada no soquete"
-	gpu.tdp = 116
+	gpu.tdp = 128
 	gpu.heat_capacity = 70.0
 	gpu.heat_dissipation = 6.0
 	gpu.bonus_bounces = 2
@@ -383,6 +388,35 @@ static func cpus() -> Array[CpuData]:
 	out.append(gpu)
 
 	return out
+
+
+## GDD_ADENDOS A.5 e APENDICE B item 6: soma da peca mais barata em Watts de
+## cada slot obrigatorio. Toda CPU precisa de TDP >= TDP_FLOOR_RATIO vezes isso.
+const TDP_FLOOR_RATIO := 1.15
+
+static func cheapest_build_watts() -> int:
+	var total := 0
+	for group in [arm_left_parts(), arm_right_parts(), head_parts(), chassis_parts()]:
+		var cheapest := -1
+		for p in group:
+			if p.recipe_only:
+				continue
+			if cheapest < 0 or p.watts < cheapest:
+				cheapest = p.watts
+		total += maxi(cheapest, 0)
+	return total
+
+
+static func min_cpu_tdp() -> int:
+	return int(ceil(float(cheapest_build_watts()) * TDP_FLOOR_RATIO))
+
+
+static func part_by_id(id: StringName) -> PartData:
+	for p in all_parts():
+		if p.id == id:
+			return p
+	push_error("PartLibrary: peca desconhecida " + str(id))
+	return null
 
 
 static func all_parts() -> Array[PartData]:
@@ -400,21 +434,21 @@ static func fusion_recipes() -> Array[FusionRecipe]:
 	tesla.id = &"tesla_toast"
 	tesla.source_part_id = &"head_toaster"
 	tesla.module_id = &"car_battery"
-	tesla.result_part = head_parts()[1]
+	tesla.result_part = part_by_id(&"head_toaster_tesla")
 	tesla.description = "5 torradas; cada quique encadeia raios em ate 3 alvos."
 
 	var drill_super := FusionRecipe.new()
 	drill_super.id = &"diamond_drill"
 	drill_super.source_part_id = &"arm_l_drill"
 	drill_super.module_id = &"diamond_drillbit"
-	drill_super.result_part = arm_left_parts()[3]
+	drill_super.result_part = part_by_id(&"arm_l_drill_super")
 	drill_super.description = "Perfuratriz: perfura 3 inimigos, 5 quiques e velocidade extrema."
 
 	var napalm := FusionRecipe.new()
 	napalm.id = &"napalm_bazooka"
 	napalm.source_part_id = &"arm_r_pipe_bazooka"
 	napalm.module_id = &"propane_tank"
-	napalm.result_part = arm_right_parts()[3]
+	napalm.result_part = part_by_id(&"arm_r_pipe_napalm")
 	napalm.description = "Napalm: foguetes pesados; +60% dano a cada quique."
 
 	return [tesla, drill_super, napalm]

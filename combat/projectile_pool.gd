@@ -400,13 +400,17 @@ func total_bounces() -> int:
 # --- simulacao ----------------------------------------------------------------
 
 ## Ventoinha consulta o pool a 10 Hz. Mantém facção, energia e teto de velocidade.
-func deflect_in_cone(origin: Vector2, axis: Vector2, reach: float, strength: float, delta: float) -> void:
+## Devolve quantos projeteis foram empurrados, para o som so tocar com efeito.
+func deflect_in_cone(origin: Vector2, axis: Vector2, reach: float, strength: float, delta: float) -> int:
+	var pushed := 0
 	for i in MAX_PROJECTILES:
 		if _alive[i] == 0 or _faction[i] != FACTION_PLAYER: continue
 		var offset := _pos[i] - origin
 		if offset.length_squared() > reach * reach or offset.is_zero_approx(): continue
 		if offset.normalized().dot(axis) < 0.6: continue
 		_vel[i] = (_vel[i] + offset.normalized() * strength * delta).limit_length(MAX_SPEED)
+		pushed += 1
+	return pushed
 
 func _physics_process(delta: float) -> void:
 	# Hitstop congela a simulacao, nao os efeitos. GDD 3.4.1.
@@ -518,7 +522,11 @@ func _resolve_bounce(i: int, normal: Vector2, collider_id: int) -> void:
 		# simulacao inteira, o jogo trava sozinho em camera lenta permanente.
 		# A pertinencia ao grupo "damageable" e o que separa alvo de cenario;
 		# um obstaculo destrutivel entra no grupo, uma parede de concreto nao.
-		if node.is_in_group(&"damageable") and node.has_method("take_damage"):
+		# Projetil inimigo so fere o jogador: o cenario destrutivel e alvo do
+		# jogador, nao da horda. Sem este filtro, teclas do QWERTYpede
+		# derrubavam a Carcaca de Fusca e mostravam numero de dano.
+		var can_damage: bool = _faction[i] == FACTION_PLAYER or node.is_in_group(&"player")
+		if can_damage and node.is_in_group(&"damageable") and node.has_method("take_damage"):
 			# Imunidade de acerto repetido. GDD 3.3.2.
 			var same_target: bool = _last_hit_id[i] == collider_id
 			var recent: bool = (_clock - _last_hit_t[i]) < REPEAT_HIT_IMMUNITY
@@ -664,6 +672,7 @@ func request_split(parent: int, count: int, damage_ratio: float, spread_deg: flo
 		"max_bounces": _max_bounces[parent], "gen": _generation[parent] + 1,
 		"restitution": _restitution[parent], "stretch": _stretch[parent],
 		"floor_immune": _floor_immune[parent],
+		"source": _damage_source[parent],
 	})
 
 
@@ -701,6 +710,9 @@ func _flush_splits() -> void:
 			_color[i] = s["color"]
 			_stretch[i] = s["stretch"]
 			_behaviors[i] = null
+			# Sem isto o filho herdava a fonte de dano do ocupante anterior do
+			# slot, e a legenda de morte culpava a peca errada.
+			_damage_source[i] = s["source"]
 			_alive_count += 1
 	_pending_spawns.clear()
 

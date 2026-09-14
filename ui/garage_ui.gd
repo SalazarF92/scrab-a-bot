@@ -34,6 +34,8 @@ var _font: Font
 var _buttons: Array[Dictionary] = [] # {"rect": Rect2, "branch": String, "action": String}
 var _selected_branch: String = "chapa"
 var _copied_time: float = 0.0
+var _reset_armed: float = 0.0
+const RESET_CONFIRM_TIME := 3.0
 
 
 func _ready() -> void:
@@ -56,6 +58,9 @@ func _on_visibility_changed() -> void:
 func _process(delta: float) -> void:
 	if _copied_time > 0.0:
 		_copied_time = maxf(0.0, _copied_time - delta)
+		queue_redraw()
+	if _reset_armed > 0.0:
+		_reset_armed = maxf(0.0, _reset_armed - delta)
 		queue_redraw()
 
 
@@ -142,7 +147,12 @@ func _handle_button_click(btn: Dictionary) -> void:
 		"heat_up":
 			_heat_step(1)
 		"reset_save":
-			MetaManager.reset_save()
+			# Dois cliques em 3 s. Um clique errado apagava o progresso inteiro.
+			if _reset_armed > 0.0:
+				MetaManager.reset_save()
+				_reset_armed = 0.0
+			else:
+				_reset_armed = RESET_CONFIRM_TIME
 			queue_redraw()
 
 
@@ -310,8 +320,10 @@ func _draw_footer(vp: Vector2) -> void:
 
 	draw_string(_font, Vector2(40, vp.y - 32), "[1..5] Upgrades • [< >] Risco • [ESPAÇO] Run • [H] Desafio de hoje • [C] Copiar legenda", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(1, 1, 1, 0.45))
 
-	var reset_rect := Rect2(vp.x - 160, vp.y - 42, 120, 26)
-	draw_rect(reset_rect, Color(0, 0, 0, 0.4))
-	draw_rect(reset_rect, Color(1, 0, 0, 0.4), false, 1.0)
-	draw_string(_font, reset_rect.position + Vector2(10, 18), "Resetar Save", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color("#FF6B6B"))
+	var armed := _reset_armed > 0.0
+	var reset_rect := Rect2(vp.x - 200, vp.y - 42, 160, 26)
+	draw_rect(reset_rect, Color(0.5, 0, 0, 0.6) if armed else Color(0, 0, 0, 0.4))
+	draw_rect(reset_rect, Color(1, 0, 0, 0.9 if armed else 0.4), false, 1.0)
+	var reset_label := "CONFIRMAR? apaga tudo" if armed else "Resetar Save"
+	draw_string(_font, reset_rect.position + Vector2(10, 18), reset_label, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color("#FF6B6B"))
 	_buttons.append({"rect": reset_rect, "branch": "", "action": "reset_save"})

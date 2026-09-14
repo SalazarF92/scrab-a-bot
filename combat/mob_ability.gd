@@ -9,6 +9,8 @@ var target := Vector2.ZERO
 var spawned := 0
 var merged := false
 var wind_clock := 0.0
+var wind_sound_clock := 0.0
+const WIND_SOUND_INTERVAL := 0.5
 var shot: ProjectileType
 
 
@@ -32,10 +34,15 @@ func tick(owner: Node2D, delta: float) -> void:
 	strike = maxf(0.0, strike - delta)
 	if owner.mob_kind == &"fan":
 		wind_clock += delta
+		wind_sound_clock = maxf(0.0, wind_sound_clock - delta)
 		if wind_clock >= 0.10:
 			if player.get("pool") != null:
-				player.pool.deflect_in_cone(owner.global_position, Vector2.DOWN, 250.0, 900.0, 0.10)
-				Sfx.play("wind_deflect", -14.0)
+				var pushed: int = player.pool.deflect_in_cone(owner.global_position, Vector2.DOWN, 250.0, 900.0, 0.10)
+				# O som so toca quando o vento move algo, e no maximo a 2 Hz.
+				# Antes tocava a 10 Hz enquanto o Ventoinha vivesse.
+				if pushed > 0 and wind_sound_clock <= 0.0:
+					Sfx.play("wind_deflect", -14.0)
+					wind_sound_clock = WIND_SOUND_INTERVAL
 			wind_clock = 0.0
 		return
 	if warning > 0.0:

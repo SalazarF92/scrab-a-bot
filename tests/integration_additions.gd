@@ -31,6 +31,13 @@ func _ready() -> void:
 	_test_defense()
 	_test_damage_reporting()
 	_test_assets()
+	_test_power_budget()
+	_test_sector_reset()
+	_test_cooldown_ratio()
+	_test_split_source()
+	_test_enemy_shots_ignore_scenery()
+	_test_heat_damage()
+	_test_recipes_by_id_and_clone_isolation()
 	pool.clear()
 	Sfx.shutdown()
 	for i in 30:
@@ -141,3 +148,112 @@ func _test_assets() -> void:
 	for part in PartLibrary.arm_left_parts() + PartLibrary.arm_right_parts() + PartLibrary.head_parts() + PartLibrary.chassis_parts():
 		check(ArtDirector.PART_CELLS.has(part.id), "Peca sem sprite: " + str(part.id))
 	print("  assets locais, resolucao, alpha e cobertura das pecas: OK")
+
+
+## GDD_ADENDOS A.5: nenhuma CPU pode ter TDP abaixo de 1,15x a build mais barata,
+## e o loadout inicial da cena principal tem que caber em todas as CPUs.
+func _test_power_budget() -> void:
+	var floor_w := PartLibrary.min_cpu_tdp()
+	check(PartLibrary.cheapest_build_watts() == 111, "Build mais barata deve somar 111 W (ratoeira, HD, torradeira, molas)")
+	for c in PartLibrary.cpus():
+		check(c.tdp >= floor_w, "CPU %s tem TDP %d abaixo do piso %d" % [c.display_name, c.tdp, floor_w])
+	var start_w := PartLibrary.arm_left_parts()[0].watts + PartLibrary.arm_right_parts()[0].watts + PartLibrary.head_parts()[0].watts + PartLibrary.chassis_parts()[0].watts
+	for c in PartLibrary.cpus():
+		check(start_w <= c.tdp, "Loadout inicial (%d W) nasce em subvoltagem na CPU %s" % [start_w, c.display_name])
+	print("  piso de TDP das CPUs e loadout inicial sem subvoltagem: OK")
+
+
+func _test_sector_reset() -> void:
+	robot.equip(PartLibrary.chassis_parts()[0].clone())
+	robot.reset_for_run()
+	robot.hp = robot.max_hp * 0.4
+	robot.heat = 70.0
+	robot._purge_cd = 5.0
+	robot._iframes = 0.4
+	robot.jam_slot(PartData.Slot.HEAD, 12345, 8.0)
+	robot._cooldowns[PartData.Slot.HEAD] = 2.0
+	robot.reset_between_sectors()
+	check(is_equal_approx(robot.hp, robot.max_hp * 0.4), "Reset entre setores deve preservar HP")
+	check(robot.heat == 0.0 and robot._purge_cd == 0.0 and robot._iframes == 0.0, "Reset entre setores zera calor, purga e i-frames")
+	check(robot.slot_jam_remaining(PartData.Slot.HEAD) == 0.0 and robot._cooldowns.is_empty(), "Reset entre setores libera cadeado e recargas")
+	print("  reset entre setores preserva HP e limpa estado de combate: OK")
+
+
+func _test_cooldown_ratio() -> void:
+	robot.reset_for_run()
+	var head: PartData = robot.equipped[PartData.Slot.HEAD]
+	robot.set_cpu(PartLibrary.cpus()[1])  # Ryzin: cadencia x1,35
+	var nominal := 1.0 / head.fire_rate
+	robot._cooldowns[PartData.Slot.HEAD] = nominal / 1.35
+	robot._cooldown_full[PartData.Slot.HEAD] = nominal / 1.35
+	check(is_equal_approx(robot.cooldown_ratio(PartData.Slot.HEAD), 1.0), "Barra de recarga deve marcar 100% logo apos o tiro com a cadencia real")
+	robot._cooldowns[PartData.Slot.HEAD] = 0.0
+	check(robot.cooldown_ratio(PartData.Slot.HEAD) == 0.0, "Barra zera quando a recarga acaba")
+	robot.set_cpu(PartLibrary.cpus()[0])
+	print("  barra de recarga usa a duracao real do disparo: OK")
+
+
+func _test_split_source() -> void:
+	pool.clear()
+	var stale := ProjectileType.make({"damage": 10.0, "damage_source": "por um tiro antigo"})
+	var fresh := ProjectileType.make({"damage": 10.0, "damage_source": "pela Fonte 500W"})
+	# Ocupa o slot 0 com uma fonte antiga, mata, e deixa um pai dividir nele.
+	var old := pool.spawn(Vector2(500, 500), Vector2.UP, stale)
+	pool.kill(old, false)
+	var parent := pool.spawn(Vector2(500, 600), Vector2.UP, fresh)
+	pool.request_split(parent, 2, 0.5, 30.0)
+	pool._flush_splits()
+	var sources: Array = pool.get("_damage_source")
+	var found := 0
+	for i in ProjectilePool.MAX_PROJECTILES:
+		if i != parent and pool.is_alive(i):
+			found += 1
+			check(sources[i] == "pela Fonte 500W", "Filho de divisao herdou fonte de dano errada: " + str(sources[i]))
+	check(found == 2, "Divisao deve gerar dois filhos vivos")
+	pool.clear()
+	print("  filhos de divisao carregam a fonte de dano do pai: OK")
+
+
+func _test_enemy_shots_ignore_scenery() -> void:
+	pool.clear()
+	var crate := Obstacle.new()
+	crate.destructible = true
+	crate.max_hp = 100.0
+	add_child(crate)
+	crate.global_position = Vector2(500, 400)
+	var shot := ProjectileType.make({"damage": 50.0, "speed": 300.0})
+	var i := pool.spawn(Vector2(500, 380), Vector2.DOWN, shot, ProjectilePool.FACTION_ENEMY)
+	pool._resolve_bounce(i, Vector2.UP, crate.get_instance_id())
+	check(is_equal_approx(crate.hp, 100.0), "Projetil inimigo nao pode danificar cenario destrutivel")
+	check(pool.is_alive(i), "Projetil inimigo deve quicar no cenario, nao morrer")
+	var j := pool.spawn(Vector2(500, 380), Vector2.DOWN, shot, ProjectilePool.FACTION_PLAYER)
+	pool._resolve_bounce(j, Vector2.UP, crate.get_instance_id())
+	check(crate.hp < 100.0, "Projetil do jogador continua danificando cenario destrutivel")
+	crate.queue_free()
+	pool.clear()
+	print("  cenario destrutivel so recebe dano do jogador: OK")
+
+
+func _test_heat_damage() -> void:
+	MetaManager.selected_heat = 0
+	var base: float = EnemyLibrary.spec("parafuseta", 1)["contact_damage"]
+	MetaManager.selected_heat = 5
+	var hot: float = EnemyLibrary.spec("parafuseta", 1)["contact_damage"]
+	MetaManager.selected_heat = 0
+	check(hot > base * 1.25 and hot < base * 1.35, "Risco 5 deve subir o dano inimigo em torno de 30%% (base %.1f, risco %.1f)" % [base, hot])
+	print("  nivel de risco escala dano inimigo: OK")
+
+
+func _test_recipes_by_id_and_clone_isolation() -> void:
+	for r in PartLibrary.fusion_recipes():
+		check(r.result_part != null and r.result_part.recipe_only, "Receita %s deve apontar para uma peca recipe_only por id" % r.id)
+		check(PartLibrary.part_by_id(r.source_part_id) != null, "Receita %s aponta para fonte inexistente" % r.id)
+	var toaster := PartLibrary.head_parts()[0]
+	var tesla := PartLibrary.part_by_id(&"head_toaster_tesla")
+	check(toaster.projectile != tesla.projectile, "Torradeira e Tesla nao podem compartilhar o mesmo ProjectileType")
+	var a := toaster.clone()
+	var b := toaster.clone()
+	a.projectile.speed += 100.0
+	check(b.projectile.speed == toaster.projectile.speed, "Clone deve ter ProjectileType proprio")
+	check(a.behaviors[0] != b.behaviors[0], "Clone deve ter comportamentos proprios")
+	print("  receitas por id e isolamento de recursos nos clones: OK")

@@ -96,6 +96,7 @@ var _purge_cd: float = 0.0
 var _spasm_timer: float = 0.0
 var _spasm_lock: float = 0.0
 var _cooldowns: Dictionary = {}
+var _cooldown_full: Dictionary = {}  # duracao total da ultima recarga por slot, para a HUD
 var _fire_ctx := FireContext.new()
 var _recoil: Vector2 = Vector2.ZERO
 var _hit_flash: float = 0.0
@@ -187,6 +188,7 @@ func reset_for_run() -> void:
 	_dash_buffer = 0.0
 	_recoil = Vector2.ZERO
 	_cooldowns.clear()
+	_cooldown_full.clear()
 	velocity = Vector2.ZERO
 	deform = Vector2.ONE
 	last_damage_source = ""
@@ -261,8 +263,38 @@ func cooldown_ratio(slot: int) -> float:
 	var part: PartData = equipped.get(slot)
 	if part == null:
 		return 0.0
-	var full := 1.0 / maxf(part.fire_rate, 0.01)
-	return clampf(_cooldowns.get(slot, 0.0) / full, 0.0, 1.0)
+	# Usa a duracao real gravada no disparo, que ja inclui cadencia da CPU,
+	# subvoltagem e bonus de comportamento. Antes a HUD dividia pela cadencia
+	# nominal da peca e mostrava a barra fora de sincronia com o tiro.
+	var full: float = _cooldown_full.get(slot, 1.0 / maxf(part.fire_rate, 0.01))
+	return clampf(_cooldowns.get(slot, 0.0) / maxf(full, 0.001), 0.0, 1.0)
+
+
+## Entre setores: a Bancada nao e uma pausa no combate, e uma oficina. Calor,
+## recargas, cadeados e i-frames nao atravessam a porta. HP, pecas, mochila e
+## cargas de dash gastas sao mantidos, porque sao o custo da run.
+func reset_between_sectors() -> void:
+	_jammed_slots.clear()
+	heat = 0.0
+	overheated = false
+	_overheat_timer = 0.0
+	_heat_idle = 0.0
+	_purge_cd = 0.0
+	_iframes = 0.0
+	_hit_flash = 0.0
+	_paddle_flash = 0.0
+	_spasm_timer = 0.0
+	_spasm_lock = 0.0
+	_dash_time = 0.0
+	_dash_buffer = 0.0
+	_recoil = Vector2.ZERO
+	_cooldowns.clear()
+	_cooldown_full.clear()
+	velocity = Vector2.ZERO
+	deform = Vector2.ONE
+	for w in steam_walls:
+		w.retract()
+	stats_changed.emit()
 
 
 # --- ciclo de fisica ----------------------------------------------------------
@@ -464,6 +496,7 @@ func _try_fire(slot: int, action: String) -> void:
 
 	rate *= (1.0 + _fire_ctx.fire_rate_add)
 	_cooldowns[slot] = 1.0 / maxf(rate, 0.01)
+	_cooldown_full[slot] = _cooldowns[slot]
 
 	var shots: int = 1 + _fire_ctx.extra_shots
 	var spread: float = _fire_ctx.spread_radians

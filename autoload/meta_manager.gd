@@ -341,6 +341,12 @@ func get_heat_enemy_speed_mult() -> float:
 	return minf(1.0 + float(active_heat()) * 0.05, 1.40)
 
 
+## Dano de contato e de projetil inimigo. Sem isto o nivel de risco so
+## engrossava e acelerava os inimigos, e o jogador nunca sentia o golpe.
+func get_heat_enemy_damage_mult() -> float:
+	return 1.0 + float(active_heat()) * 0.06
+
+
 func get_heat_descent_mult() -> float:
 	return 1.0 + float(active_heat()) * 0.08
 

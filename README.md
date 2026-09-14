@@ -75,7 +75,7 @@ powershell -ExecutionPolicy Bypass -File tests\run_tests.ps1
 
 Sai com código 0 ou 1, então serve direto como passo de integração contínua. O executor
 importa o projeto antes de tudo, porque a pasta `.godot` não vai para o git e sem ela
-nenhum `class_name` compila num clone limpo. Depois roda oito cenas headless, e cada uma
+nenhum `class_name` compila num clone limpo. Depois roda oito cenas headless e oito testes de rig por `--script`, e cada um
 só passa com código 0, a linha `=== TUDO OK ===` e nenhum `SCRIPT ERROR` na saída.
 
 - **`tests/compile_check.tscn`** carrega todos os scripts do projeto. Não referencia nenhuma
@@ -92,6 +92,11 @@ só passa com código 0, a linha `=== TUDO OK ===` e nenhum `SCRIPT ERROR` na sa
 
 - **`tests/integration_additions.tscn`** verifica receita, mochila, saldo, revenda,
   defesa/reflexão do Cofre, dano mitigado na telemetria e assets com alpha.
+  Também o piso de TDP das CPUs (adendo A.5), o reset entre setores, a barra de recarga,
+  a fonte de dano dos filhos de divisão, cenário imune a tiro inimigo, dano por risco e
+  isolamento de recursos nos clones.
+- **Testes de rig** (`tests/*_motion.gd`, `creature_mouths.gd`, `creature_joint_contacts.gd`,
+  `boss_revision.gd`) verificam rigidez, continuidade, bocas e juntas dos rigs articulados.
 - **`tests/boss_combat.tscn`** verifica blindagem, fases, telegrafia, esquiva e pool dos chefes.
 - **`tests/mob_expansion.tscn`** verifica habilidades, divisões, bloqueios, vento, laser,
   explosão, fusão, fabricação e reciclagem dos oito novos monstros.

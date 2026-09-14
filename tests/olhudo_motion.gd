@@ -44,5 +44,5 @@ func _init() -> void:
 			if Geometry2D.is_point_in_polygon(point,lids[0]) or Geometry2D.is_point_in_polygon(point,lids[1]): covered += 1
 	print("Eyelid coverage: %d / %d" % [covered,total])
 	assert(float(covered)/total > .98,"Eyelids do not close the optical aperture")
-	print("Olhudo: %d poses, fixed-size pieces, connected pivots, continuous cycles, .8s warning and closed eyelids verified" % checks)
+	print("=== TUDO OK === / Olhudo: %d poses, fixed-size pieces, connected pivots, continuous cycles, .8s warning and closed eyelids verified" % checks)
 	quit()
